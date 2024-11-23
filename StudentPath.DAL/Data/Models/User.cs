@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Identity;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -7,44 +8,64 @@ using System.Threading.Tasks;
 
 namespace StudentPath.DAL.Data.Models
 {
-    public class User
+    public enum UserTypeEnum
     {
-        public int UserId { get; set; }  // Primary key
+        Student = 1,
+        Driver = 2,
+        Admin = 3
 
-        [Required]
-        public string FullName { get; set; }
+    }
+    public enum GenderType
+    {
+        Male = 1,
+        Female = 2
 
+    }
+
+    public enum ApprovalStatus
+    {
+        Pending,
+        Approved,
+        Denied
+    }
+    public class User : IdentityUser
+    {
         [Range(18, 100)]
         public int Age { get; set; }
 
-        [Required]
-        public string ID { get; set; }  // National ID 
-
-        [Phone]
-        public string PhoneNumber { get; set; }
-
-        [Required]
-        [EmailAddress]
-        public string Email { get; set; }
-
-        [Required]
-        public string Password { get; set; }
-
-        [Required]
-        [Compare("Password")]
-        public string ConfirmPassword { get; set; }
+        public GenderType Gender { get; set; }
 
         public string Address { get; set; }
 
-        public UserRole Role { get; set; }  // Enum for 'User' or 'Driver'
+        [DataType(DataType.ImageUrl)]
+        public string? ImgUrl { get; set; } // Optional profile picture
+        public string SSN { get; set; }
 
-        // Driver Specific Fields
-        public VehicleInfo VehicleInfo { get; set; }  // Optional for drivers
+        public UserTypeEnum UserType { get; set; }
+
+        public bool IsBanned { get; set; } = false;
+
+        public bool IsDeleted { get; set; } = false;
+    }
+    // Student subclass
+    public class Student : User
+    {
+        public string Grade { get; set; }
+        // Relationship with a driver (if needed, e.g., for student transportation)
+        public virtual ICollection<DriverStudent> DriverStudents { get; set; } = new HashSet<DriverStudent>();
+
     }
 
-    public enum UserRole
+    // Driver subclass
+    public class Driver : User
     {
-        User,
-        Driver
+        public ApprovalStatus? Status { get; set; } = ApprovalStatus.Pending;
+        public string DrivingLicense { get; set; }
+        public virtual ICollection<VehicleInfo> VehicleInfo { get; set; } = new HashSet<VehicleInfo>(); // Associated Vehicle
+                                                                                                   // Relationship with students (if needed)
+        public virtual ICollection<DriverStudent> DriverStudents { get; set; } = new HashSet<DriverStudent>();
+    }
+    public class Admin : User
+    {
     }
 }

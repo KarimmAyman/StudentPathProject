@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -11,28 +12,31 @@ namespace StudentPath.DAL.Data.Models
     {
         public int TripId { get; set; }  // Primary key
 
-        [Required]
+        [Required, MaxLength(100)]
         public string FromLocation { get; set; }
 
-        [Required]
+        [Required, MaxLength(100)]
         public string ToLocation { get; set; }
 
         [Required]
-        public DateTime DepartureTime { get; set; }// This marks the beginning of the journey from the departure location.
+        public DateTime DepartureTime { get; set; }  // Start of the trip
 
-        [Range(1, 50)]  // Assuming max 50 seats
+        [Range(1, 50)]
         public int AvailableSeats { get; set; }
 
-        [Required]
-        public decimal PricePerSeat { get; set; }
+        [Required, Range(0.01, 1000.00)]
+        public decimal PricePerSeat { get; set; }  // Cost of each seat
 
-        public string Description { get; set; }
+        [MaxLength(500)]
+        public string Description { get; set; }  // Optional trip details
 
-        public int DriverId { get; set; }  // Foreign key to Driver (User)
-        public User Driver { get; set; }  // Navigation property
+        // Foreign key to Driver
+        [ForeignKey("Driver")]
+        public string DriverId { get; set; }
+        public virtual Driver Driver { get; set; }  // Specific navigation to Driver
 
-        // Relationship with bookings
-        public ICollection<Booking> Bookings { get; set; }
+        // Relationship with Bookings
+        public virtual ICollection<Booking> Bookings { get; set; } = new HashSet<Booking>();
     }
 
 }

@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -9,26 +11,36 @@ namespace StudentPath.DAL.Data.Models
 
     public class Booking
     {
+        [Key]
         public int BookingId { get; set; }  // Primary key for booking
 
-        public int UserId { get; set; }  
-        public User User { get; set; }
+        [Required]
+        [ForeignKey("User")]
+        public string UserId { get; set; }  // Foreign key to User
+        public virtual User User { get; set; }  // Navigation property
 
-        public int TripId { get; set; }  
-        public Trip Trip { get; set; } 
+        [Required]
+        [ForeignKey("Trip")]
+        public int TripId { get; set; }  // Foreign key to Trip
+        public virtual Trip Trip { get; set; }  // Navigation property
 
-        public DateTime BookingDate { get; set; }  
+        [Required]
+        public DateTime BookingDate { get; set; }  // Date of booking
 
-        public decimal TotalPrice { get; set; } 
+        [Required]
+        [Range(0.01, double.MaxValue, ErrorMessage = "Total price must be greater than 0.")]
+        public decimal TotalPrice { get; set; }  // Total price for the booking
 
-        public bool IsCancelled { get; set; }  
+        public bool IsCancelled { get; set; } = false;  // Default value is false
 
+        [Required]
         public PaymentStatus PaymentStatus { get; set; }  // Status of the payment (Pending, Paid, Cancelled)
-        //link Booking with an EscrowAccount
-        public int? EscrowAccountId { get; set; }  // Foreign Key to EscrowAccount
-        public EscrowAccount EscrowAccount { get; set; }  // Navigation property to EscrowAccount
 
+        // Relationship to EscrowAccount (optional)
+        public int? EscrowAccountId { get; set; }  // Foreign Key to EscrowAccount
+        public virtual EscrowAccount EscrowAccount { get; set; }  // Navigation property to EscrowAccount
     }
+
     public enum PaymentStatus
     {
         Pending,  // Payment is pending or in escrow
@@ -38,11 +50,12 @@ namespace StudentPath.DAL.Data.Models
 
     public enum BookingStatus
     {
-        Pending,  // Booking is confirmed but payment is pending
+        Pending,   // Booking is confirmed but payment is pending
         Confirmed, // Booking is confirmed and payment is completed
         Cancelled  // Booking has been cancelled by the user
     }
-
 }
+
+
 
 

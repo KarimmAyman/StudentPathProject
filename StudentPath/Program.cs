@@ -10,7 +10,7 @@ builder.Services.AddControllers();
 //StudentPathContext
 builder.Services.AddDbContext<StudentPathContext>(options =>
 {
-    options.UseSqlServer(builder.Configuration.GetConnectionString("cs"));
+    options.UseLazyLoadingProxies().UseSqlServer(builder.Configuration.GetConnectionString("cs"));
 
 });
 

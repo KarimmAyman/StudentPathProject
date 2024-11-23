@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using StudentPath.DAL.Data.Configurations;
 using StudentPath.DAL.Data.Models;
 using System;
 using System.Collections.Generic;
@@ -16,19 +17,31 @@ namespace StudentPath.DAL.Data.DBHelpers
         }
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            base.OnConfiguring(optionsBuilder);
-            optionsBuilder.UseLazyLoadingProxies(true);
+            //base.OnConfiguring(optionsBuilder);
+            //optionsBuilder.UseLazyLoadingProxies(true);
         }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.ApplyConfiguration(new UserEntityTypeConfigurations());
+            modelBuilder.ApplyConfiguration(new BookingEntityTypeConfigurations());
+            modelBuilder.ApplyConfiguration(new DriverStudentEntityTypeConfigurations());
+
+
+
 
         }
-        public DbSet<User> Users { get; set; }
-        public DbSet<VehicleInfo> vehicleInfos { get; set; }
-        public DbSet<Trip> Trips { get; set; }
-        public DbSet<Booking> Bookings { get; set; }
-        public DbSet<Payment> Payments { get; set; }
-        public DbSet<EscrowAccount> EscrowAccounts { get; set; }
-        public DbSet<Notification> Notifications { get; set; }
+        public virtual DbSet<User> Users { get; set; }
+        public virtual DbSet<Student> Students { get; set; }
+        public virtual DbSet<DriverStudent> DriverStudents { get; set; }
+        public virtual DbSet<Driver> Drivers { get; set; }
+        public virtual DbSet<Admin> Admins { get; set; }
+        public virtual DbSet<VehicleInfo> vehicleInfos { get; set; }
+        public virtual DbSet<Trip> Trips { get; set; }
+        public virtual DbSet<Booking> Bookings { get; set; }
+        public virtual DbSet<Payment> Payments { get; set; }
+        public virtual DbSet<EscrowAccount> EscrowAccounts { get; set; }
+        public virtual DbSet<Notification> Notifications { get; set; }
+        public virtual DbSet<CustomRole> CustomRoles { get; set; }
+
     }
 }

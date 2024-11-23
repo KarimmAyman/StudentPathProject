@@ -13,6 +13,13 @@ namespace StudentPath.DAL.Data.Configurations
     {
         public void Configure(EntityTypeBuilder<User> builder)
         {
+            //Configure TPH(Table-Per - Hierarchy) inheritance
+       //     builder
+       //.HasDiscriminator<UserTypeEnum>("UserType")
+       //.HasValue<User>(UserTypeEnum.User)      // Add a value for User
+       //.HasValue<Student>(UserTypeEnum.Student)
+       //.HasValue<Driver>(UserTypeEnum.Driver)
+       //.HasValue<Admin>(UserTypeEnum.Admin);
         }
     }
 }
