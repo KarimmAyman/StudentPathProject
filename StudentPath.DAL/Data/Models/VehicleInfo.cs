@@ -13,13 +13,13 @@ namespace StudentPath.DAL.Data.Models
         public int VehicleInfoId { get; set; }  // Primary key
 
         [Required, MaxLength(50)]
-        public string VehicleType { get; set; }
+        public string VehicleType { get; set; } = null;
 
         [Required, MaxLength(20)]
-        public string LicensePlate { get; set; }
+        public string LicensePlate { get; set; } = null;
 
         [Range(1, 50)]
-        public int SeatingCapacity { get; set; }
+        public int SeatingCapacity { get; set; } = 0;
 
         // Foreign key and navigation property specific to Driver
         [ForeignKey("Driver")]
