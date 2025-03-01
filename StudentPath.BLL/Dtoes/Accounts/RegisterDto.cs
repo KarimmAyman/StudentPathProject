@@ -15,7 +15,7 @@ namespace StudentPath.BLL.Dtos.Accounts
        
             [Required(ErrorMessage = "Username is required")]
             [StringLength(80, ErrorMessage = "Username must be between 5 and 80 characters", MinimumLength = 5)]
-            public string UserName { get; set; }
+            public string FullName { get; set; }
 
             [Required(ErrorMessage = "Email is required")]
             [DataType(DataType.EmailAddress)]
@@ -31,11 +31,11 @@ namespace StudentPath.BLL.Dtos.Accounts
             [DataType(DataType.Password)]
             [Compare("Password", ErrorMessage = "Password and confirmation do not match")]
             public string ConfirmedPassword { get; set; }
-        public string? Address { get; set; }
+
 
         [DataType(DataType.ImageUrl)]
         public string? ImgUrl { get; set; }
-        public string SSN { get; set; }
+
 
         [Required(ErrorMessage = "UserType is required")]
             public UserTypeEnum UserType { get; set; } = UserTypeEnum.User;

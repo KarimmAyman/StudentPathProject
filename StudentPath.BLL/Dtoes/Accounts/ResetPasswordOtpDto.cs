@@ -9,7 +9,7 @@ namespace StudentPath.BLL.Dtoes.Accounts
     public class ResetPasswordOtpDto
     {
         public string Email { get; set; }
-        public string Otp { get; set; }
+       
         public string NewPassword { get; set; }
         public string ConfirmedNewPassword { get; set; }
     }

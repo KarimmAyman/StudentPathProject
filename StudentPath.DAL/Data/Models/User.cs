@@ -32,18 +32,18 @@ namespace StudentPath.DAL.Data.Models
         Approved,
         Denied
     }
+
     public class User : IdentityUser
     {
+
         [Range(18, 100)]
         public int Age { get; set; }
 
         public GenderType Gender { get; set; }
 
-        public string Address { get; set; }
 
         [DataType(DataType.ImageUrl)]
         public string? ImgUrl { get; set; } // Optional profile picture
-        public string SSN { get; set; }
 
         public UserTypeEnum UserType { get; set; }
 
@@ -59,6 +59,8 @@ namespace StudentPath.DAL.Data.Models
 
         public string? OtpCode { get; set; } // Stores the OTP
         public DateTime? OtpExpiry { get; set; } // Stores the OTP expiration time
+        public bool IsOtpVerified { get; set; } = false; // ✅ New Property to track OTP verification
+
     }
     // Student subclass
     public class Student : User

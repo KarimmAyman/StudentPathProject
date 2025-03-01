@@ -1,14 +1,10 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Routing;
-using Microsoft.IdentityModel.Tokens;
+using Microsoft.Extensions.Caching.Memory;
 using StudentPath.BLL.Dtoes.Accounts;
 using StudentPath.BLL.Dtos.Accounts;
 using StudentPath.BLL.Services.AccountService;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
+using System.Threading.Tasks;
 
 namespace StudentPath.API.Controllers
 {
@@ -18,164 +14,84 @@ namespace StudentPath.API.Controllers
     {
         private readonly IConfiguration _configuration;
         private readonly IAccountService _accountService;
+        private readonly IMemoryCache _memoryCache;
 
-        public AccountsController(IConfiguration configuration, IAccountService accountService) {
+        public AccountsController(IConfiguration configuration, IAccountService accountService, IMemoryCache memoryCache)
+        {
             _configuration = configuration;
             _accountService = accountService;
+            _memoryCache = memoryCache;
         }
+
         [HttpPost("Register")]
-        public async Task<ActionResult> Register(RegisterDto registerDto)
+        public async Task<IActionResult> Register(RegisterDto registerDto)
         {
-
-
-
-            // This provides the UrlHelper instance
-            var urlHelper = Url;
-
-            // Pass the urlHelper to the Register method
-            var response = await _accountService.Register(registerDto, urlHelper);
-
+            var response = await _accountService.Register(registerDto, Url);
             if (response.successed)
-            {
+                return Ok(new { successed = true, message = "Registration successful." });
 
-                // return CreatedAtAction(nameof(Register), response);
-                return Ok(new { message = "Register successful" });
-
-            }
-
-
-            return BadRequest(response.Errors);
+            return BadRequest(new { successed = false, errors = response.Errors });
         }
 
         [HttpPost("Login")]
-        public async Task<ActionResult> Login(LoginDto loginDto)
+        public async Task<IActionResult> Login(LoginDto loginDto)
         {
-
-
-
             var response = await _accountService.Login(loginDto);
-
             if (response.successed)
-            {
-                return Ok(new { message = "Login successful" });
-            }
+                return Ok(new { successed = true, message = "Login successful.", token = response.Token });
 
-            // Return unauthorized if login failed
-            return Unauthorized(response.Errors);
+            return Unauthorized(new { successed = false, errors = response.Errors });
         }
-        [HttpGet("ConfirmEmail")]
-        [ApiExplorerSettings(IgnoreApi = true)]
-        public async Task<IActionResult> ConfirmEmail(string userId, string token)
-        {
 
-            var responce = await _accountService.ConfirmEmail(userId, token);
-            if (responce.successed)
-
-            {
-                return Ok(new { message = "Email confirmed successfully" });
-            }
-            return BadRequest(responce.Errors);
-        }
-        #region forgetpasswordAndSendLink
-        [HttpPost("ForgotPassword")]
-        [ApiExplorerSettings(IgnoreApi = true)]
-        public async Task<IActionResult> ForgotPassword(ForgotPasswordDto forgotPasswordDto)
-        {
-
-
-            var UrlHepler = Url;
-            var result = await _accountService.ForgotPassword(forgotPasswordDto);
-            if (result.successed)
-            {
-                return Ok(new { message = "Password reset email sent successfully. Please check your inbox." });
-            }
-            return BadRequest(result.Errors);
-        }
-        #endregion
-        #region ResetPasswordByClickLink
-
-        [HttpPost("ResetPassword")]
-        [ApiExplorerSettings(IgnoreApi = true)]
-        public async Task<IActionResult> ResetPassword(ResetPasswordDto resetPasswordDto)
-        {
-
-
-            var UrlHepler = Url;
-            var result = await _accountService.ResetPassword(resetPasswordDto);
-            if (result.successed)
-            {
-                return Ok(new { message = "Your password has been reset successfully." });
-            }
-            return BadRequest(result.Errors);
-        }
-        #endregion
-        #region showResetToken
-
-        [HttpGet("ShowResetToken")]
-        [ApiExplorerSettings(IgnoreApi = true)]
-        public IActionResult ShowResetToken(string token, string email)
-        {
-
-            return Ok(new
-            {
-
-                Token = token,
-
-
-                Email = email
-            });
-        }
-        #endregion
         [HttpPost("send-otp-for-password-reset")]
         public async Task<IActionResult> SendOtpForPasswordReset([FromBody] ForgotPasswordDto forgotPasswordDto)
         {
             var response = await _accountService.SendOtpForPasswordReset(forgotPasswordDto);
             if (response.successed)
-            {
-                return Ok(new { message = "OTP sent successfully. Please check your email." });
-            }
-            return BadRequest(response);
+                return Ok(new { successed = true, message = "OTP sent successfully. Please check your email." });
+
+            return BadRequest(new { successed = false, errors = response.Errors });
         }
 
-      
-        /// <summary>
-        /// Resets the user's password using the verified OTP.
-        /// </summary>
+        [HttpPost("verify-otp")]
+        public async Task<IActionResult> VerifyOtp([FromBody] VerifyOtpDto request)
+        {
+            bool isOtpValid = await _accountService.VerifyOtpAsync(request.Email, request.Otp);
+            if (!isOtpValid)
+            {
+                return BadRequest(new { successed = false, errors = new[] { "Invalid or expired OTP." } });
+            }
+
+            // حفظ حالة التحقق في الكاش لمدة 15 دقيقة
+            _memoryCache.Set($"VerifiedOtp_{request.Email}", true, TimeSpan.FromMinutes(15));
+
+            return Ok(new { successed = true, message = "OTP verified successfully." });
+        }
+
+
         [HttpPost("reset-password-with-otp")]
         public async Task<IActionResult> ResetPasswordWithOtp([FromBody] ResetPasswordOtpDto resetPasswordOtpDto)
         {
+            // التحقق مما إذا كان المستخدم قد أتمّ التحقق من OTP
+            if (!_memoryCache.TryGetValue($"VerifiedOtp_{resetPasswordOtpDto.Email}", out bool isVerified) || !isVerified)
+                return BadRequest(new { successed = false, errors = new[] { "OTP verification expired. Please request a new OTP." } });
+
             var response = await _accountService.ResetPasswordWithOtp(resetPasswordOtpDto);
             if (response.successed)
             {
-                return Ok(new { message = "Password reset successful. You can now log in with your new password." });
-            }
-            return BadRequest(response);
-        }
-
-        [HttpPost("resend-email-verification")]
-        public async Task<IActionResult> ResendEmailVerification([FromBody] ForgotPasswordDto resendEmailDto)
-        {
-            // Use the Url property to generate the confirmation link
-            var response = await _accountService.ResendEmailVerification(resendEmailDto.Email, Url);
-
-            if (response.successed)
-            {
-                return Ok(new { message = "Verification email has been resent successfully." });
+                // إزالة حالة التحقق من الكاش بعد إعادة تعيين كلمة المرور
+                _memoryCache.Remove($"VerifiedOtp_{resetPasswordOtpDto.Email}");
+                return Ok(new { successed = true, message = "Password reset successful. You can now log in with your new password." });
             }
 
-            return BadRequest(new { errors = response.Errors });
+            return BadRequest(new { successed = false, errors = response.Errors });
         }
+
         [HttpPost("logout")]
         public async Task<IActionResult> Logout()
         {
-            // Call the Logout method in your service
             await _accountService.Logout();
-
-            return Ok(new { message = "You have been logged out successfully." });
+            return Ok(new { successed = true, message = "You have been logged out successfully." });
         }
-
-
-
-
     }
 }

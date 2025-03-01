@@ -21,7 +21,9 @@ namespace StudentPath.BLL.Services.AccountService
         //Task<GeneralRespnose> VerifyOtpForPasswordReset(string email, string otpCode); // Verifies OTP before resetting password
         Task<GeneralRespnose> ResetPasswordWithOtp(ResetPasswordOtpDto resetPasswordOtpDto); // Resets password after OTP verification
         Task<GeneralRespnose> ResendEmailVerification(string email, IUrlHelper urlHelper);
-        Task Logout();
+        Task<bool> VerifyOtpAsync(string email, string otp);
+
+        Task<GeneralRespnose> Logout();
     }
    
 

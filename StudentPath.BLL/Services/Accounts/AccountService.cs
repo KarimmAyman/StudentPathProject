@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using StudentPath.BLL.Dtoes.Accounts;
@@ -27,9 +28,10 @@ namespace StudentPath.BLL.Services.AccountService
         private readonly IEmailService _emailService;
         private readonly SignInManager<User> _signInManager;
         private readonly StudentPathContext _studentPathContext;
+        private readonly IMemoryCache _memoryCache;
 
         public AccountService(UserManager<User> userManager, IConfiguration configuration, RoleManager<CustomRole> roleManager,
-            IEmailService emailService, SignInManager<User> signInManager, StudentPathContext studentPathContext)
+            IEmailService emailService, SignInManager<User> signInManager, StudentPathContext studentPathContext,IMemoryCache memoryCache)
         {
             _userManager = userManager;
             _configuration = configuration;
@@ -37,6 +39,7 @@ namespace StudentPath.BLL.Services.AccountService
             _emailService = emailService;
             _signInManager = signInManager;
             _studentPathContext = studentPathContext;
+            _memoryCache = memoryCache;
         }
 
         public async Task<GeneralRespnose> Register(RegisterDto registerDto, IUrlHelper urlHelper)
@@ -50,15 +53,15 @@ namespace StudentPath.BLL.Services.AccountService
                 response.PropertyName = nameof(registerDto.ConfirmedPassword);
                 return response;
             }
-
+            #region unique userName
             // Check if username or email exists
-            if (_userManager.Users.Any(s => s.UserName == registerDto.UserName))
+            if (_userManager.Users.Any(s => s.UserName == registerDto.FullName))
             {
                 response.Errors.Add("Username is already taken. Please choose another.");
-                response.PropertyName = nameof(registerDto.UserName);
+                response.PropertyName = nameof(registerDto.FullName);
                 return response;
             }
-
+            #endregion
             if (_userManager.Users.Any(s => s.Email == registerDto.Email))
             {
                 response.Errors.Add("Email already exists.");
@@ -106,13 +109,11 @@ namespace StudentPath.BLL.Services.AccountService
             }
 
             // Assign general properties
-            user.UserName = registerDto.UserName;
+            user.UserName = registerDto.FullName;
             user.Email = registerDto.Email;
             user.UserType = registerDto.UserType;
-            user.Address = registerDto.Address;
             user.Gender = registerDto.Gender;
             user.Age = registerDto.Age;
-            user.SSN = registerDto.SSN;
             user.ImgUrl = registerDto.ImgUrl;
             user.PhoneNumber = registerDto.PhoneNumber;
 
@@ -387,9 +388,9 @@ namespace StudentPath.BLL.Services.AccountService
             // Generate a 6-digit OTP
             var otp = new Random().Next(100000, 999999).ToString();
 
-            // Store OTP temporarily (Example: Use cache or database)
-            user.OtpCode = otp; // Add this field in your User model
-            user.OtpExpiry = DateTime.UtcNow.AddMinutes(5); // Set expiry (5 min)
+            // Store OTP temporarily (database or cache)
+            user.OtpCode = otp;
+            user.OtpExpiry = DateTime.UtcNow.AddMinutes(5);
             await _userManager.UpdateAsync(user);
 
             // Send OTP via email
@@ -401,49 +402,46 @@ namespace StudentPath.BLL.Services.AccountService
             if (emailResult.successed)
             {
                 response.successed = true;
+                response.PropertyName = otp;  // Store OTP only in Data field
                 return response;
             }
 
             response.Errors.AddRange(emailResult.Errors);
             return response;
         }
+
         public async Task<GeneralRespnose> ResetPasswordWithOtp(ResetPasswordOtpDto resetPasswordOtpDto)
         {
             var response = new GeneralRespnose();
 
-            // Validate passwords match
-            if (resetPasswordOtpDto.NewPassword != resetPasswordOtpDto.ConfirmedNewPassword)
+            // التأكد أن المستخدم قد تحقق من OTP خلال المدة المسموح بها
+            if (!_memoryCache.TryGetValue($"VerifiedOtp_{resetPasswordOtpDto.Email}", out bool isVerified) || !isVerified)
             {
-                response.Errors.Add("New password and confirmation password do not match.");
+                response.Errors.Add("OTP verification expired. Please request a new OTP.");
                 return response;
             }
 
-            // Check if the user exists
             var user = await _userManager.FindByEmailAsync(resetPasswordOtpDto.Email);
             if (user == null)
             {
-                response.Errors.Add("Email not found. Please make sure the email is correct.");
+                response.Errors.Add("Email not found.");
                 return response;
             }
 
-            // Validate OTP
-            if (user.OtpCode != resetPasswordOtpDto.Otp || user.OtpExpiry < DateTime.UtcNow)
+            if (resetPasswordOtpDto.NewPassword != resetPasswordOtpDto.ConfirmedNewPassword)
             {
-                response.Errors.Add("Invalid or expired OTP.");
+                response.Errors.Add("Passwords do not match.");
                 return response;
             }
 
-            // Reset the password
             var resetResult = await _userManager.RemovePasswordAsync(user);
             if (resetResult.Succeeded)
             {
                 var setPasswordResult = await _userManager.AddPasswordAsync(user, resetPasswordOtpDto.NewPassword);
                 if (setPasswordResult.Succeeded)
                 {
-                    // Clear OTP after successful reset
-                    user.OtpCode = null;
-                    user.OtpExpiry = null;
-                    await _userManager.UpdateAsync(user);
+                    // حذف حالة OTP بعد إعادة تعيين كلمة المرور
+                    _memoryCache.Remove($"VerifiedOtp_{resetPasswordOtpDto.Email}");
 
                     response.successed = true;
                     return response;
@@ -456,6 +454,7 @@ namespace StudentPath.BLL.Services.AccountService
             response.Errors = resetResult.Errors.Select(e => e.Description).ToList();
             return response;
         }
+
         public async Task<GeneralRespnose> ResendEmailVerification(string email, IUrlHelper urlHelper)
         {
             var response = new GeneralRespnose();
@@ -505,11 +504,36 @@ namespace StudentPath.BLL.Services.AccountService
         }
 
 
-
-        public async Task Logout()
+        public async Task<bool> VerifyOtpAsync(string email, string otp)
         {
-            await _signInManager.SignOutAsync();
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null) return false;
+
+            if (user.OtpCode == otp && user.OtpExpiry > DateTime.UtcNow)
+            {
+                // حفظ التحقق في الكاش لمدة 15 دقيقة بعد التحقق الناجح
+                _memoryCache.Set($"VerifiedOtp_{email}", true, TimeSpan.FromMinutes(15));
+                return true;
+            }
+
+            return false;
         }
+
+        public async Task<GeneralRespnose> Logout()
+        {
+            var response = new GeneralRespnose();
+            try
+            {
+                await _signInManager.SignOutAsync();
+                response.successed = true;
+            }
+            catch (Exception ex)
+            {
+                response.Errors.Add($"An error occurred while logging out: {ex.Message}");
+            }
+            return response;
+        }
+
 
     }
 }
