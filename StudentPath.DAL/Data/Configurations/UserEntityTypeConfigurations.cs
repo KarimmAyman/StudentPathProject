@@ -9,17 +9,22 @@ using System.Threading.Tasks;
 
 namespace StudentPath.DAL.Data.Configurations
 {
+
     public class UserEntityTypeConfigurations : IEntityTypeConfiguration<User>
     {
         public void Configure(EntityTypeBuilder<User> builder)
         {
-            //Configure TPH(Table-Per - Hierarchy) inheritance
-       //     builder
-       //.HasDiscriminator<UserTypeEnum>("UserType")
-       //.HasValue<User>(UserTypeEnum.User)      // Add a value for User
-       //.HasValue<Student>(UserTypeEnum.Student)
-       //.HasValue<Driver>(UserTypeEnum.Driver)
-       //.HasValue<Admin>(UserTypeEnum.Admin);
+            //Configure primary key
+            //builder.HasKey(u => u.Id);
+
+            //Configure one-to - one relationship with Location
+            //builder.HasOne(u => u.Location)
+            //    .WithOne(l => l.User)
+            //    .HasForeignKey<Location>(l => l.UserId)
+            //    .OnDelete(DeleteBehavior.Restrict); // Prevent circular dependency
+
+            //Table name configuration(optional)
+            //builder.ToTable("Users");
         }
     }
 }

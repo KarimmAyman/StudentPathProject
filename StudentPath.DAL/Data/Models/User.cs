@@ -2,17 +2,21 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace StudentPath.DAL.Data.Models
 {
     public enum UserTypeEnum
     {
+         User,
         Student = 1,
         Driver = 2,
-        Admin = 3
+        Admin = 3 ,
+        
 
     }
     public enum GenderType
@@ -28,30 +32,40 @@ namespace StudentPath.DAL.Data.Models
         Approved,
         Denied
     }
+
     public class User : IdentityUser
     {
+
         [Range(18, 100)]
         public int Age { get; set; }
 
         public GenderType Gender { get; set; }
 
-        public string Address { get; set; }
 
         [DataType(DataType.ImageUrl)]
         public string? ImgUrl { get; set; } // Optional profile picture
-        public string SSN { get; set; }
 
         public UserTypeEnum UserType { get; set; }
 
+        [DataType(DataType.DateTime)]
+        public DateTime RegistrationDate { get; set; } 
+        public string PhoneNumber { get; set; }
+
+   
+        public virtual ICollection<Location> Locations { get; set; } = new HashSet<Location>();  // Navigation Property
         public bool IsBanned { get; set; } = false;
 
         public bool IsDeleted { get; set; } = false;
+
+        public string? OtpCode { get; set; } // Stores the OTP
+        public DateTime? OtpExpiry { get; set; } // Stores the OTP expiration time
+        public bool IsOtpVerified { get; set; } = false; // ✅ New Property to track OTP verification
+
     }
     // Student subclass
     public class Student : User
     {
-        public string Grade { get; set; }
-        // Relationship with a driver (if needed, e.g., for student transportation)
+       
         public virtual ICollection<DriverStudent> DriverStudents { get; set; } = new HashSet<DriverStudent>();
 
     }

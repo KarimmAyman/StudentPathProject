@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using StudentPath.DAL.Data.DBHelpers;
 
@@ -11,9 +12,11 @@ using StudentPath.DAL.Data.DBHelpers;
 namespace StudentPath.DAL.Migrations
 {
     [DbContext(typeof(StudentPathContext))]
-    partial class StudentPathContextModelSnapshot : ModelSnapshot
+    [Migration("20250130185521_update on model creating ")]
+    partial class updateonmodelcreating
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -253,39 +256,6 @@ namespace StudentPath.DAL.Migrations
                     b.ToTable("EscrowAccounts");
                 });
 
-            modelBuilder.Entity("StudentPath.DAL.Data.Models.Location", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("City")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Country")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<double>("Latitude")
-                        .HasColumnType("float");
-
-                    b.Property<double>("Longitude")
-                        .HasColumnType("float");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("Locations");
-                });
-
             modelBuilder.Entity("StudentPath.DAL.Data.Models.Notification", b =>
                 {
                     b.Property<int>("NotificationId")
@@ -419,6 +389,10 @@ namespace StudentPath.DAL.Migrations
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("int");
 
+                    b.Property<string>("Address")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("Age")
                         .HasColumnType("int");
 
@@ -450,9 +424,6 @@ namespace StudentPath.DAL.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
-                    b.Property<bool>("IsOtpVerified")
-                        .HasColumnType("bit");
-
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("bit");
 
@@ -467,24 +438,18 @@ namespace StudentPath.DAL.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
 
-                    b.Property<string>("OtpCode")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("OtpExpiry")
-                        .HasColumnType("datetime2");
-
                     b.Property<string>("PasswordHash")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PhoneNumber")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("bit");
 
-                    b.Property<DateTime>("RegistrationDate")
-                        .HasColumnType("datetime2");
+                    b.Property<string>("SSN")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("nvarchar(max)");
@@ -582,6 +547,10 @@ namespace StudentPath.DAL.Migrations
             modelBuilder.Entity("StudentPath.DAL.Data.Models.Student", b =>
                 {
                     b.HasBaseType("StudentPath.DAL.Data.Models.User");
+
+                    b.Property<string>("Grade")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasDiscriminator().HasValue("Student");
                 });
@@ -681,17 +650,6 @@ namespace StudentPath.DAL.Migrations
                     b.Navigation("Student");
                 });
 
-            modelBuilder.Entity("StudentPath.DAL.Data.Models.Location", b =>
-                {
-                    b.HasOne("StudentPath.DAL.Data.Models.User", "User")
-                        .WithMany("Locations")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("StudentPath.DAL.Data.Models.Notification", b =>
                 {
                     b.HasOne("StudentPath.DAL.Data.Models.User", "User")
@@ -750,11 +708,6 @@ namespace StudentPath.DAL.Migrations
             modelBuilder.Entity("StudentPath.DAL.Data.Models.Trip", b =>
                 {
                     b.Navigation("Bookings");
-                });
-
-            modelBuilder.Entity("StudentPath.DAL.Data.Models.User", b =>
-                {
-                    b.Navigation("Locations");
                 });
 
             modelBuilder.Entity("StudentPath.DAL.Data.Models.Driver", b =>

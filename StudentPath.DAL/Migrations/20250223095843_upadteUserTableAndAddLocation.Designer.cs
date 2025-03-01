@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using StudentPath.DAL.Data.DBHelpers;
 
@@ -11,9 +12,11 @@ using StudentPath.DAL.Data.DBHelpers;
 namespace StudentPath.DAL.Migrations
 {
     [DbContext(typeof(StudentPathContext))]
-    partial class StudentPathContextModelSnapshot : ModelSnapshot
+    [Migration("20250223095843_upadteUserTableAndAddLocation")]
+    partial class upadteUserTableAndAddLocation
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -277,13 +280,11 @@ namespace StudentPath.DAL.Migrations
 
                     b.Property<string>("UserId")
                         .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId");
-
-                    b.ToTable("Locations");
+                    b.ToTable("Location");
                 });
 
             modelBuilder.Entity("StudentPath.DAL.Data.Models.Notification", b =>
@@ -419,6 +420,10 @@ namespace StudentPath.DAL.Migrations
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("int");
 
+                    b.Property<string>("Address")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("Age")
                         .HasColumnType("int");
 
@@ -450,8 +455,8 @@ namespace StudentPath.DAL.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
-                    b.Property<bool>("IsOtpVerified")
-                        .HasColumnType("bit");
+                    b.Property<int?>("LocationId")
+                        .HasColumnType("int");
 
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("bit");
@@ -467,17 +472,10 @@ namespace StudentPath.DAL.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
 
-                    b.Property<string>("OtpCode")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("OtpExpiry")
-                        .HasColumnType("datetime2");
-
                     b.Property<string>("PasswordHash")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PhoneNumber")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("PhoneNumberConfirmed")
@@ -485,6 +483,10 @@ namespace StudentPath.DAL.Migrations
 
                     b.Property<DateTime>("RegistrationDate")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("SSN")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("nvarchar(max)");
@@ -500,6 +502,10 @@ namespace StudentPath.DAL.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("LocationId")
+                        .IsUnique()
+                        .HasFilter("[LocationId] IS NOT NULL");
 
                     b.HasIndex("NormalizedEmail")
                         .HasDatabaseName("EmailIndex");
@@ -681,17 +687,6 @@ namespace StudentPath.DAL.Migrations
                     b.Navigation("Student");
                 });
 
-            modelBuilder.Entity("StudentPath.DAL.Data.Models.Location", b =>
-                {
-                    b.HasOne("StudentPath.DAL.Data.Models.User", "User")
-                        .WithMany("Locations")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("StudentPath.DAL.Data.Models.Notification", b =>
                 {
                     b.HasOne("StudentPath.DAL.Data.Models.User", "User")
@@ -731,6 +726,15 @@ namespace StudentPath.DAL.Migrations
                     b.Navigation("Driver");
                 });
 
+            modelBuilder.Entity("StudentPath.DAL.Data.Models.User", b =>
+                {
+                    b.HasOne("StudentPath.DAL.Data.Models.Location", "Location")
+                        .WithOne("User")
+                        .HasForeignKey("StudentPath.DAL.Data.Models.User", "LocationId");
+
+                    b.Navigation("Location");
+                });
+
             modelBuilder.Entity("StudentPath.DAL.Data.Models.VehicleInfo", b =>
                 {
                     b.HasOne("StudentPath.DAL.Data.Models.Driver", "Driver")
@@ -747,14 +751,15 @@ namespace StudentPath.DAL.Migrations
                     b.Navigation("Bookings");
                 });
 
+            modelBuilder.Entity("StudentPath.DAL.Data.Models.Location", b =>
+                {
+                    b.Navigation("User")
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("StudentPath.DAL.Data.Models.Trip", b =>
                 {
                     b.Navigation("Bookings");
-                });
-
-            modelBuilder.Entity("StudentPath.DAL.Data.Models.User", b =>
-                {
-                    b.Navigation("Locations");
                 });
 
             modelBuilder.Entity("StudentPath.DAL.Data.Models.Driver", b =>
