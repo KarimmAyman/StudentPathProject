@@ -1,0 +1,20 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace StudentPath.BLL.Dtoes.Students
+{
+    public class StudentReadDTO
+    {
+        public string UserName { get; set; }
+        public string Email { get; set; }
+        public string PhoneNumber { get; set; }
+
+        public string ImgUrl { get; set; }
+
+        public int Age { get; set; }
+
+    }
+}

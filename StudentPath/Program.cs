@@ -3,11 +3,14 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-
+using StudentPath.BLL.AutoMappers.StudentMapper;
 using StudentPath.BLL.Dtos.Accounts;
+using StudentPath.BLL.Middlewares;
 using StudentPath.BLL.Services.AccountService;
+using StudentPath.BLL.Services.Student;
 using StudentPath.DAL.Data.DBHelpers;
 using StudentPath.DAL.Data.Models;
+using StudentPath.DAL.Repositories.UnitOfWork;
 using System.Text;
 
 public class Program
@@ -23,11 +26,18 @@ public class Program
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
 
+        #region Connection String
+
         // Configure Database
         builder.Services.AddDbContext<StudentPathContext>(options =>
         {
-            options.UseSqlServer(builder.Configuration.GetConnectionString("cs"));
+            options.UseLazyLoadingProxies().UseSqlServer(builder.Configuration.GetConnectionString("cs"));
         });
+
+        #endregion
+
+
+        #region Identity
 
         // Configure Identity
         builder.Services.AddIdentity<User, CustomRole>(options =>
@@ -45,7 +55,10 @@ public class Program
         {
             options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 ";
         });
-        // Configure JWT Authentication
+        #endregion
+
+        #region JWT Comment
+       // Configure JWT Authentication
         //builder.Services.AddAuthentication(options =>
         //{
         //    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -68,11 +81,24 @@ public class Program
         //        ValidateLifetime = true,
         //    };
         //});
+        #endregion
 
+        #region AutoMapper
+        builder.Services.AddAutoMapper(x => x.AddProfile(new StudentProfile()));
+        #endregion
+
+
+        #region Services
         // Register Services
         builder.Services.AddScoped<IAccountService, AccountService>();
-            builder.Services.AddScoped<IEmailService, EmailService>();
-            builder.Services.AddSingleton<IUrlHelperFactory, UrlHelperFactory>();
+         builder.Services.AddScoped<IEmailService, EmailService>();
+         builder.Services.AddSingleton<IUrlHelperFactory, UrlHelperFactory>();
+        builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+        builder.Services.AddScoped<IStudentService, StudentService>();
+        #endregion
+
+
+        #region JWT
 
         // Add JWT Authentication
         builder.Services.AddAuthentication(options =>
@@ -107,34 +133,44 @@ public class Program
          ClockSkew = TimeSpan.Zero // Removes default 5 min leeway for token expiration
      };
  });
+        #endregion
 
 
-        builder.Services.AddMemoryCache();
+        #region MemoryCache
+       builder.Services.AddMemoryCache();
+        #endregion
 
 
 
         var app = builder.Build();
-            // Call the SeedRoles method
-            using (var scope = app.Services.CreateScope())
+
+        #region MiddleWare
+        app.UseMiddleware<GlobalExceptionMiddleware>();
+        #endregion
+
+
+        #region Seed Roles
+
+        // Call the SeedRoles method
+        using (var scope = app.Services.CreateScope())
             {
                 var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<CustomRole>>();
                 await SeedRolesDtocs.SeedRoles(roleManager);
             }
+        #endregion
 
-            // Configure the HTTP request pipeline.
-            //if (app.Environment.IsDevelopment())
-            //{
-            //    app.UseSwagger();
-            //    app.UseSwaggerUI();
-            //}
-        app.UseSwagger();
-        app.UseSwaggerUI();
-        app.UseHttpsRedirection();
+        // Configure the HTTP request pipeline.
+        //if (app.Environment.IsDevelopment())
+        //{
+        //    app.UseSwagger();
+        //    app.UseSwaggerUI();
+        //}
+            app.UseSwagger();
+            app.UseSwaggerUI();
+            app.UseHttpsRedirection();
             app.UseAuthentication();
             app.UseAuthorization();
-
             app.MapControllers();
-
             app.Run();
         }
 
