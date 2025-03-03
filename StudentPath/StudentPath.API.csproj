@@ -32,4 +32,8 @@
     <ProjectReference Include="..\StudentPath.BLL\StudentPath.BLL.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="wwwroot\Uploads\default\" />
+  </ItemGroup>
+
 </Project>

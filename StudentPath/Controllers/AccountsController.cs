@@ -26,7 +26,7 @@ namespace StudentPath.API.Controllers
         [HttpPost("Register")]
         public async Task<IActionResult> Register(RegisterDto registerDto)
         {
-            var response = await _accountService.Register(registerDto, Url);
+            var response = await _accountService.Register(registerDto,Url);
             if (response.successed)
                 return Ok(new { successed = true, message = "Registration successful." });
 
@@ -92,6 +92,21 @@ namespace StudentPath.API.Controllers
         {
             await _accountService.Logout();
             return Ok(new { successed = true, message = "You have been logged out successfully." });
+        }
+        [HttpGet("ConfirmEmail")]
+        [ApiExplorerSettings(IgnoreApi = true)]
+
+        public async Task<IActionResult> ConfirmEmail(string userId, string token)
+        {
+            var response = await _accountService.ConfirmEmail(userId, token);
+
+            if (!response.successed)
+            {
+                return BadRequest(new { success = false, errors = response.Errors });
+            }
+
+            return Ok(new { success = true, message = "Your email has been successfully confirmed." });
+
         }
     }
 }

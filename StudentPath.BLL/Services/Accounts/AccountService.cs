@@ -77,7 +77,8 @@ namespace StudentPath.BLL.Services.AccountService
             }
             else if (registerDto.UserType == UserTypeEnum.Student)
             {
-                user = new Student();
+                user = new StudentPath.DAL.Data.Models.Student();
+                ;
             }
             else if (registerDto.UserType == UserTypeEnum.Driver)
             {
@@ -159,13 +160,13 @@ namespace StudentPath.BLL.Services.AccountService
                 var confirmationLink = urlHelper.Action("ConfirmEmail", "Accounts",
                     new { userId = user.Id, token = emailConfirmationToken }, "https");
 
-                var confirmationEmailBody = $"Dear {user.UserName},\n\n" +
-                               "Thank you for registering with us!\n\n" +
-                               "To complete your registration, please confirm your email address by clicking the link below:\n" +
-                               $"{confirmationLink}\n\n" +
-                               "Best regards,\n" +
-                               "[Student Path Platform]\n" +
-                               "[+20 155 134 9812]";
+                var confirmationEmailBody = $@"
+                        <p>Dear {user.UserName},</p>
+                        <p>Thank you for registering with us!</p>
+                        <p>To complete your registration, please confirm your email by clicking the link below:</p>
+                        <p><a href='{confirmationLink}' style='color: blue; text-decoration: underline;'>Confirm Your Email</a></p>
+                        <p>Best regards,<br>Student Path Platform<br>+20 155 134 9812</p>
+";
 
                 var res = await _emailService.SendEmailAsync(user.Email, "Confirm Your Email Address", confirmationEmailBody);
                 if (!res.successed)

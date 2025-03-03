@@ -27,6 +27,7 @@ namespace StudentPath.BLL.Services.AccountService
         {
             var response = new GeneralRespnose();
             var emailMessage = new MimeMessage();
+            
             //Email and Name for sender
             emailMessage.From.Add(new MailboxAddress(_configuration["EmailSettings:DisplayName"], _configuration["EmailSettings:Email"]));
             //Email and Name for receiver
@@ -34,7 +35,7 @@ namespace StudentPath.BLL.Services.AccountService
             //subject for Email
             emailMessage.Subject = subject;
             // plain  : This creates a new text part for the email body (Message : the actual message you want to send.)
-            emailMessage.Body = new TextPart("plain") { Text = message };
+            emailMessage.Body = new TextPart("html") { Text = message };
             using (var client = new MailKit.Net.Smtp.SmtpClient())
             {
                 try
