@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using StudentPath.BLL.AutoMappers.StudentMapper;
 using StudentPath.BLL.Dtos.Accounts;
 using StudentPath.BLL.Middlewares;
@@ -22,9 +23,57 @@ public class Program
         // Add services to the container.
         builder.Services.AddControllers();
 
+        #region Swagger
+
         // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
         builder.Services.AddEndpointsApiExplorer();
-        builder.Services.AddSwaggerGen();
+        builder.Services.AddSwaggerGen(setup =>
+        {
+
+            setup.SwaggerDoc("v1", new OpenApiInfo
+            {
+                Title = "UMSSTHA System - KFS-FCI",
+                Version = "v1",
+                Description = "API For UMSSTHA System",
+                Contact = new OpenApiContact
+                {
+                    Name = "UMSSTHA System",
+                    Email = "umssthasystem@gmail.com"
+                }
+
+
+
+            });
+            setup.EnableAnnotations();
+
+            // Include 'SecurityScheme' to use JWT Authentication
+            var jwtSecurityScheme = new OpenApiSecurityScheme
+            {
+                Scheme = "bearer",
+                BearerFormat = "JWT",
+                Name = "JWT Authentication",
+                In = ParameterLocation.Header,
+                Type = SecuritySchemeType.Http,
+                Description = "Put *ONLY* your JWT Bearer token on textbox below!",
+
+                Reference = new OpenApiReference
+                {
+                    Id = JwtBearerDefaults.AuthenticationScheme,
+                    Type = ReferenceType.SecurityScheme
+                }
+            };
+
+            setup.AddSecurityDefinition(jwtSecurityScheme.Reference.Id, jwtSecurityScheme);
+
+            setup.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
+                    { jwtSecurityScheme, Array.Empty<string>() }
+                });
+
+        });
+
+
+        #endregion
 
         #region Connection String
 
@@ -57,32 +106,7 @@ public class Program
         });
         #endregion
 
-        #region JWT Comment
-       // Configure JWT Authentication
-        //builder.Services.AddAuthentication(options =>
-        //{
-        //    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-        //    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-        //    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-        //}).AddJwtBearer(async options =>
-        //{
-        //    // JWT Security Key
-        //    var secretKeyString = builder.Configuration.GetSection("SecretKey").Value;
-        //    var secretKeyBytes = Encoding.ASCII.GetBytes(secretKeyString);
-        //    var securityKey = new SymmetricSecurityKey(secretKeyBytes);
-
-        //    options.TokenValidationParameters = new TokenValidationParameters
-        //    {
-        //        IssuerSigningKey = securityKey,
-        //        ValidateIssuer = true,
-        //        ValidateAudience = true,
-        //        ValidIssuer = builder.Configuration["Jwt:Issuer"],
-        //        ValidAudience = builder.Configuration["Jwt:Audience"],
-        //        ValidateLifetime = true,
-        //    };
-        //});
-        #endregion
-
+     
         #region AutoMapper
         builder.Services.AddAutoMapper(x => x.AddProfile(new StudentProfile()));
         #endregion
@@ -109,7 +133,7 @@ public class Program
         })
  .AddJwtBearer(options =>
  {
-     var secretKeyString = builder.Configuration["SecretKey"];
+     var secretKeyString = builder.Configuration["JWT:SecretKey"];
      if (string.IsNullOrEmpty(secretKeyString))
      {
          throw new Exception("JWT Secret Key is missing in configuration.");
@@ -124,20 +148,26 @@ public class Program
          IssuerSigningKey = securityKey,
 
          ValidateIssuer = true,
-         ValidIssuer = builder.Configuration["Jwt:Issuer"],
+         ValidIssuer = builder.Configuration["JWT:Issuer"],
 
          ValidateAudience = true,
-         ValidAudience = builder.Configuration["Jwt:Audience"],
+         ValidAudience = builder.Configuration["JWT:Audience"],
 
          ValidateLifetime = true, // Ensure token expiry is checked
          ClockSkew = TimeSpan.Zero // Removes default 5 min leeway for token expiration
      };
  });
+
+        
+
+
+
+
         #endregion
 
 
         #region MemoryCache
-       builder.Services.AddMemoryCache();
+        builder.Services.AddMemoryCache();
         #endregion
 
 

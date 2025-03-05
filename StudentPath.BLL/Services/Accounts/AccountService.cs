@@ -251,7 +251,7 @@ namespace StudentPath.BLL.Services.AccountService
         private string GenerateToken(IList<Claim> claims, bool RememberMe)
         {
             #region Token
-            var SecretKeyString = _configuration.GetSection("SecretKey").Value;
+            var SecretKeyString = _configuration.GetSection("JWT:SecretKey").Value;
             var SecretKeyByte = Encoding.ASCII.GetBytes(SecretKeyString);
             SecurityKey securityKey = new SymmetricSecurityKey(SecretKeyByte);
 
@@ -263,8 +263,10 @@ namespace StudentPath.BLL.Services.AccountService
             (
                 claims: claims,
                 signingCredentials: signingCredential,
-                expires: tokenExpiration
-            );
+                expires: tokenExpiration,
+                issuer: _configuration.GetSection("JWT:Issuer").Value,
+                audience: _configuration.GetSection("JWT:Audience").Value
+            ) ;
 
             JwtSecurityTokenHandler handler = new JwtSecurityTokenHandler();
             return handler.WriteToken(jwtSecurityToken);
