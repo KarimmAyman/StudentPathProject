@@ -61,12 +61,14 @@ namespace StudentPath.DAL.Data.Models
         public DateTime? OtpExpiry { get; set; } // Stores the OTP expiration time
         public bool IsOtpVerified { get; set; } = false; // ✅ New Property to track OTP verification
 
+        public virtual ICollection<UserDriver> UserDrivers { get; set; } = new HashSet<UserDriver>();
+
     }
     // Student subclass
     public class Student : User
     {
        
-        public virtual ICollection<DriverStudent> DriverStudents { get; set; } = new HashSet<DriverStudent>();
+     
 
     }
 
@@ -76,8 +78,8 @@ namespace StudentPath.DAL.Data.Models
         public ApprovalStatus? Status { get; set; } = ApprovalStatus.Pending;
         public string DrivingLicense { get; set; }
         public virtual ICollection<VehicleInfo> VehicleInfo { get; set; } = new HashSet<VehicleInfo>(); // Associated Vehicle
-                                                                                                   // Relationship with students (if needed)
-        public virtual ICollection<DriverStudent> DriverStudents { get; set; } = new HashSet<DriverStudent>();
+                                                                                                        // Relationship with students (if needed)
+        public virtual ICollection<UserDriver> UserDrivers { get; set; } = new HashSet<UserDriver>();
     }
     public class Admin : User
     {

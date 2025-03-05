@@ -5,9 +5,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace StudentPath.BLL.Dtoes.Students
+namespace StudentPath.BLL.Dtoes.Users
 {
-    public class StudentDeleteDTO
+    public class UserDeleteDTO
     {
         public string Id { get; set; }
         public string UserName { get; set; }

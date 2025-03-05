@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace StudentPath.BLL.Dtoes.Students
+namespace StudentPath.BLL.Dtoes.Users
 {
-    public class StudentReadDTO
+    public class UserReadDTO
     {
         public string UserName { get; set; }
         public string Email { get; set; }

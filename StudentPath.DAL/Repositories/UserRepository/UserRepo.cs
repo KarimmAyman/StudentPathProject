@@ -7,26 +7,26 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace StudentPath.DAL.Repositories.StudentRepository
+namespace StudentPath.DAL.Repositories.UserRepository
 {
-    public class StudentRepo : GenericRepo<Student>, IStudentRepo
+    public class UserRepo : GenericRepo<User>, IUserRepo
     {
         private readonly StudentPathContext _db;
 
-        public StudentRepo(StudentPathContext db) : base(db)
+        public UserRepo(StudentPathContext db) : base(db)
         {
             this._db = db;
         }
 
-        public async Task SoftDeleteAsync(Student student)
+        public async Task SoftDeleteAsync(User user)
         {
-            if (student == null) throw new ArgumentNullException(nameof(student));
+            if (user == null) throw new ArgumentNullException(nameof(user));
 
             // Mark the student as deleted
-            student.IsDeleted = true;
+            user.IsDeleted = true;
 
             // Update the entity
-            _db.Update(student);
+            _db.Update(user);
 
 
         }

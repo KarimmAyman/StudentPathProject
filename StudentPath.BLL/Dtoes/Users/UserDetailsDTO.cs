@@ -6,9 +6,9 @@ using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
-namespace StudentPath.BLL.Dtoes.Students
+namespace StudentPath.BLL.Dtoes.Users
 {
-    public class StudentDetailsDTO
+    public class UserDetailsDTO
     {
         public string UserName { get; set; }
         [JsonIgnore]

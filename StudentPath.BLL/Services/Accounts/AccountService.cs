@@ -7,7 +7,6 @@ using Microsoft.IdentityModel.Tokens;
 using StudentPath.BLL.Dtoes.Accounts;
 using StudentPath.BLL.Dtos.Accounts;
 using StudentPath.DAL.Data.DBHelpers;
-using StudentPath.DAL.Data.Models;
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
@@ -17,6 +16,7 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web;
+using StudentPath.DAL.Data.Models;
 
 namespace StudentPath.BLL.Services.AccountService
 {

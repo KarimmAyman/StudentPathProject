@@ -8,9 +8,9 @@ using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
-namespace StudentPath.BLL.Dtoes.Students
+namespace StudentPath.BLL.Dtoes.Users
 {
-    public class StudentAddDTO
+    public class UserAddDTO
     {
         [JsonIgnore]
         public string Id { get; set; }
@@ -48,7 +48,7 @@ namespace StudentPath.BLL.Dtoes.Students
 
 
         public IFormFile? ProfileImage { get; set; }
-        public StudentAddDTO()
+        public UserAddDTO()
         {
             Id = Guid.NewGuid().ToString();
             UserType = UserTypeEnum.Student;

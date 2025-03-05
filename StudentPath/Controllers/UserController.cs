@@ -1,36 +1,36 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using StudentPath.BLL.Dtoes.Students;
-using StudentPath.BLL.Services.Student;
+using StudentPath.BLL.Dtoes.Users;
+using StudentPath.BLL.Services.UserServices;
 using StudentPath.DAL.Data.Models;
 
 namespace StudentPath.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class StudentController : ControllerBase
+    public class UserController : ControllerBase
 
 
     {
 
         #region Prop
-        private readonly IStudentService studentService;
+        private readonly IUserService UserService;
         private readonly IWebHostEnvironment webHostEnvironment;
         #endregion
 
         #region Ctor
-        public StudentController(IStudentService studentService, IWebHostEnvironment webHostEnvironment)
+        public UserController(IUserService UserService, IWebHostEnvironment webHostEnvironment)
         {
-            this.studentService = studentService;
+            this.UserService = UserService;
             this.webHostEnvironment = webHostEnvironment;
         }
         #endregion
 
-        #region GetAllStudents
-        [HttpGet("GetAllStudents")]
+        #region GetAllUsers
+        [HttpGet("GetAllUsers")]
         public async Task<IActionResult> GetAll()
         {
-            var result = await studentService.getStudentsAsync();
+            var result = await UserService.getUsersAsync();
             if (!result.Success)
             {
                 return StatusCode(result.StatusCode, new { Message = result.Message });
@@ -41,16 +41,16 @@ namespace StudentPath.API.Controllers
         #endregion
 
 
-        #region GetStudentById
+        #region GetUserById
         [HttpGet("ById/{id}")]
-        public async Task<IActionResult> GetStudentById(string id)
+        public async Task<IActionResult> GetUserById(string id)
         {
 
             if (string.IsNullOrWhiteSpace(id))
             {
                 return BadRequest(new { Message = "Id cannot be null or empty" });
             }
-            var result = await studentService.getStudentAsync(id);
+            var result = await UserService.getUserAsync(id);
 
             if (!result.Success)
             {
@@ -64,11 +64,11 @@ namespace StudentPath.API.Controllers
 
 
 
-        #region CreateStudent
+        #region CreateUser
 
-        [HttpPost("AddStudent")]
+        [HttpPost("AddUser")]
 
-        public async Task<IActionResult> Add([FromForm] StudentAddDTO student)
+        public async Task<IActionResult> Add([FromForm] UserAddDTO User)
         {
             if (!ModelState.IsValid)
             {
@@ -82,7 +82,7 @@ namespace StudentPath.API.Controllers
             }
 
             string imageUrl = null;
-            if (student.ProfileImage != null && student.ProfileImage.Length > 0)
+            if (User.ProfileImage != null && User.ProfileImage.Length > 0)
             {
                 var uploadsFolder = Path.Combine(webHostEnvironment.WebRootPath, "Uploads");
                 if (!Directory.Exists(uploadsFolder))
@@ -90,12 +90,12 @@ namespace StudentPath.API.Controllers
                     Directory.CreateDirectory(uploadsFolder);
                 }
 
-                string uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(student.ProfileImage.FileName);
+                string uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(User.ProfileImage.FileName);
                 string filePath = Path.Combine(uploadsFolder, uniqueFileName);
 
                 using (var stream = new FileStream(filePath, FileMode.Create))
                 {
-                    await student.ProfileImage.CopyToAsync(stream);
+                    await User.ProfileImage.CopyToAsync(stream);
                 }
 
                 imageUrl = $"/Uploads/{uniqueFileName}";
@@ -103,21 +103,21 @@ namespace StudentPath.API.Controllers
             else
             {
 
-                imageUrl = student.Gender == GenderType.Male
+                imageUrl = User.Gender == GenderType.Male
                     ? "/Uploads/default/Male_Photo.jpg"
                     : "/Uploads/default/Female_Photo.jpg";
             }
 
 
-            student.ImgUrl = imageUrl;
+            User.ImgUrl = imageUrl;
 
-            var result = await studentService.CreateStudentAsync(student);
+            var result = await UserService.CreateUserAsync(User);
             if (result.Success)
             {
-                return CreatedAtAction(nameof(GetStudentById), new { id = student.Id }, new
+                return CreatedAtAction(nameof(GetUserById), new { id = User.Id }, new
                 {
                     Message = result.Message,
-                    Data = student
+                    Data = User
                 });
             }
 
@@ -125,53 +125,53 @@ namespace StudentPath.API.Controllers
         }
         #endregion
 
-        #region UpdateStudent
-        [HttpPut("EditStudent/{id}")]
-        public async Task<IActionResult> Edit([FromRoute] string id, [FromForm] StudentUpdatedDTO student)
+        #region UpdateUser
+        [HttpPut("EditUser/{id}")]
+        public async Task<IActionResult> Edit([FromRoute] string id, [FromForm] UserUpdatedDTO User)
         {
 
-            if (id == null || id != student.Id)
+            if (id == null || id != User.Id)
             {
-                return BadRequest(new { Message = "Invalid student ID" });
+                return BadRequest(new { Message = "Invalid User ID" });
             }
 
-            var existingStudent = await studentService.getStudentAsync(id);
-            if (existingStudent == null)
+            var existingUser = await UserService.getUserAsync(id);
+            if (existingUser == null)
             {
-                return NotFound(new { Message = "Student not found" });
+                return NotFound(new { Message = "User not found" });
             }
 
-            if (student.ProfileImage != null && student.ProfileImage.Length > 0)
+            if (User.ProfileImage != null && User.ProfileImage.Length > 0)
             {
                 var uploadsFolder = Path.Combine(webHostEnvironment.WebRootPath, "Uploads");
                 Directory.CreateDirectory(uploadsFolder);
 
-                string uniqueFileName = $"{Guid.NewGuid()}{Path.GetExtension(student.ProfileImage.FileName)}";
+                string uniqueFileName = $"{Guid.NewGuid()}{Path.GetExtension(User.ProfileImage.FileName)}";
                 string filePath = Path.Combine(uploadsFolder, uniqueFileName);
 
                 using (var stream = new FileStream(filePath, FileMode.Create))
                 {
-                    await student.ProfileImage.CopyToAsync(stream);
+                    await User.ProfileImage.CopyToAsync(stream);
                 }
 
-                if (!string.IsNullOrEmpty(existingStudent.Data.ImgUrl))
+                if (!string.IsNullOrEmpty(existingUser.Data.ImgUrl))
                 {
-                    string oldFilePath = Path.Combine(webHostEnvironment.WebRootPath, existingStudent.Data.ImgUrl.TrimStart('/'));
+                    string oldFilePath = Path.Combine(webHostEnvironment.WebRootPath, existingUser.Data.ImgUrl.TrimStart('/'));
                     if (System.IO.File.Exists(oldFilePath))
                     {
                         System.IO.File.Delete(oldFilePath);
                     }
                 }
 
-                student.ImgUrl = $"/Uploads/{uniqueFileName}";
+                User.ImgUrl = $"/Uploads/{uniqueFileName}";
             }
             else
             {
-                student.ImgUrl = existingStudent.Data.ImgUrl;
+                User.ImgUrl = existingUser.Data.ImgUrl;
             }
 
 
-            var result = await studentService.UpdateStudentAsync(student);
+            var result = await UserService.UpdateUserAsync(User);
             if (result.Success)
             {
                 Response.Headers.Add("X-Message", result.Message);
@@ -189,9 +189,9 @@ namespace StudentPath.API.Controllers
         #endregion
 
 
-        #region DeleteStudent
+        #region DeleteUser
 
-        [HttpDelete("DeleteStudent/{id}")]
+        [HttpDelete("DeleteUser/{id}")]
         public async Task<IActionResult> Delete([FromRoute] string id)
         {
             if (string.IsNullOrWhiteSpace(id))
@@ -199,7 +199,7 @@ namespace StudentPath.API.Controllers
                 return BadRequest(new { Message = "Id cannot be null or empty" });
             }
 
-            var result = await studentService.SoftDeleteStudentAsync(id);
+            var result = await UserService.SoftDeleteUserAsync(id);
             if (!result.Success)
             {
                 return StatusCode(result.StatusCode, new { Message = result.Message });
