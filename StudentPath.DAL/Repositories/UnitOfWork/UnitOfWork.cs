@@ -1,5 +1,5 @@
 ﻿using StudentPath.DAL.Data.DBHelpers;
-using StudentPath.DAL.Repositories.StudentRepository;
+using StudentPath.DAL.Repositories.UserRepository;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,14 +11,14 @@ namespace StudentPath.DAL.Repositories.UnitOfWork
     public class UnitOfWork : IUnitOfWork
     {
         private readonly StudentPathContext db;
-        public IStudentRepo Student { get; private set; }
+        public IUserRepo User { get; private set; }
 
 
         public UnitOfWork(StudentPathContext _db)
         {
             this.db = _db;
 
-            Student = new StudentRepo(db);
+            User = new UserRepo(db);
 
         }
 

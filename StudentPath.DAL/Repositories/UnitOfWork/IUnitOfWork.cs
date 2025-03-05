@@ -1,4 +1,4 @@
-﻿using StudentPath.DAL.Repositories.StudentRepository;
+﻿using StudentPath.DAL.Repositories.UserRepository;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,8 +9,7 @@ namespace StudentPath.DAL.Repositories.UnitOfWork
 {
     public interface IUnitOfWork
     {
-
-        public IStudentRepo Student { get; }
+        public IUserRepo User { get; }
         public Task Save();
 
     }

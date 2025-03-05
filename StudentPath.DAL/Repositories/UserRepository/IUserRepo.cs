@@ -6,11 +6,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace StudentPath.DAL.Repositories.StudentRepository
+namespace StudentPath.DAL.Repositories.UserRepository
 {
-    public interface IStudentRepo : IGenericRepo<Student>
+    public interface IUserRepo : IGenericRepo<User>
     {
-        public Task SoftDeleteAsync(Student student);
+        public Task SoftDeleteAsync(User User);
 
 
     }

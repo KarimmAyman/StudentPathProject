@@ -8,9 +8,9 @@ using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
-namespace StudentPath.BLL.Dtoes.Students
+namespace StudentPath.BLL.Dtoes.Users
 {
-    public class StudentUpdatedDTO
+    public class UserUpdatedDTO
     {
 
         public string Id { get; set; }
