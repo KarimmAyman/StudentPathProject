@@ -13,33 +13,33 @@ namespace StudentPath.DAL.Data.Configurations
     {
         public void Configure(EntityTypeBuilder<DriverStudent> builder)
         {
-            builder
-            .HasKey(sd => new
-            {
-                sd.StudentId,
-                sd.DriverId
-            });
+      //      builder
+      //      .HasKey(sd => new
+      //      {
+      //          sd.UserId,
+      //          sd.DriverId
+      //      });
 
-            builder
-       .HasOne(sd => sd.Student)
-      .WithMany(s => s.DriverStudents)
-      .HasForeignKey(sd => sd.StudentId)
-      .OnDelete(DeleteBehavior.Restrict); // No cascade delete for Student
+      //      builder
+      // .HasOne(sd => sd.User)
+      //.WithMany(s => s.DriverStudents)
+      //.HasForeignKey(sd => sd.UserId)
+      //.OnDelete(DeleteBehavior.Restrict); // No cascade delete for Student
 
-            builder
-                         .HasOne(sd => sd.Driver)
-                        .WithMany(d => d.DriverStudents)
-                        .HasForeignKey(sd => sd.DriverId)
-                        .OnDelete(DeleteBehavior.Restrict); // No cascade delete for Driver
+      //      builder
+      //                   .HasOne(sd => sd.Driver)
+      //                  .WithMany(d => d.DriverStudents)
+      //                  .HasForeignKey(sd => sd.DriverId)
+      //                  .OnDelete(DeleteBehavior.Restrict); // No cascade delete for Driver
 
 
-            builder
-                        .Property(sd => sd.StudentId)
-                        .HasMaxLength(450);  // Ensuring the length matches Users.Id
+      //      builder
+      //                  .Property(sd => sd.UserId)
+      //                  .HasMaxLength(450);  // Ensuring the length matches Users.Id
 
-            builder
-                        .Property(sd => sd.DriverId)
-                        .HasMaxLength(450);  // Ensuring the length matches Users.Id
+      //      builder
+      //                  .Property(sd => sd.DriverId)
+      //                  .HasMaxLength(450);  // Ensuring the length matches Users.Id
         }
     }
 }
