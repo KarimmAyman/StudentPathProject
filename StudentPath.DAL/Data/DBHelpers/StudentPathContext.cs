@@ -27,9 +27,12 @@ namespace StudentPath.DAL.Data.DBHelpers
             base.OnModelCreating(modelBuilder);
             modelBuilder.ApplyConfiguration(new UserEntityTypeConfigurations());
             modelBuilder.ApplyConfiguration(new BookingEntityTypeConfigurations());
-            modelBuilder.ApplyConfiguration(new DriverStudentEntityTypeConfigurations());
+       
+            modelBuilder.ApplyConfiguration(new UserDriverEntityTypeConfiguration());
 
-
+            // Ignore the conflicting navigation property in UserDriver
+            modelBuilder.Entity<UserDriver>()
+                .Ignore(ud => ud.Driver);  // Ignore the Driver navigation property in UserDriver
 
 
         }
@@ -37,7 +40,9 @@ namespace StudentPath.DAL.Data.DBHelpers
         public virtual DbSet<Student> Students { get; set; }
         public virtual DbSet<Location> Locations { get; set; }
 
-        public virtual DbSet<DriverStudent> DriverStudents { get; set; }
+        //public virtual DbSet<DriverStudent> DriverStudents { get; set; }
+        public DbSet<UserDriver> UserDrivers { get; set; }
+
         public virtual DbSet<Driver> Drivers { get; set; }
         public virtual DbSet<Admin> Admins { get; set; }
         public virtual DbSet<VehicleInfo> vehicleInfos { get; set; }
