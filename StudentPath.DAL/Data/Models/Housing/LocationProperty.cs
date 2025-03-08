@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace StudentPath.DAL.Data.Models.Housing
 {
-    public class Location
+    public class LocationProperty
     {
         [Key]
         public int Id { get; set; }  // Primary Key
@@ -21,7 +21,7 @@ namespace StudentPath.DAL.Data.Models.Housing
         public double Longitude { get; set; }
         // Foreign Key linking to User
         [ForeignKey("Property")]
-        public string PropertyId { get; set; }
+        public int PropertyId { get; set; }
 
         public virtual Property Property { get; set; }
 

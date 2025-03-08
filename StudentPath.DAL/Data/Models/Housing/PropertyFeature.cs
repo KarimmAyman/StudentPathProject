@@ -15,10 +15,10 @@ namespace StudentPath.DAL.Data.Models.Housing
 
         [ForeignKey("Property")]
         public int PropertyId { get; set; }
-        public Property Property { get; set; }
+        public virtual Property Property { get; set; }  // Marked as virtual for lazy loading
 
         [ForeignKey("Feature")]
         public int FeatureId { get; set; }
-        public Feature Feature { get; set; }
+        public virtual Feature Feature { get; set; }   // Marked as virtual for lazy loading
     }
 }

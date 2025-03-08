@@ -7,12 +7,22 @@ using System.Threading.Tasks;
 
 namespace StudentPath.DAL.Data.Models.Housing
 {
+    public enum FeatureCategory
+    {
+        Interior,
+        Exterior
+    }
     public class Feature
     {
         [Key]
-        public int FeatureId { get; set; }
+        public int Id { get; set; }
 
         [Required]
-        public string FeatureName { get; set; } // e.g., Security, Parking, Shower Cabin
+        public string Name { get; set; } // e.g., "Jacuzzi", "Security", etc.
+
+        [Required]
+        public FeatureCategory Category { get; set; } // Interior or Exterior
+
+        public virtual ICollection<PropertyFeature> PropertyFeatures { get; set; } = new List<PropertyFeature>();
     }
 }

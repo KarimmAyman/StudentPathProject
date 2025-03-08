@@ -15,6 +15,7 @@ namespace StudentPath.DAL.Data.Models.Housing
         public AdvertisingStatusType AdvertisingStatus { get; set; } // Sale, Rent
 
         [Required]
+        public bool? HasInsurance { get; set; } // تحديد ما إذا كان العقار يحتوي على تأمين أم لا
 
         public HousingType HousingType { get; set; } // Apartment, House, etc.
 
@@ -44,7 +45,8 @@ namespace StudentPath.DAL.Data.Models.Housing
         public PropertyFrontType? Front { get; set; } // Enum for direction
 
         [Column(TypeName = "decimal(18,2)")]
-        public decimal? RentalIncome { get; set; } // Nullable for non-rent properties
+        public decimal? RentPrice { get; set; } // سعر الإيجار (اختياري)
+
 
         public string? Description { get; set; }
 
@@ -64,7 +66,7 @@ namespace StudentPath.DAL.Data.Models.Housing
         // Navigation Properties
         public virtual List<PropertyImage> PropertyImages { get; set; } = new List<PropertyImage>();
         public virtual List<PropertyFeature> PropertyFeatures { get; set; } = new List<PropertyFeature>();
-        public virtual ICollection<Location> Locations { get; set; } = new HashSet<Location>();
+        public virtual ICollection<LocationProperty> Locations { get; set; } = new HashSet<LocationProperty>();
     }
 
     // ENUMS FOR BETTER DATA VALIDATION & READABILITY
