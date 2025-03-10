@@ -17,11 +17,19 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 using StudentPath.DAL.Data.Models;
+using Org.BouncyCastle.Crypto;
+using System.Collections;
+using System.ComponentModel;
+using System.Drawing;
+using Microsoft.AspNetCore.Http;
 
 namespace StudentPath.BLL.Services.AccountService
 {
+  
     public class AccountService : IAccountService
     {
+
+       
         private readonly UserManager<User> _userManager;
         private readonly IConfiguration _configuration;
         private readonly RoleManager<CustomRole> _roleManager;
@@ -29,9 +37,10 @@ namespace StudentPath.BLL.Services.AccountService
         private readonly SignInManager<User> _signInManager;
         private readonly StudentPathContext _studentPathContext;
         private readonly IMemoryCache _memoryCache;
-
+        private readonly IHttpContextAccessor httpContextAccessor;
+       
         public AccountService(UserManager<User> userManager, IConfiguration configuration, RoleManager<CustomRole> roleManager,
-            IEmailService emailService, SignInManager<User> signInManager, StudentPathContext studentPathContext,IMemoryCache memoryCache)
+            IEmailService emailService, SignInManager<User> signInManager, StudentPathContext studentPathContext,IMemoryCache memoryCache,IHttpContextAccessor httpContextAccessor)
         {
             _userManager = userManager;
             _configuration = configuration;
@@ -40,10 +49,14 @@ namespace StudentPath.BLL.Services.AccountService
             _signInManager = signInManager;
             _studentPathContext = studentPathContext;
             _memoryCache = memoryCache;
+            this.httpContextAccessor = httpContextAccessor;
         }
-
+        
         public async Task<GeneralRespnose> Register(RegisterDto registerDto, IUrlHelper urlHelper)
         {
+            string baseUrl = $"{httpContextAccessor.HttpContext?.Request.Scheme}://{httpContextAccessor.HttpContext?.Request.Host}";
+            string logoUrl = $"{baseUrl}/Uploads/Aoun-logo.svg";
+
             var response = new GeneralRespnose();
 
             // Validate password match
@@ -160,15 +173,71 @@ namespace StudentPath.BLL.Services.AccountService
                 var confirmationLink = urlHelper.Action("ConfirmEmail", "Accounts",
                     new { userId = user.Id, token = emailConfirmationToken }, "https");
 
-                var confirmationEmailBody = $@"
-                        <p>Dear {user.UserName},</p>
-                        <p>Thank you for registering with us!</p>
-                        <p>To complete your registration, please confirm your email by clicking the link below:</p>
-                        <p><a href='{confirmationLink}' style='color: blue; text-decoration: underline;'>Confirm Your Email</a></p>
-                        <p>Best regards,<br>Student Path Platform<br>+20 155 134 9812</p>
-";
+                var confirmationEmailBody= $@"
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <style>
+           .container {{
+              max-width: 600px;
+              margin: 0 auto;
+                background-color: #f6f9fc;
+               padding: 20px;
+                font-family: Arial, sans-serif;
+               border-radius: 8px;
+                text-align: left;
+        }}
+           .card {{
+                background-color: white;
+              padding: 30px;
+               border-radius: 8px;
+               box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+          }}
+           .button {{
+             background-color: #83cd20;
+              color: white;
+               padding: 12px 24px;
+              border-radius: 6px;
+              text-decoration: none;
+              font-weight: bold;
+              display: inline-block;
+              margin-top: 20px;
+               text-align: center;
+          }}
+           .footer {{
+               font-size: 12px;
+              color: #666;
+             margin-top: 20px;
+         }}
+           .logo {{
+               display: inline-block;
+               width: 150px; /* Adjust the size as needed */
+                vertical-align: middle;
+               margin-right: 10px;
+           }}
+      </style>
+     </head>
+       <body>
+        <div class='container'>
+         <div class='card'>
+             <div>
+                    <img src='{logoUrl}' class='logo' alt='Student Path Logo' />
+               </div>
+              <p>Thanks for creating a Student Path account. Verify your email so you can get up and running quickly.</p>
+              <a href='{confirmationLink}' class='button'>Verify Email</a>
+               <p>Once your email is verified, you can start setting up your account. If you have questions, visit our <a href='https://support.example.com'>support site</a>.</p>
+           </div>
+            <div class='footer'>
+               <p>Student Path, Kafr El-Sheikh, Egypt</p>
+          </div>
+       </div>
+   </body>
+   </html>";
 
-                var res = await _emailService.SendEmailAsync(user.Email, "Confirm Your Email Address", confirmationEmailBody);
+                var res= await _emailService.SendEmailAsync(user.Email, "Verify Your Account",confirmationEmailBody);
+
+
+                //var res = await _emailService.SendEmailAsync(user.Email, "Confirm Your Email Address", confirmationEmailBody);
                 if (!res.successed)
                 {
                     response.Errors.AddRange(res.Errors);
@@ -378,6 +447,8 @@ namespace StudentPath.BLL.Services.AccountService
 
         public async Task<GeneralRespnose> SendOtpForPasswordReset(ForgotPasswordDto forgotPasswordDto)
         {
+            string baseUrl = $"{httpContextAccessor.HttpContext?.Request.Scheme}://{httpContextAccessor.HttpContext?.Request.Host}";
+            string logoUrl2 = $"{baseUrl}/Uploads/Aoun-logo.svg";
             var response = new GeneralRespnose();
 
             // Find user by email
@@ -397,8 +468,45 @@ namespace StudentPath.BLL.Services.AccountService
             await _userManager.UpdateAsync(user);
 
             // Send OTP via email
-            var emailBody = $"Dear {user.UserName},\n\nYour OTP for password reset is: {otp}\n\n" +
-                            "This OTP is valid for 5 minutes. Do not share it with anyone.\n\nBest regards,\nStudentPath";
+            var emailBody = $@"
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        .otp-container {{
+            text-align: center;
+            font-family: Arial, sans-serif;
+        }}
+        .otp-box {{
+            display: inline-block;
+            font-size: 24px;
+            font-weight: bold;
+            background-color: #f3f4f6;
+            padding: 10px 15px;
+            margin: 5px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }}
+        .logo {{
+            display: block;
+            margin: 0 auto 20px auto;
+            width: 150px; /* Adjust size as needed */
+        }}
+    </style>
+</head>
+<body>
+    <div class='otp-container'>
+        <!-- Aoun Logo -->
+        <img src='{logoUrl2}' class='logo' alt='Aoun Logo' />
+
+        <p>Your verification code is:</p>
+        <div>
+            {string.Join(" ", otp.Select(c => $"<span class='otp-box'>{c}</span>"))}
+        </div>
+        <p>Enter this code to reset your Password.</p>
+    </div>
+</body>
+</html>";
 
             var emailResult = await _emailService.SendEmailAsync(user.Email, "Password Reset OTP", emailBody);
 
