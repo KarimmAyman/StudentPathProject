@@ -119,6 +119,7 @@ public class Program
          builder.Services.AddSingleton<IUrlHelperFactory, UrlHelperFactory>();
         builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
         builder.Services.AddScoped<IUserService, UserService>();
+        builder.Services.AddHttpContextAccessor();
         #endregion
 
 
@@ -197,6 +198,7 @@ public class Program
         //}
             app.UseSwagger();
             app.UseSwaggerUI();
+            app.UseStaticFiles();
             app.UseHttpsRedirection();
             app.UseAuthentication();
             app.UseAuthorization();
