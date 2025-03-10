@@ -58,6 +58,9 @@ namespace StudentPath.DAL.Data.Models.Housing
         [Required]
         public CurrencyType Currency { get; set; } // Enum for currency type
 
+        // Soft Delete Flag
+        public bool IsDeleted { get; set; } = false; // Default value is false (not deleted)
+
         // Owner Information (Foreign Key)
         [ForeignKey("User")]
         public string UserId { get; set; } // IdentityUser uses string IDs

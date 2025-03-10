@@ -6,9 +6,8 @@ using System.Threading.Tasks;
 
 namespace StudentPath.BLL.Dtoes.HousingDtoes
 {
-    public class LocationDto
+    public class LocationCreateDto
     {
-        public int Id { get; set; } // ID of the location
         public string City { get; set; }
         public string Country { get; set; }
         public string Street { get; set; }

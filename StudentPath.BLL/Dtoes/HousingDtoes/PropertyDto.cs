@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace StudentPath.BLL.Dtoes.HousingDtoes
@@ -11,7 +12,7 @@ namespace StudentPath.BLL.Dtoes.HousingDtoes
     {
         public int PropertyId { get; set; }
         public AdvertisingStatusType AdvertisingStatus { get; set; }
-        public bool HasInsurance { get; set; }
+        public bool? HasInsurance { get; set; }
         public HousingType HousingType { get; set; }
         public int Rooms { get; set; }
         public int Bathrooms { get; set; }
@@ -30,10 +31,9 @@ namespace StudentPath.BLL.Dtoes.HousingDtoes
         public CurrencyType Currency { get; set; }
         public string UserId { get; set; }
 
-        public List<string> ImageUrls { get; set; }
-        public List<string> Features { get; set; }
-
-        // Corrected: Using the Location DTO instead of raw fields
-        public LocationDto Location { get; set; }
+        // Related data
+        public List<PropertyLocationDto> Locations { get; set; } = new List<PropertyLocationDto>();
+        public List<PropertyImageDto> Images { get; set; } = new List<PropertyImageDto>();
+        public List<FeatureDto> Features { get; set; } = new List<FeatureDto>();
     }
 }

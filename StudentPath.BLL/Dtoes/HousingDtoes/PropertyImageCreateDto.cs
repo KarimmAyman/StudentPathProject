@@ -4,9 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace StudentPath.DAL.Repositories.HousingRepository
+namespace StudentPath.BLL.Dtoes.HousingDtoes
 {
-    public class PropertyImageRepo
+    public class PropertyImageCreateDto
     {
+        public string ImageUrl { get; set; }
     }
 }

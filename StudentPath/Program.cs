@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using StudentPath.BLL.AutoMappers.HousingMapper;
+
 using StudentPath.BLL.AutoMappers.UserMapper;
 using StudentPath.BLL.Dtos.Accounts;
 using StudentPath.BLL.Middlewares;
@@ -22,7 +22,7 @@ public class Program
     public static async Task Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
-
+    
         // Add services to the container.
         builder.Services.AddControllers();
 
@@ -112,7 +112,7 @@ public class Program
      
         #region AutoMapper
         builder.Services.AddAutoMapper(x => x.AddProfile(new UserProfile()));
-        builder.Services.AddAutoMapper(x => x.AddProfile(new PropertyMappingProfile()));
+    
         
 
         #endregion
@@ -125,8 +125,9 @@ public class Program
          builder.Services.AddSingleton<IUrlHelperFactory, UrlHelperFactory>();
         builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
         builder.Services.AddScoped<IUserService, UserService>();
+        builder.Services.AddScoped<IPropertyRepository, PropertyRepository>();
+        builder.Services.AddScoped<IPropertyService, PropertyService>();
 
-        
         #endregion
 
 
@@ -196,14 +197,14 @@ public class Program
                 await SeedRolesDtocs.SeedRoles(roleManager);
             }
         #endregion
-
+      
         // Configure the HTTP request pipeline.
         //if (app.Environment.IsDevelopment())
         //{
         //    app.UseSwagger();
         //    app.UseSwaggerUI();
         //}
-            app.UseSwagger();
+        app.UseSwagger();
             app.UseSwaggerUI();
             app.UseHttpsRedirection();
             app.UseAuthentication();
