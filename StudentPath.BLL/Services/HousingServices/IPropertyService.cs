@@ -23,5 +23,8 @@ namespace StudentPath.BLL.Services.HousingServices
 
         // Soft delete a property by its ID.
         Task DeletePropertyAsync(int propertyId);
+
+        Task<List<FeatureDto>> GetAllFeaturesAsync();
+
     }
 }

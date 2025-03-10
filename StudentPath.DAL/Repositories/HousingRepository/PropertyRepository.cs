@@ -54,5 +54,9 @@ namespace StudentPath.DAL.Repositories.HousingRepository
                 await _context.SaveChangesAsync();
             }
         }
+        public async Task<List<Feature>> GetAllFeaturesAsync()
+        {
+            return await _context.Features.ToListAsync();
+        }
     }
 }

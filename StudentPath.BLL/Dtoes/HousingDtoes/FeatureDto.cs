@@ -11,6 +11,7 @@ namespace StudentPath.BLL.Dtoes.HousingDtoes
     {
         public int Id { get; set; }
         public string Name { get; set; }
-        public FeatureCategory Category { get; set; }
+        public string Category { get; set; }  // تم تغييره إلى string ليظهر اسم الفئة
     }
+
 }

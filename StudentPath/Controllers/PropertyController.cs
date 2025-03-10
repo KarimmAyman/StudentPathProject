@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using StudentPath.BLL.Dtoes.HousingDtoes;
 using StudentPath.BLL.Services.HousingServices;
+using StudentPath.DAL.Data.Models.Housing;
 using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -22,52 +23,52 @@ namespace StudentPath.API.Controllers
 
         // GET: api/properties
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<PropertyDto>>> GetAll()
+        public async Task<IActionResult> GetAll()
         {
             var properties = await _propertyService.GetAllPropertiesAsync();
-            return Ok(properties);
+            return Ok(new { successed = true, data = properties });
         }
 
         // GET: api/properties/{id}
         [HttpGet("{id}")]
-        public async Task<ActionResult<PropertyDto>> Get(int id)
+        public async Task<IActionResult> Get(int id)
         {
             var property = await _propertyService.GetPropertyByIdAsync(id);
             if (property == null)
             {
-                return NotFound();
+                return NotFound(new { successed = false, errors = new[] { "Property not found." } });
             }
-            return Ok(property);
+            return Ok(new { successed = true, data = property });
         }
 
         // POST: api/properties
         [HttpPost]
         [Authorize]
-        public async Task<ActionResult<PropertyDto>> Create(PropertyCreateDto createDto)
+        public async Task<IActionResult> Create(PropertyCreateDto createDto)
         {
-            // Extract the authenticated user's ID from the claims.
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId))
             {
-                return Unauthorized("User ID not found in token.");
+                return Unauthorized(new { successed = false, errors = new[] { "User ID not found in token." } });
             }
             createDto.UserId = userId;
 
             var createdProperty = await _propertyService.CreatePropertyAsync(createDto);
-            return CreatedAtAction(nameof(Get), new { id = createdProperty.PropertyId }, createdProperty);
+            return CreatedAtAction(nameof(Get), new { id = createdProperty.PropertyId }, new { successed = true, data = createdProperty });
         }
 
         // PUT: api/properties/{id}
         [HttpPut("{id}")]
-        public async Task<ActionResult<PropertyDto>> Update(int id, PropertyUpdateDto updateDto)
+        [Authorize]
+        public async Task<IActionResult> Update(int id, PropertyUpdateDto updateDto)
         {
             if (id != updateDto.PropertyId)
             {
-                return BadRequest("Mismatched property ID");
+                return BadRequest(new { successed = false, errors = new[] { "Mismatched property ID." } });
             }
 
             var updatedProperty = await _propertyService.UpdatePropertyAsync(updateDto);
-            return Ok(updatedProperty);
+            return Ok(new { successed = true, data = updatedProperty });
         }
 
         // DELETE: api/properties/{id}
@@ -75,7 +76,21 @@ namespace StudentPath.API.Controllers
         public async Task<IActionResult> Delete(int id)
         {
             await _propertyService.DeletePropertyAsync(id);
-            return NoContent();
+            return Ok(new { successed = true, message = "Property deleted successfully." });
+        }
+        // GET: api/properties/enums (Unique route to avoid conflicts)
+        [HttpGet("enums")]
+        public ActionResult<Dictionary<string, List<EnumValueDto>>> GetEnums()
+        {
+            var enums = EnumHelper.GetAllEnums();
+            return Ok(enums);
+        }
+
+        [HttpGet("features")]
+        public async Task<IActionResult> GetFeatures()
+        {
+            var features = await _propertyService.GetAllFeaturesAsync();
+            return Ok(new { successed = true, data = features });
         }
     }
 }

@@ -4,12 +4,11 @@ using StudentPath.DAL.Repositories.HousingRepository;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace StudentPath.BLL.Services.HousingServices
 {
-    public class PropertyService :IPropertyService
+    public class PropertyService : IPropertyService
     {
         private readonly IPropertyRepository _propertyRepository;
 
@@ -29,7 +28,6 @@ namespace StudentPath.BLL.Services.HousingServices
             var property = await _propertyRepository.GetByIdAsync(propertyId);
             if (property == null)
             {
-                // You may choose to throw a custom NotFoundException
                 throw new KeyNotFoundException($"Property with id {propertyId} not found.");
             }
             return MapPropertyToPropertyDto(property);
@@ -37,7 +35,7 @@ namespace StudentPath.BLL.Services.HousingServices
 
         public async Task<PropertyDto> CreatePropertyAsync(PropertyCreateDto createDto)
         {
-            // Map from DTO to Entity
+            // تحويل الـ DTO إلى الـ Entity
             var property = new Property
             {
                 AdvertisingStatus = createDto.AdvertisingStatus,
@@ -61,7 +59,7 @@ namespace StudentPath.BLL.Services.HousingServices
                 UserId = createDto.UserId
             };
 
-            // Map related locations if provided.
+            // تحويل المواقع لو وُجدت
             if (createDto.Locations != null && createDto.Locations.Any())
             {
                 property.Locations = createDto.Locations.Select(l => new LocationProperty
@@ -74,7 +72,7 @@ namespace StudentPath.BLL.Services.HousingServices
                 }).ToList();
             }
 
-            // Map related images if provided.
+            // تحويل الصور لو وُجدت
             if (createDto.Images != null && createDto.Images.Any())
             {
                 property.PropertyImages = createDto.Images.Select(i => new PropertyImage
@@ -83,7 +81,7 @@ namespace StudentPath.BLL.Services.HousingServices
                 }).ToList();
             }
 
-            // Map features using the list of pre-seeded Feature IDs.
+            // تحويل الخصائص باستخدام قائمة الـ Feature IDs
             if (createDto.FeatureIds != null && createDto.FeatureIds.Any())
             {
                 property.PropertyFeatures = createDto.FeatureIds.Select(id => new PropertyFeature
@@ -95,16 +93,17 @@ namespace StudentPath.BLL.Services.HousingServices
             await _propertyRepository.AddAsync(property);
             return MapPropertyToPropertyDto(property);
         }
+
         public async Task<PropertyDto> UpdatePropertyAsync(PropertyUpdateDto updateDto)
         {
-            // Retrieve existing property.
+            // استرجاع الـ property الحالي
             var property = await _propertyRepository.GetByIdAsync(updateDto.PropertyId);
             if (property == null)
             {
                 throw new KeyNotFoundException($"Property with id {updateDto.PropertyId} not found.");
             }
 
-            // Update basic fields.
+            // تحديث الحقول الأساسية
             property.AdvertisingStatus = updateDto.AdvertisingStatus;
             property.HasInsurance = updateDto.HasInsurance;
             property.HousingType = updateDto.HousingType;
@@ -125,7 +124,7 @@ namespace StudentPath.BLL.Services.HousingServices
             property.Currency = updateDto.Currency;
             property.UserId = updateDto.UserId;
 
-            // For simplicity, clear and re-map related locations.
+            // تحديث المواقع (نقوم بمسح القديمة وإعادة رسمها)
             if (updateDto.Locations != null)
             {
                 property.Locations.Clear();
@@ -139,7 +138,7 @@ namespace StudentPath.BLL.Services.HousingServices
                 }).ToList();
             }
 
-            // Clear and re-map images.
+            // تحديث الصور
             if (updateDto.Images != null)
             {
                 property.PropertyImages.Clear();
@@ -149,7 +148,7 @@ namespace StudentPath.BLL.Services.HousingServices
                 }).ToList();
             }
 
-            // Clear and re-map features.
+            // تحديث الخصائص (Features)
             if (updateDto.Features != null)
             {
                 property.PropertyFeatures.Clear();
@@ -168,33 +167,34 @@ namespace StudentPath.BLL.Services.HousingServices
             await _propertyRepository.DeleteAsync(propertyId);
         }
 
-        // Manual mapping from Property entity to PropertyDto.
+        // دالة تحويل من الـ Entity إلى DTO بحيث تُحول قيم الـ enum إلى أسماء (string)
         private PropertyDto MapPropertyToPropertyDto(Property property)
         {
             return new PropertyDto
             {
                 PropertyId = property.PropertyId,
-                AdvertisingStatus = property.AdvertisingStatus,
+                AdvertisingStatus = property.AdvertisingStatus.ToString(),
                 HasInsurance = property.HasInsurance,
-                HousingType = property.HousingType,
+                HousingType = property.HousingType.ToString(),
                 Rooms = property.Rooms,
                 Bathrooms = property.Bathrooms,
                 GrossArea = property.GrossArea,
                 NetArea = property.NetArea,
-                WarmingType = property.WarmingType,
+                WarmingType = property.WarmingType?.ToString(),
                 BuildingAge = property.BuildingAge,
                 FloorLocation = property.FloorLocation,
                 IsFurnished = property.IsFurnished,
                 IsAvailableForLoan = property.IsAvailableForLoan,
                 Dues = property.Dues,
-                Front = property.Front,
+                Front = property.Front?.ToString(),
                 RentPrice = property.RentPrice,
                 Description = property.Description,
                 Price = property.Price,
-                Currency = property.Currency,
+                Currency = property.Currency.ToString(),
                 UserId = property.UserId,
                 Locations = property.Locations.Select(l => new PropertyLocationDto
                 {
+                    Id = l.Id,
                     City = l.City,
                     Country = l.Country,
                     Street = l.Street,
@@ -210,9 +210,19 @@ namespace StudentPath.BLL.Services.HousingServices
                 {
                     Id = pf.FeatureId,
                     Name = pf.Feature?.Name,
-                    Category = pf.Feature != null ? pf.Feature.Category : default
+                    Category = pf.Feature != null ? pf.Feature.Category.ToString() : string.Empty
                 }).ToList()
             };
+        }
+        public async Task<List<FeatureDto>> GetAllFeaturesAsync()
+        {
+            var features = await _propertyRepository.GetAllFeaturesAsync();
+            return features.Select(f => new FeatureDto
+            {
+                Id = f.Id,
+                Name = f.Name,
+                Category = f.Category.ToString()
+            }).ToList();
         }
     }
 }

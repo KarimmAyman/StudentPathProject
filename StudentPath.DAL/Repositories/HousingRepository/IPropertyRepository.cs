@@ -23,5 +23,7 @@ namespace StudentPath.DAL.Repositories.HousingRepository
 
         // Soft delete a property by setting its IsDeleted flag to true.
         Task DeleteAsync(int propertyId);
+
+        Task<List<Feature>> GetAllFeaturesAsync();
     }
 }
