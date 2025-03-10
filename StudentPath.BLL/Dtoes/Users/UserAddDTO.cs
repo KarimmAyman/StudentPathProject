@@ -51,7 +51,7 @@ namespace StudentPath.BLL.Dtoes.Users
         public UserAddDTO()
         {
             Id = Guid.NewGuid().ToString();
-            UserType = UserTypeEnum.Student;
+            UserType = UserTypeEnum.User;
         }
 
     }

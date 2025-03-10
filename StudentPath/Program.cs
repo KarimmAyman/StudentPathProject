@@ -128,6 +128,7 @@ public class Program
         builder.Services.AddScoped<IPropertyRepository, PropertyRepository>();
         builder.Services.AddScoped<IPropertyService, PropertyService>();
 
+        builder.Services.AddHttpContextAccessor();
         #endregion
 
 
@@ -206,6 +207,7 @@ public class Program
         //}
         app.UseSwagger();
             app.UseSwaggerUI();
+            app.UseStaticFiles();
             app.UseHttpsRedirection();
             app.UseAuthentication();
             app.UseAuthorization();
