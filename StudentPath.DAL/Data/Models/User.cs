@@ -49,7 +49,7 @@ namespace StudentPath.DAL.Data.Models
 
         [DataType(DataType.DateTime)]
         public DateTime RegistrationDate { get; set; } 
-        public string PhoneNumber { get; set; }
+        public string? PhoneNumber { get; set; }
 
    
         public virtual ICollection<Location> Locations { get; set; } = new HashSet<Location>();  // Navigation Property

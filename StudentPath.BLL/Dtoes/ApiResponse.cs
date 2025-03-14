@@ -9,11 +9,11 @@ namespace StudentPath.BLL.Dtoes
     public class ApiResponse
     {
         public bool Success { get; set; }
-        public string Message { get; set; }
+        public string Message { get; set; } = string.Empty;
         public int StatusCode { get; set; }
 
         // Success Response
-        public static ApiResponse SuccessResponse(string message, int statusCode = 200)
+        public static ApiResponse SuccessResponse(string message, int statusCode = 200, DriverReadDTO createdDriver = null)
         {
             return new ApiResponse
             {
@@ -38,10 +38,10 @@ namespace StudentPath.BLL.Dtoes
     // Generic ApiResponse for specific types
     public class ApiResponse<T> : ApiResponse
     {
-        public T Data { get; set; }
+        public T Data { get; set; } = default!;
 
         // Success Response
-        public static new ApiResponse<T> SuccessResponse(string message, int statusCode = 200, T data = default)
+        public static new ApiResponse<T> SuccessResponse(string message, int statusCode = 200, T data = default!)
         {
             return new ApiResponse<T>
             {
@@ -63,5 +63,4 @@ namespace StudentPath.BLL.Dtoes
             };
         }
     }
-
 }

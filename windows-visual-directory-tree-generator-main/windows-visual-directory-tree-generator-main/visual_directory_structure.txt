@@ -1,0 +1,477 @@
+==========================================================
+Windows Visual Directory Tree Generator
+==========================================================
+Directory structure generated on Wed 03/12/202522:48:05.88
+Total number of folders: 104
+Total number of files: 364
+==========================================================
+
+├── StudentPathProject 
+│   ├── .gitignore 
+│   ├── README.md 
+│   ├── StudentPath.sln 
+│   ├── StudentPath 
+│   │   ├── appsettings.Development.json 
+│   │   ├── appsettings.json 
+│   │   ├── Program.cs 
+│   │   ├── StudentPath.API.csproj 
+│   │   ├── StudentPath.API.csproj.user 
+│   │   ├── StudentPath.http 
+│   │   ├── WeatherForecast.cs 
+│   │   ├── .config 
+│   │   │   ├── dotnet-tools.json 
+│   │   ├── bin 
+│   │   │   ├── Debug 
+│   │   │   │   ├── net8.0 
+│   │   │   │   │   ├── appsettings.Development.json 
+│   │   │   │   │   ├── appsettings.json 
+│   │   │   │   │   ├── AutoMapper.dll 
+│   │   │   │   │   ├── Azure.Core.dll 
+│   │   │   │   │   ├── Azure.Identity.dll 
+│   │   │   │   │   ├── BouncyCastle.Cryptography.dll 
+│   │   │   │   │   ├── Castle.Core.dll 
+│   │   │   │   │   ├── Humanizer.dll 
+│   │   │   │   │   ├── MailKit.dll 
+│   │   │   │   │   ├── Microsoft.AspNetCore.Authentication.JwtBearer.dll 
+│   │   │   │   │   ├── Microsoft.AspNetCore.Identity.EntityFrameworkCore.dll 
+│   │   │   │   │   ├── Microsoft.Bcl.AsyncInterfaces.dll 
+│   │   │   │   │   ├── Microsoft.CodeAnalysis.CSharp.dll 
+│   │   │   │   │   ├── Microsoft.CodeAnalysis.CSharp.Workspaces.dll 
+│   │   │   │   │   ├── Microsoft.CodeAnalysis.dll 
+│   │   │   │   │   ├── Microsoft.CodeAnalysis.Workspaces.dll 
+│   │   │   │   │   ├── Microsoft.Data.SqlClient.dll 
+│   │   │   │   │   ├── Microsoft.EntityFrameworkCore.Abstractions.dll 
+│   │   │   │   │   ├── Microsoft.EntityFrameworkCore.Design.dll 
+│   │   │   │   │   ├── Microsoft.EntityFrameworkCore.dll 
+│   │   │   │   │   ├── Microsoft.EntityFrameworkCore.Proxies.dll 
+│   │   │   │   │   ├── Microsoft.EntityFrameworkCore.Relational.dll 
+│   │   │   │   │   ├── Microsoft.EntityFrameworkCore.SqlServer.dll 
+│   │   │   │   │   ├── Microsoft.Extensions.DependencyModel.dll 
+│   │   │   │   │   ├── Microsoft.Identity.Client.dll 
+│   │   │   │   │   ├── Microsoft.Identity.Client.Extensions.Msal.dll 
+│   │   │   │   │   ├── Microsoft.IdentityModel.Abstractions.dll 
+│   │   │   │   │   ├── Microsoft.IdentityModel.JsonWebTokens.dll 
+│   │   │   │   │   ├── Microsoft.IdentityModel.Logging.dll 
+│   │   │   │   │   ├── Microsoft.IdentityModel.Protocols.dll 
+│   │   │   │   │   ├── Microsoft.IdentityModel.Protocols.OpenIdConnect.dll 
+│   │   │   │   │   ├── Microsoft.IdentityModel.Tokens.dll 
+│   │   │   │   │   ├── Microsoft.OpenApi.dll 
+│   │   │   │   │   ├── Microsoft.SqlServer.Server.dll 
+│   │   │   │   │   ├── Microsoft.Win32.SystemEvents.dll 
+│   │   │   │   │   ├── MimeKit.dll 
+│   │   │   │   │   ├── Mono.TextTemplating.dll 
+│   │   │   │   │   ├── StudentPath.API.deps.json 
+│   │   │   │   │   ├── StudentPath.API.dll 
+│   │   │   │   │   ├── StudentPath.API.exe 
+│   │   │   │   │   ├── StudentPath.API.pdb 
+│   │   │   │   │   ├── StudentPath.API.runtimeconfig.json 
+│   │   │   │   │   ├── StudentPath.API.staticwebassets.endpoints.json 
+│   │   │   │   │   ├── StudentPath.API.staticwebassets.runtime.json 
+│   │   │   │   │   ├── StudentPath.BLL.dll 
+│   │   │   │   │   ├── StudentPath.BLL.pdb 
+│   │   │   │   │   ├── StudentPath.DAL.dll 
+│   │   │   │   │   ├── StudentPath.DAL.pdb 
+│   │   │   │   │   ├── Swashbuckle.AspNetCore.Annotations.dll 
+│   │   │   │   │   ├── Swashbuckle.AspNetCore.Swagger.dll 
+│   │   │   │   │   ├── Swashbuckle.AspNetCore.SwaggerGen.dll 
+│   │   │   │   │   ├── Swashbuckle.AspNetCore.SwaggerUI.dll 
+│   │   │   │   │   ├── System.CodeDom.dll 
+│   │   │   │   │   ├── System.Composition.AttributedModel.dll 
+│   │   │   │   │   ├── System.Composition.Convention.dll 
+│   │   │   │   │   ├── System.Composition.Hosting.dll 
+│   │   │   │   │   ├── System.Composition.Runtime.dll 
+│   │   │   │   │   ├── System.Composition.TypedParts.dll 
+│   │   │   │   │   ├── System.Configuration.ConfigurationManager.dll 
+│   │   │   │   │   ├── System.Drawing.Common.dll 
+│   │   │   │   │   ├── System.IdentityModel.Tokens.Jwt.dll 
+│   │   │   │   │   ├── System.Memory.Data.dll 
+│   │   │   │   │   ├── System.Runtime.Caching.dll 
+│   │   │   │   │   ├── System.Security.Cryptography.ProtectedData.dll 
+│   │   │   │   │   ├── System.Security.Permissions.dll 
+│   │   │   │   │   ├── System.Windows.Extensions.dll 
+│   │   │   │   │   ├── cs 
+│   │   │   │   │   │   ├── Microsoft.CodeAnalysis.CSharp.resources.dll 
+│   │   │   │   │   │   ├── Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll 
+│   │   │   │   │   │   ├── Microsoft.CodeAnalysis.resources.dll 
+│   │   │   │   │   │   ├── Microsoft.CodeAnalysis.Workspaces.resources.dll 
+│   │   │   │   │   ├── de 
+│   │   │   │   │   │   ├── Microsoft.CodeAnalysis.CSharp.resources.dll 
+│   │   │   │   │   │   ├── Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll 
+│   │   │   │   │   │   ├── Microsoft.CodeAnalysis.resources.dll 
+│   │   │   │   │   │   ├── Microsoft.CodeAnalysis.Workspaces.resources.dll 
+│   │   │   │   │   ├── es 
+│   │   │   │   │   │   ├── Microsoft.CodeAnalysis.CSharp.resources.dll 
+│   │   │   │   │   │   ├── Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll 
+│   │   │   │   │   │   ├── Microsoft.CodeAnalysis.resources.dll 
+│   │   │   │   │   │   ├── Microsoft.CodeAnalysis.Workspaces.resources.dll 
+│   │   │   │   │   ├── fr 
+│   │   │   │   │   │   ├── Microsoft.CodeAnalysis.CSharp.resources.dll 
+│   │   │   │   │   │   ├── Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll 
+│   │   │   │   │   │   ├── Microsoft.CodeAnalysis.resources.dll 
+│   │   │   │   │   │   ├── Microsoft.CodeAnalysis.Workspaces.resources.dll 
+│   │   │   │   │   ├── ja 
+│   │   │   │   │   │   ├── Microsoft.CodeAnalysis.CSharp.resources.dll 
+│   │   │   │   │   │   ├── Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll 
+│   │   │   │   │   │   ├── Microsoft.CodeAnalysis.resources.dll 
+│   │   │   │   │   │   ├── Microsoft.CodeAnalysis.Workspaces.resources.dll 
+│   │   │   │   │   ├── ko 
+│   │   │   │   │   │   ├── Microsoft.CodeAnalysis.CSharp.resources.dll 
+│   │   │   │   │   │   ├── Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll 
+│   │   │   │   │   │   ├── Microsoft.CodeAnalysis.resources.dll 
+│   │   │   │   │   │   ├── Microsoft.CodeAnalysis.Workspaces.resources.dll 
+│   │   │   │   │   ├── pl 
+│   │   │   │   │   │   ├── Microsoft.CodeAnalysis.CSharp.resources.dll 
+│   │   │   │   │   │   ├── Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll 
+│   │   │   │   │   │   ├── Microsoft.CodeAnalysis.resources.dll 
+│   │   │   │   │   │   ├── Microsoft.CodeAnalysis.Workspaces.resources.dll 
+│   │   │   │   │   ├── pt-BR 
+│   │   │   │   │   │   ├── Microsoft.CodeAnalysis.CSharp.resources.dll 
+│   │   │   │   │   │   ├── Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll 
+│   │   │   │   │   │   ├── Microsoft.CodeAnalysis.resources.dll 
+│   │   │   │   │   │   ├── Microsoft.CodeAnalysis.Workspaces.resources.dll 
+│   │   │   │   │   ├── ru 
+│   │   │   │   │   │   ├── Microsoft.CodeAnalysis.CSharp.resources.dll 
+│   │   │   │   │   │   ├── Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll 
+│   │   │   │   │   │   ├── Microsoft.CodeAnalysis.resources.dll 
+│   │   │   │   │   │   ├── Microsoft.CodeAnalysis.Workspaces.resources.dll 
+│   │   │   │   │   ├── runtimes 
+│   │   │   │   │   │   ├── unix 
+│   │   │   │   │   │   │   ├── lib 
+│   │   │   │   │   │   │   │   ├── net6.0 
+│   │   │   │   │   │   │   │   │   ├── Microsoft.Data.SqlClient.dll 
+│   │   │   │   │   │   │   │   │   ├── System.Drawing.Common.dll 
+│   │   │   │   │   │   ├── win 
+│   │   │   │   │   │   │   ├── lib 
+│   │   │   │   │   │   │   │   ├── net6.0 
+│   │   │   │   │   │   │   │   │   ├── Microsoft.Data.SqlClient.dll 
+│   │   │   │   │   │   │   │   │   ├── Microsoft.Win32.SystemEvents.dll 
+│   │   │   │   │   │   │   │   │   ├── System.Drawing.Common.dll 
+│   │   │   │   │   │   │   │   │   ├── System.Runtime.Caching.dll 
+│   │   │   │   │   │   │   │   │   ├── System.Security.Cryptography.ProtectedData.dll 
+│   │   │   │   │   │   │   │   │   ├── System.Windows.Extensions.dll 
+│   │   │   │   │   │   ├── win-arm 
+│   │   │   │   │   │   │   ├── native 
+│   │   │   │   │   │   │   │   ├── Microsoft.Data.SqlClient.SNI.dll 
+│   │   │   │   │   │   ├── win-arm64 
+│   │   │   │   │   │   │   ├── native 
+│   │   │   │   │   │   │   │   ├── Microsoft.Data.SqlClient.SNI.dll 
+│   │   │   │   │   │   ├── win-x64 
+│   │   │   │   │   │   │   ├── native 
+│   │   │   │   │   │   │   │   ├── Microsoft.Data.SqlClient.SNI.dll 
+│   │   │   │   │   │   ├── win-x86 
+│   │   │   │   │   │   │   ├── native 
+│   │   │   │   │   │   │   │   ├── Microsoft.Data.SqlClient.SNI.dll 
+│   │   │   │   │   ├── tr 
+│   │   │   │   │   │   ├── Microsoft.CodeAnalysis.CSharp.resources.dll 
+│   │   │   │   │   │   ├── Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll 
+│   │   │   │   │   │   ├── Microsoft.CodeAnalysis.resources.dll 
+│   │   │   │   │   │   ├── Microsoft.CodeAnalysis.Workspaces.resources.dll 
+│   │   │   │   │   ├── zh-Hans 
+│   │   │   │   │   │   ├── Microsoft.CodeAnalysis.CSharp.resources.dll 
+│   │   │   │   │   │   ├── Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll 
+│   │   │   │   │   │   ├── Microsoft.CodeAnalysis.resources.dll 
+│   │   │   │   │   │   ├── Microsoft.CodeAnalysis.Workspaces.resources.dll 
+│   │   │   │   │   ├── zh-Hant 
+│   │   │   │   │   │   ├── Microsoft.CodeAnalysis.CSharp.resources.dll 
+│   │   │   │   │   │   ├── Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll 
+│   │   │   │   │   │   ├── Microsoft.CodeAnalysis.resources.dll 
+│   │   │   │   │   │   ├── Microsoft.CodeAnalysis.Workspaces.resources.dll 
+│   │   │   ├── Release 
+│   │   │   │   ├── net8.0 
+│   │   ├── Controllers 
+│   │   │   ├── AccountsController.cs 
+│   │   │   ├── PropertyController.cs 
+│   │   │   ├── UserController.cs 
+│   │   ├── obj 
+│   │   │   ├── project.assets.json 
+│   │   │   ├── project.nuget.cache 
+│   │   │   ├── StudentPath.API.csproj.nuget.dgspec.json 
+│   │   │   ├── StudentPath.API.csproj.nuget.g.props 
+│   │   │   ├── StudentPath.API.csproj.nuget.g.targets 
+│   │   │   ├── Debug 
+│   │   │   │   ├── net8.0 
+│   │   │   │   │   ├── .NETCoreApp,Version=v8.0.AssemblyAttributes.cs 
+│   │   │   │   │   ├── ApiEndpoints.json 
+│   │   │   │   │   ├── apphost.exe 
+│   │   │   │   │   ├── staticwebassets.build.endpoints.json 
+│   │   │   │   │   ├── staticwebassets.build.json 
+│   │   │   │   │   ├── staticwebassets.development.json 
+│   │   │   │   │   ├── staticwebassets.pack.json 
+│   │   │   │   │   ├── staticwebassets.references.upToDateCheck.txt 
+│   │   │   │   │   ├── staticwebassets.removed.txt 
+│   │   │   │   │   ├── staticwebassets.upToDateCheck.txt 
+│   │   │   │   │   ├── StudentP.1E4B4465.Up2Date 
+│   │   │   │   │   ├── StudentPath.API.AssemblyInfo.cs 
+│   │   │   │   │   ├── StudentPath.API.AssemblyInfoInputs.cache 
+│   │   │   │   │   ├── StudentPath.API.assets.cache 
+│   │   │   │   │   ├── StudentPath.API.csproj.AssemblyReference.cache 
+│   │   │   │   │   ├── StudentPath.API.csproj.BuildWithSkipAnalyzers 
+│   │   │   │   │   ├── StudentPath.API.csproj.CoreCompileInputs.cache 
+│   │   │   │   │   ├── StudentPath.API.csproj.FileListAbsolute.txt 
+│   │   │   │   │   ├── StudentPath.API.dll 
+│   │   │   │   │   ├── StudentPath.API.GeneratedMSBuildEditorConfig.editorconfig 
+│   │   │   │   │   ├── StudentPath.API.genruntimeconfig.cache 
+│   │   │   │   │   ├── StudentPath.API.GlobalUsings.g.cs 
+│   │   │   │   │   ├── StudentPath.API.MvcApplicationPartsAssemblyInfo.cache 
+│   │   │   │   │   ├── StudentPath.API.MvcApplicationPartsAssemblyInfo.cs 
+│   │   │   │   │   ├── StudentPath.API.pdb 
+│   │   │   │   │   ├── StudentPath.API.sourcelink.json 
+│   │   │   │   │   ├── EndpointInfo 
+│   │   │   │   │   │   ├── StudentPath.API.json 
+│   │   │   │   │   │   ├── StudentPath.API.OpenApiFiles.cache 
+│   │   │   │   │   ├── ref 
+│   │   │   │   │   │   ├── StudentPath.API.dll 
+│   │   │   │   │   ├── refint 
+│   │   │   │   │   │   ├── StudentPath.API.dll 
+│   │   │   │   │   ├── staticwebassets 
+│   │   │   │   │   │   ├── msbuild.build.StudentPath.API.props 
+│   │   │   │   │   │   ├── msbuild.buildMultiTargeting.StudentPath.API.props 
+│   │   │   │   │   │   ├── msbuild.buildTransitive.StudentPath.API.props 
+│   │   │   │   │   │   ├── msbuild.StudentPath.API.Microsoft.AspNetCore.StaticWebAssetEndpoints.props 
+│   │   │   │   │   │   ├── msbuild.StudentPath.API.Microsoft.AspNetCore.StaticWebAssets.props 
+│   │   │   ├── Release 
+│   │   │   │   ├── net8.0 
+│   │   │   │   │   ├── .NETCoreApp,Version=v8.0.AssemblyAttributes.cs 
+│   │   │   │   │   ├── StudentPath.API.AssemblyInfo.cs 
+│   │   │   │   │   ├── StudentPath.API.AssemblyInfoInputs.cache 
+│   │   │   │   │   ├── StudentPath.API.GeneratedMSBuildEditorConfig.editorconfig 
+│   │   │   │   │   ├── StudentPath.API.GlobalUsings.g.cs 
+│   │   │   │   │   ├── ref 
+│   │   │   │   │   ├── refint 
+│   │   ├── Properties 
+│   │   │   ├── launchSettings.json 
+│   │   ├── wwwroot 
+│   │   │   ├── Uploads 
+│   │   │   │   ├── 70e11ffe-4eae-4a3d-801b-bafee7af55fc.jpg 
+│   │   │   │   ├── Aoun-logo.svg 
+│   │   │   │   ├── e0eb824f-3a34-4b4b-b679-7b02a2feb9b0.jpg 
+│   │   │   │   ├── e4c22803-ef8d-4f65-bea9-70ff986bd15c.jpg 
+│   │   │   │   ├── default 
+│   │   │   │   │   ├── Female_Photo.jpg 
+│   │   │   │   │   ├── Male_Photo.jpg 
+│   ├── StudentPath.BLL 
+│   │   ├── StudentPath.BLL.csproj 
+│   │   ├── AutoMappers 
+│   │   │   ├── UserMapper 
+│   │   │   │   ├── UserProfile.cs 
+│   │   ├── bin 
+│   │   │   ├── Debug 
+│   │   │   │   ├── net8.0 
+│   │   │   │   │   ├── StudentPath.BLL.deps.json 
+│   │   │   │   │   ├── StudentPath.BLL.dll 
+│   │   │   │   │   ├── StudentPath.BLL.pdb 
+│   │   │   │   │   ├── StudentPath.BLL.runtimeconfig.json 
+│   │   │   │   │   ├── StudentPath.DAL.dll 
+│   │   │   │   │   ├── StudentPath.DAL.pdb 
+│   │   │   ├── Release 
+│   │   │   │   ├── net8.0 
+│   │   ├── Dtoes 
+│   │   │   ├── ApiResponse.cs 
+│   │   │   ├── Accounts 
+│   │   │   │   ├── ForgotPasswordDto.cs 
+│   │   │   │   ├── GeneralRespnose.cs 
+│   │   │   │   ├── GetAllRolesDto.cs 
+│   │   │   │   ├── LocationDto.cs 
+│   │   │   │   ├── LoginDto.cs 
+│   │   │   │   ├── LoginResponce.cs 
+│   │   │   │   ├── RegisterDto.cs 
+│   │   │   │   ├── ResetPasswordDto.cs 
+│   │   │   │   ├── ResetPasswordOtpDto.cs 
+│   │   │   │   ├── RoleResponce.cs 
+│   │   │   │   ├── SeedRolesDtocs.cs 
+│   │   │   │   ├── SendOtpDto.cs 
+│   │   │   │   ├── VehicleInfoDto.cs 
+│   │   │   │   ├── VerifyOtpDto.cs 
+│   │   │   ├── HousingDtoes 
+│   │   │   │   ├── FeatureDto.cs 
+│   │   │   │   ├── LocationCreateDto.cs 
+│   │   │   │   ├── PropertyCreateDto.cs 
+│   │   │   │   ├── PropertyDto.cs 
+│   │   │   │   ├── PropertyImageCreateDto.cs 
+│   │   │   │   ├── PropertyImageDto.cs 
+│   │   │   │   ├── PropertyLocationDto.cs 
+│   │   │   │   ├── PropertyUpdateDto.cs 
+│   │   │   ├── Users 
+│   │   │   │   ├── UserAddDTO.cs 
+│   │   │   │   ├── UserDeleteDTO.cs 
+│   │   │   │   ├── UserDetailsDTO.cs 
+│   │   │   │   ├── UserReadDTO.cs 
+│   │   │   │   ├── UserUpdatedDTO.cs 
+│   │   ├── Middlewares 
+│   │   │   ├── GlobalExceptionMiddleware.cs 
+│   │   ├── obj 
+│   │   │   ├── project.assets.json 
+│   │   │   ├── project.nuget.cache 
+│   │   │   ├── StudentPath.BLL.csproj.nuget.dgspec.json 
+│   │   │   ├── StudentPath.BLL.csproj.nuget.g.props 
+│   │   │   ├── StudentPath.BLL.csproj.nuget.g.targets 
+│   │   │   ├── Debug 
+│   │   │   │   ├── net8.0 
+│   │   │   │   │   ├── .NETCoreApp,Version=v8.0.AssemblyAttributes.cs 
+│   │   │   │   │   ├── StudentP.5E6FEFF9.Up2Date 
+│   │   │   │   │   ├── StudentPath.BLL.AssemblyInfo.cs 
+│   │   │   │   │   ├── StudentPath.BLL.AssemblyInfoInputs.cache 
+│   │   │   │   │   ├── StudentPath.BLL.assets.cache 
+│   │   │   │   │   ├── StudentPath.BLL.csproj.AssemblyReference.cache 
+│   │   │   │   │   ├── StudentPath.BLL.csproj.BuildWithSkipAnalyzers 
+│   │   │   │   │   ├── StudentPath.BLL.csproj.CoreCompileInputs.cache 
+│   │   │   │   │   ├── StudentPath.BLL.csproj.FileListAbsolute.txt 
+│   │   │   │   │   ├── StudentPath.BLL.dll 
+│   │   │   │   │   ├── StudentPath.BLL.GeneratedMSBuildEditorConfig.editorconfig 
+│   │   │   │   │   ├── StudentPath.BLL.genruntimeconfig.cache 
+│   │   │   │   │   ├── StudentPath.BLL.GlobalUsings.g.cs 
+│   │   │   │   │   ├── StudentPath.BLL.pdb 
+│   │   │   │   │   ├── StudentPath.BLL.sourcelink.json 
+│   │   │   │   │   ├── ref 
+│   │   │   │   │   │   ├── StudentPath.BLL.dll 
+│   │   │   │   │   ├── refint 
+│   │   │   │   │   │   ├── StudentPath.BLL.dll 
+│   │   │   ├── Release 
+│   │   │   │   ├── net8.0 
+│   │   │   │   │   ├── .NETCoreApp,Version=v8.0.AssemblyAttributes.cs 
+│   │   │   │   │   ├── StudentPath.BLL.AssemblyInfo.cs 
+│   │   │   │   │   ├── StudentPath.BLL.AssemblyInfoInputs.cache 
+│   │   │   │   │   ├── StudentPath.BLL.GeneratedMSBuildEditorConfig.editorconfig 
+│   │   │   │   │   ├── StudentPath.BLL.GlobalUsings.g.cs 
+│   │   │   │   │   ├── ref 
+│   │   │   │   │   ├── refint 
+│   │   ├── Services 
+│   │   │   ├── Accounts 
+│   │   │   │   ├── AccountService.cs 
+│   │   │   │   ├── EmailService.cs 
+│   │   │   │   ├── IAccountService.cs 
+│   │   │   │   ├── IEmailService.cs 
+│   │   │   ├── HousingServices 
+│   │   │   │   ├── IPropertyService.cs 
+│   │   │   │   ├── PropertyService.cs 
+│   │   │   ├── UserServices 
+│   │   │   │   ├── IUserService.cs 
+│   │   │   │   ├── UserService.cs 
+│   ├── StudentPath.DAL 
+│   │   ├── StudentPath.DAL.csproj 
+│   │   ├── bin 
+│   │   │   ├── Debug 
+│   │   │   │   ├── net8.0 
+│   │   │   │   │   ├── StudentPath.DAL.deps.json 
+│   │   │   │   │   ├── StudentPath.DAL.dll 
+│   │   │   │   │   ├── StudentPath.DAL.pdb 
+│   │   │   │   │   ├── StudentPath.DAL.runtimeconfig.json 
+│   │   │   ├── Release 
+│   │   │   │   ├── net8.0 
+│   │   ├── Data 
+│   │   │   ├── Configurations 
+│   │   │   │   ├── BookingEntityTypeConfigurations.cs 
+│   │   │   │   ├── DriverStudentEntityTypeConfigurations.cs 
+│   │   │   │   ├── PaymentEntityTypeConfigurations.cs 
+│   │   │   │   ├── TripEntityTypeConfigurations.cs 
+│   │   │   │   ├── UserDriverEntityTypeConfiguration.cs 
+│   │   │   │   ├── UserEntityTypeConfigurations.cs 
+│   │   │   ├── DBHelpers 
+│   │   │   │   ├── StudentPathContext.cs 
+│   │   │   ├── Models 
+│   │   │   │   ├── Booking.cs 
+│   │   │   │   ├── CustomRole.cs 
+│   │   │   │   ├── DriversStudents.cs 
+│   │   │   │   ├── EscrowAccount.cs 
+│   │   │   │   ├── Location.cs 
+│   │   │   │   ├── Notification.cs 
+│   │   │   │   ├── Payment.cs 
+│   │   │   │   ├── Trip.cs 
+│   │   │   │   ├── User.cs 
+│   │   │   │   ├── UserDriver.cs 
+│   │   │   │   ├── VehicleInfo.cs 
+│   │   │   │   ├── Housing 
+│   │   │   │   │   ├── EnumHelper.cs 
+│   │   │   │   │   ├── Feature.cs 
+│   │   │   │   │   ├── LocationProperty.cs 
+│   │   │   │   │   ├── Property.cs 
+│   │   │   │   │   ├── PropertyFeature.cs 
+│   │   │   │   │   ├── PropertyImage.cs 
+│   │   ├── Migrations 
+│   │   │   ├── 20241115194109_initialDB.cs 
+│   │   │   ├── 20241115194109_initialDB.Designer.cs 
+│   │   │   ├── 20250130185521_update on model creating .cs 
+│   │   │   ├── 20250130185521_update on model creating .Designer.cs 
+│   │   │   ├── 20250223095843_upadteUserTableAndAddLocation.cs 
+│   │   │   ├── 20250223095843_upadteUserTableAndAddLocation.Designer.cs 
+│   │   │   ├── 20250223100901_MakeUserIdRequiredInLocation.cs 
+│   │   │   ├── 20250223100901_MakeUserIdRequiredInLocation.Designer.cs 
+│   │   │   ├── 20250223102840_makedriverpropnull.cs 
+│   │   │   ├── 20250223102840_makedriverpropnull.Designer.cs 
+│   │   │   ├── 20250223105455_UpdateUserLocationTables.cs 
+│   │   │   ├── 20250223105455_UpdateUserLocationTables.Designer.cs 
+│   │   │   ├── 20250223105935_fix.cs 
+│   │   │   ├── 20250223105935_fix.Designer.cs 
+│   │   │   ├── 20250223112128_fixx.cs 
+│   │   │   ├── 20250223112128_fixx.Designer.cs 
+│   │   │   ├── 20250223112901_FixLocationUserId.cs 
+│   │   │   ├── 20250223112901_FixLocationUserId.Designer.cs 
+│   │   │   ├── 20250223181758_addotponUserModel.cs 
+│   │   │   ├── 20250223181758_addotponUserModel.Designer.cs 
+│   │   │   ├── 20250226152919_RemoveSSNandAddressFromUser.cs 
+│   │   │   ├── 20250226152919_RemoveSSNandAddressFromUser.Designer.cs 
+│   │   │   ├── 20250227150923_add verifyOtpToUser.cs 
+│   │   │   ├── 20250227150923_add verifyOtpToUser.Designer.cs 
+│   │   │   ├── 20250305202652_make_userWithDriverRelationInsteadOfStudent.cs 
+│   │   │   ├── 20250305202652_make_userWithDriverRelationInsteadOfStudent.Designer.cs 
+│   │   │   ├── 20250307193126_Housing_Models.cs 
+│   │   │   ├── 20250307193126_Housing_Models.Designer.cs 
+│   │   │   ├── 20250308192940_addIsDeletedToProperty.cs 
+│   │   │   ├── 20250308192940_addIsDeletedToProperty.Designer.cs 
+│   │   │   ├── StudentPathContextModelSnapshot.cs 
+│   │   ├── obj 
+│   │   │   ├── project.assets.json 
+│   │   │   ├── project.nuget.cache 
+│   │   │   ├── StudentPath.DAL.csproj.nuget.dgspec.json 
+│   │   │   ├── StudentPath.DAL.csproj.nuget.g.props 
+│   │   │   ├── StudentPath.DAL.csproj.nuget.g.targets 
+│   │   │   ├── Debug 
+│   │   │   │   ├── net8.0 
+│   │   │   │   │   ├── .NETCoreApp,Version=v8.0.AssemblyAttributes.cs 
+│   │   │   │   │   ├── StudentPath.DAL.AssemblyInfo.cs 
+│   │   │   │   │   ├── StudentPath.DAL.AssemblyInfoInputs.cache 
+│   │   │   │   │   ├── StudentPath.DAL.assets.cache 
+│   │   │   │   │   ├── StudentPath.DAL.csproj.AssemblyReference.cache 
+│   │   │   │   │   ├── StudentPath.DAL.csproj.BuildWithSkipAnalyzers 
+│   │   │   │   │   ├── StudentPath.DAL.csproj.CoreCompileInputs.cache 
+│   │   │   │   │   ├── StudentPath.DAL.csproj.FileListAbsolute.txt 
+│   │   │   │   │   ├── StudentPath.DAL.dll 
+│   │   │   │   │   ├── StudentPath.DAL.GeneratedMSBuildEditorConfig.editorconfig 
+│   │   │   │   │   ├── StudentPath.DAL.genruntimeconfig.cache 
+│   │   │   │   │   ├── StudentPath.DAL.GlobalUsings.g.cs 
+│   │   │   │   │   ├── StudentPath.DAL.pdb 
+│   │   │   │   │   ├── StudentPath.DAL.sourcelink.json 
+│   │   │   │   │   ├── ref 
+│   │   │   │   │   │   ├── StudentPath.DAL.dll 
+│   │   │   │   │   ├── refint 
+│   │   │   │   │   │   ├── StudentPath.DAL.dll 
+│   │   │   ├── Release 
+│   │   │   │   ├── net8.0 
+│   │   │   │   │   ├── .NETCoreApp,Version=v8.0.AssemblyAttributes.cs 
+│   │   │   │   │   ├── StudentPath.DAL.AssemblyInfo.cs 
+│   │   │   │   │   ├── StudentPath.DAL.AssemblyInfoInputs.cache 
+│   │   │   │   │   ├── StudentPath.DAL.assets.cache 
+│   │   │   │   │   ├── StudentPath.DAL.csproj.AssemblyReference.cache 
+│   │   │   │   │   ├── StudentPath.DAL.GeneratedMSBuildEditorConfig.editorconfig 
+│   │   │   │   │   ├── StudentPath.DAL.GlobalUsings.g.cs 
+│   │   │   │   │   ├── ref 
+│   │   │   │   │   ├── refint 
+│   │   ├── Repositories 
+│   │   │   ├── GenericRepository 
+│   │   │   │   ├── GenericRepository.cs 
+│   │   │   │   ├── IGenericRepository.cs 
+│   │   │   ├── HousingRepository 
+│   │   │   │   ├── IPropertyRepository.cs 
+│   │   │   │   ├── PropertyRepository.cs 
+│   │   │   ├── UnitOfWork 
+│   │   │   │   ├── IUnitOfWork.cs 
+│   │   │   │   ├── UnitOfWork.cs 
+│   │   │   ├── UserRepository 
+│   │   │   │   ├── IUserRepo.cs 
+│   │   │   │   ├── UserRepo.cs 
+│   ├── windows-visual-directory-tree-generator-main 
+│   │   ├── windows-visual-directory-tree-generator-main 
+│   │   │   ├── LICENSE 
+│   │   │   ├── README.md 
+│   │   │   ├── temp_output.txt 
+│   │   │   ├── Windows Visual Directory Tree Generator.bat 

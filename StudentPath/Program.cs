@@ -4,11 +4,12 @@ using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-
+using StudentPath.BLL.AutoMappers.DriverMapper;
 using StudentPath.BLL.AutoMappers.UserMapper;
 using StudentPath.BLL.Dtos.Accounts;
 using StudentPath.BLL.Middlewares;
 using StudentPath.BLL.Services.AccountService;
+using StudentPath.BLL.Services.DriverServices;
 using StudentPath.BLL.Services.HousingServices;
 using StudentPath.BLL.Services.UserServices;
 using StudentPath.DAL.Data.DBHelpers;
@@ -112,8 +113,10 @@ public class Program
      
         #region AutoMapper
         builder.Services.AddAutoMapper(x => x.AddProfile(new UserProfile()));
-    
-        
+        builder.Services.AddAutoMapper(x => x.AddProfile(new DriverProfile()));
+
+
+
 
         #endregion
 
@@ -127,6 +130,7 @@ public class Program
         builder.Services.AddScoped<IUserService, UserService>();
         builder.Services.AddScoped<IPropertyRepository, PropertyRepository>();
         builder.Services.AddScoped<IPropertyService, PropertyService>();
+        builder.Services.AddScoped<IDriverService, DriverService>();
 
         builder.Services.AddHttpContextAccessor();
         #endregion

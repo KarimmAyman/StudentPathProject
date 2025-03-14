@@ -1,4 +1,5 @@
 ﻿using StudentPath.DAL.Data.DBHelpers;
+using StudentPath.DAL.Repositories.DriverRepository;
 using StudentPath.DAL.Repositories.UserRepository;
 using System;
 using System.Collections.Generic;
@@ -12,6 +13,8 @@ namespace StudentPath.DAL.Repositories.UnitOfWork
     {
         private readonly StudentPathContext db;
         public IUserRepo User { get; private set; }
+        public IDriverRepo Driver { get; private set; }  // Add Driver repository
+
 
 
         public UnitOfWork(StudentPathContext _db)
@@ -19,6 +22,7 @@ namespace StudentPath.DAL.Repositories.UnitOfWork
             this.db = _db;
 
             User = new UserRepo(db);
+            Driver = new DriverRepo(db);  // Add Driver repository
 
         }
 
