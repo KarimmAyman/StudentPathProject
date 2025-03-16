@@ -588,6 +588,7 @@ namespace StudentPath.BLL.Services.AccountService
             // Generate a new email confirmation token
             var emailConfirmationToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
 
+
             // Generate the confirmation link using the URL helper (without full domain)
             var confirmationLink = urlHelper.Action("ConfirmEmail", "Accounts",
                 new { userId = user.Id, token = emailConfirmationToken }, protocol: "https");
