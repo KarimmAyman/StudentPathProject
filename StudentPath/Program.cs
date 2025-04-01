@@ -9,11 +9,13 @@ using StudentPath.BLL.AutoMappers.UserMapper;
 using StudentPath.BLL.Dtos.Accounts;
 using StudentPath.BLL.Middlewares;
 using StudentPath.BLL.Services.AccountService;
+using StudentPath.BLL.Services.ActivityService;
 using StudentPath.BLL.Services.DriverServices;
 using StudentPath.BLL.Services.HousingServices;
 using StudentPath.BLL.Services.UserServices;
 using StudentPath.DAL.Data.DBHelpers;
 using StudentPath.DAL.Data.Models;
+using StudentPath.DAL.Repositories.ActivitesRepository;
 using StudentPath.DAL.Repositories.HousingRepository;
 using StudentPath.DAL.Repositories.UnitOfWork;
 using System.Text;
@@ -131,6 +133,8 @@ public class Program
         builder.Services.AddScoped<IPropertyRepository, PropertyRepository>();
         builder.Services.AddScoped<IPropertyService, PropertyService>();
         builder.Services.AddScoped<IDriverService, DriverService>();
+        builder.Services.AddScoped<IJobRepository, JobRepository>();
+        builder.Services.AddScoped<IJobService, JobService>();
 
         builder.Services.AddHttpContextAccessor();
         #endregion

@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using StudentPath.DAL.Data.Configurations;
 using StudentPath.DAL.Data.Models;
+using StudentPath.DAL.Data.Models.Activities;
 using StudentPath.DAL.Data.Models.Housing;
 using System;
 using System.Collections.Generic;
@@ -114,6 +115,7 @@ namespace StudentPath.DAL.Data.DBHelpers
         public DbSet<Property> Properties { get; set; }
         public DbSet<PropertyFeature> PropertyFeatures { get; set; }
         public DbSet<PropertyImage> PropertyImages { get; set; }
+        public DbSet<Job> Jobs { get; set; }
 
     }
 }
