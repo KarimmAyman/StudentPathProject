@@ -4,6 +4,7 @@ using StudentPath.DAL.Data.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Emit;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -14,6 +15,14 @@ namespace StudentPath.DAL.Data.Configurations
     {
         public void Configure(EntityTypeBuilder<User> builder)
         {
+                builder
+               .HasIndex(u => u.PhoneNumber)
+              .IsUnique();
+
+       
+                builder.Property(u => u.PhoneNumber)
+                .HasMaxLength(14) 
+                .IsRequired();
             //Configure primary key
             //builder.HasKey(u => u.Id);
 

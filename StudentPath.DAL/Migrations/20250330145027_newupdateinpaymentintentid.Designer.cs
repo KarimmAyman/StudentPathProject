@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using StudentPath.DAL.Data.DBHelpers;
 
@@ -11,9 +12,11 @@ using StudentPath.DAL.Data.DBHelpers;
 namespace StudentPath.DAL.Migrations
 {
     [DbContext(typeof(StudentPathContext))]
-    partial class StudentPathContextModelSnapshot : ModelSnapshot
+    [Migration("20250330145027_newupdateinpaymentintentid")]
+    partial class newupdateinpaymentintentid
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -791,6 +794,7 @@ namespace StudentPath.DAL.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("PaymentIntentId")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("PaymentMethod")
@@ -1034,8 +1038,7 @@ namespace StudentPath.DAL.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("LastTransactionId")
-                        .IsRequired()
+                    b.Property<string>("PaymentIntentId")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("UserId")
@@ -1048,34 +1051,6 @@ namespace StudentPath.DAL.Migrations
                         .IsUnique();
 
                     b.ToTable("Wallets");
-                });
-
-            modelBuilder.Entity("StudentPath.DAL.Data.Models.WalletTransaction", b =>
-                {
-                    b.Property<int>("WalletTransactionId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("WalletTransactionId"));
-
-                    b.Property<decimal>("Amount")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("PaymobTransactionId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("TransactionDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("WalletId")
-                        .HasColumnType("int");
-
-                    b.HasKey("WalletTransactionId");
-
-                    b.HasIndex("WalletId");
-
-                    b.ToTable("WalletsTransactions");
                 });
 
             modelBuilder.Entity("StudentPath.DAL.Data.Models.CustomRole", b =>
@@ -1319,17 +1294,6 @@ namespace StudentPath.DAL.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
-                });
-
-            modelBuilder.Entity("StudentPath.DAL.Data.Models.WalletTransaction", b =>
-                {
-                    b.HasOne("StudentPath.DAL.Data.Models.Wallet", "Wallet")
-                        .WithMany()
-                        .HasForeignKey("WalletId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Wallet");
                 });
 
             modelBuilder.Entity("StudentPath.DAL.Data.Models.EscrowAccount", b =>

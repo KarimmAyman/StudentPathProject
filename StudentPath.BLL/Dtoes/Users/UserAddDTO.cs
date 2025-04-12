@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
+using Newtonsoft.Json;
 using StudentPath.DAL.Data.Models;
 using System;
 using System.Collections.Generic;
@@ -12,13 +13,13 @@ namespace StudentPath.BLL.Dtoes.Users
 {
     public class UserAddDTO
     {
-        [JsonIgnore]
+        [System.Text.Json.Serialization.JsonIgnore]
         public string Id { get; set; }
 
         [Required]
         [StringLength(100)]
         public string UserName { get; set; }
-        [JsonIgnore]
+        [System.Text.Json.Serialization.JsonIgnore]
         public UserTypeEnum UserType { get; set; }
 
         [Required]
@@ -36,15 +37,15 @@ namespace StudentPath.BLL.Dtoes.Users
         [Range(18, 100)]
         public int Age { get; set; }
 
-        
-       
+
+
         [Required(ErrorMessage = "Gender is required")]
         public GenderType Gender { get; set; }
-        
+
 
 
         public string? ImgUrl { get; set; }
-        [JsonIgnore]
+        [System.Text.Json.Serialization.JsonIgnore]
 
 
         public IFormFile? ProfileImage { get; set; }
@@ -53,6 +54,90 @@ namespace StudentPath.BLL.Dtoes.Users
             Id = Guid.NewGuid().ToString();
             UserType = UserTypeEnum.User;
         }
+    }
+    public class AddCardDto
+    {
+        [Required]
+        public string StripeCustomerId { get; set; } // Stripe Customer ID
+
+        [Required]
+        public string PaymentMethodId { get; set; } // Tokenized payment method
 
     }
+    
+    public class StripeUserDTO
+    {
+        [Required, EmailAddress]
+        public string Email { get; set; }
+    }
+   
+    public class CreatePaymentIntentDto
+    {
+        public string Email { get; set; } // Optional, for tracking users in your system
+        public decimal Amount { get; set; } // Amount to charge
+        public string? PaymentMethodId { get; set; }
+        public string Currency { get; set; }
+
+    }
+    public class PaymentMethodRequest
+    {
+        public string CardType { get; set; } // Accepts "visa" or "mastercard"
+    }
+
+
+    public class PaymobOrderResponse
+    {
+        public int Id { get; set; }
+    }
+
+    public class PaymentTokenResponse
+    {
+        public string Token { get; set; }
+    }
+
+    public class RedirectUrlResponse
+    {
+        [JsonProperty("redirect_url")]
+        public string RedirectUrl { get; set; }
+        [JsonProperty("id")]
+
+        public string TransactionId { get; set; }
+
+    }
+    public class AuthResponse
+    {
+        public string token { get; set; }
+    }
+    public class WalletPaymentRequest
+    {
+        public string WalletId { get; set; }
+        public decimal Amount { get; set; }
+        public string Email { get; set; }
+    }
+
+    public class WalletPaymentResponse
+    {
+        public string Status { get; set; }
+        public string Message { get; set; }
+        public string TransactionId { get; set; }
+
+        public string RedirectUrl { get; set; }
+    }
+    public class PaymobWebhookRequest
+    {
+        public string type { get; set; }
+        public PaymobWebhookObj obj { get; set; }
+    }
+
+    public class PaymobWebhookObj
+    {
+        public string id { get; set; }  // Transaction ID
+        public bool success { get; set; }  // Payment status (true for success, false for failure)
+        public string order_id { get; set; }  // The order ID in Paymob's system
+        public int amount_cents { get; set; }  // The amount in cents
+        public string currency { get; set; }  // Currency code (e.g., "EGP")
+                                              // You can add more fields depending on what Paymob sends in the webhook
+    }
+
 }
+

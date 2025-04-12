@@ -107,6 +107,9 @@ namespace StudentPath.DAL.Data.DBHelpers
         public virtual DbSet<EscrowAccount> EscrowAccounts { get; set; }
         public virtual DbSet<Notification> Notifications { get; set; }
         public virtual DbSet<CustomRole> CustomRoles { get; set; }
+        public virtual DbSet<Wallet> Wallets { get; set; } // Add Wallet table
+        public virtual DbSet<WalletTransaction> WalletsTransactions { get; set; }
+
 
         //Housing
         public DbSet<Feature> Features { get; set; }
