@@ -14,43 +14,36 @@ namespace StudentPath.DAL.Data.Models
     public enum PaymentMethodEnum
     {
         CreditCard,
-        PayPal,
-        BankTransfer,
-        Cash
+        Wallet
     }
 
     public class Payment
     {
-        public int PaymentId { get; set; }  // Primary key for the payment
+        [Key]
+        public int PaymentId { get; set; }
 
-        [ForeignKey("Booking")]
-        public int BookingId { get; set; }
-        public virtual Booking Booking { get; set; }  // Navigation property to Booking
+        [ForeignKey("User")]
+        public string UserId { get; set; }
+        public virtual User User { get; set; }
 
         [Required]
-        [Range(0.01, double.MaxValue, ErrorMessage = "Amount must be greater than 0.")]
-        public decimal Amount { get; set; }  // Payment amount
+        [Range(0.01, double.MaxValue)]
+        public decimal Amount { get; set; }
 
-        public PaymentStatus PaymentStatus { get; set; }  // Status of the payment
-
-        public DateTime PaymentDate { get; set; } = DateTime.UtcNow;  // Default to current time
+        public PaymentStatus PaymentStatus { get; set; }
+        public DateTime PaymentDate { get; set; } = DateTime.UtcNow;
 
         [Required]
         [StringLength(100)]
-        public string TransactionId { get; set; }  // Unique transaction ID for tracking
+        public string TransactionId { get; set; }
 
         [Required]
-        public PaymentMethodEnum PaymentMethod { get; set; }  // Method of payment (e.g., Credit Card, PayPal, etc.)
+        public PaymentMethodEnum PaymentMethod { get; set; }
 
-        // Optional: link Payment with an EscrowAccount
-        [ForeignKey("EscrowAccount")]
-        public int? EscrowAccountId { get; set; }  // Foreign Key to EscrowAccount
-        public virtual EscrowAccount EscrowAccount { get; set; }  // Navigation property to EscrowAccount
+        public string? PaymentIntentId { get; set; } // Securely reference Stripe PaymentIntent    }
+      }
+       
 
-        // Optional: Timestamp for record creation and updates
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-        public DateTime? UpdatedAt { get; set; }
+
     }
 
-
-}

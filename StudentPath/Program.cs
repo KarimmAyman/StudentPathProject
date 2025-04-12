@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Stripe;
 using StudentPath.BLL.AutoMappers.DriverMapper;
 using StudentPath.BLL.AutoMappers.UserMapper;
 using StudentPath.BLL.Dtos.Accounts;
@@ -12,7 +13,10 @@ using StudentPath.BLL.Services.AccountService;
 using StudentPath.BLL.Services.ActivityService;
 using StudentPath.BLL.Services.DriverServices;
 using StudentPath.BLL.Services.HousingServices;
+using StudentPath.BLL.Services.PaymobService;
+using StudentPath.BLL.Services.StripeService;
 using StudentPath.BLL.Services.UserServices;
+using StudentPath.BLL.Utility;
 using StudentPath.DAL.Data.DBHelpers;
 using StudentPath.DAL.Data.Models;
 using StudentPath.DAL.Repositories.ActivitesRepository;
@@ -125,7 +129,19 @@ public class Program
 
         #region Services
         // Register Services
-        builder.Services.AddScoped<IAccountService, AccountService>();
+        builder.Services.Configure<StripeSettings>(builder.Configuration.GetSection("Stripe"));
+        StripeConfiguration.ApiKey = builder.Configuration.GetValue<string>("Stripe:SecretKey");
+
+        builder.Services.AddCors(options =>
+        {
+            options.AddPolicy("AllowFrontend",
+                policy => policy.AllowAnyOrigin()// Your frontend URL
+                                .AllowAnyHeader()
+                                .AllowAnyMethod()
+                                );
+        });
+
+        builder.Services.AddScoped<IAccountService, StudentPath.BLL.Services.AccountService.AccountService>();
          builder.Services.AddScoped<IEmailService, EmailService>();
          builder.Services.AddSingleton<IUrlHelperFactory, UrlHelperFactory>();
         builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
@@ -133,6 +149,10 @@ public class Program
         builder.Services.AddScoped<IPropertyRepository, PropertyRepository>();
         builder.Services.AddScoped<IPropertyService, PropertyService>();
         builder.Services.AddScoped<IDriverService, DriverService>();
+        builder.Services.AddScoped<StripeService>();
+        builder.Services.AddHttpClient();
+
+        builder.Services.AddScoped<PaymobService>();
         builder.Services.AddScoped<IJobRepository, JobRepository>();
         builder.Services.AddScoped<IJobService, JobService>();
 
@@ -197,6 +217,12 @@ public class Program
         #endregion
 
 
+
+        #region Stripe
+
+        #endregion
+
+
         #region Seed Roles
 
         // Call the SeedRoles method
@@ -213,9 +239,10 @@ public class Program
         //    app.UseSwagger();
         //    app.UseSwaggerUI();
         //}
-        app.UseSwagger();
+            app.UseSwagger();
             app.UseSwaggerUI();
-            app.UseStaticFiles();
+        app.UseCors("AllowFrontend");
+        app.UseStaticFiles();
             app.UseHttpsRedirection();
             app.UseAuthentication();
             app.UseAuthorization();

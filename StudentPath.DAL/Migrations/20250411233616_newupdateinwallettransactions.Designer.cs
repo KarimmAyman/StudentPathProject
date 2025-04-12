@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using StudentPath.DAL.Data.DBHelpers;
 
@@ -11,9 +12,11 @@ using StudentPath.DAL.Data.DBHelpers;
 namespace StudentPath.DAL.Migrations
 {
     [DbContext(typeof(StudentPathContext))]
-    partial class StudentPathContextModelSnapshot : ModelSnapshot
+    [Migration("20250411233616_newupdateinwallettransactions")]
+    partial class newupdateinwallettransactions
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -165,93 +168,6 @@ namespace StudentPath.DAL.Migrations
                     b.HasKey("UserId", "LoginProvider", "Name");
 
                     b.ToTable("AspNetUserTokens", (string)null);
-                });
-
-            modelBuilder.Entity("StudentPath.DAL.Data.Models.Activities.Job", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Category")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<string>("CompanyEmail")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("CompanyName")
-                        .HasMaxLength(150)
-                        .HasColumnType("nvarchar(150)");
-
-                    b.Property<string>("CompanyPhone")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("CompanyWebsite")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ContractType")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<string>("CreatedByUserId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Experience")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<DateTime?>("ExpiryDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsFeatured")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("JobType")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<string>("Location")
-                        .HasMaxLength(150)
-                        .HasColumnType("nvarchar(150)");
-
-                    b.Property<decimal?>("MaxSalary")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal?>("MinSalary")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<DateTime>("PostedDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Responsibilities")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("SalaryPeriod")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CreatedByUserId");
-
-                    b.ToTable("Jobs");
                 });
 
             modelBuilder.Entity("StudentPath.DAL.Data.Models.Booking", b =>
@@ -1254,15 +1170,6 @@ namespace StudentPath.DAL.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("StudentPath.DAL.Data.Models.Activities.Job", b =>
-                {
-                    b.HasOne("StudentPath.DAL.Data.Models.User", "CreatedByUser")
-                        .WithMany("CreatedJobs")
-                        .HasForeignKey("CreatedByUserId");
-
-                    b.Navigation("CreatedByUser");
-                });
-
             modelBuilder.Entity("StudentPath.DAL.Data.Models.Booking", b =>
                 {
                     b.HasOne("StudentPath.DAL.Data.Models.EscrowAccount", "EscrowAccount")
@@ -1454,8 +1361,6 @@ namespace StudentPath.DAL.Migrations
 
             modelBuilder.Entity("StudentPath.DAL.Data.Models.User", b =>
                 {
-                    b.Navigation("CreatedJobs");
-
                     b.Navigation("Locations");
 
                     b.Navigation("Payments");
