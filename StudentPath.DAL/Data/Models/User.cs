@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using StudentPath.DAL.Data.Models.Activities;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -69,6 +70,7 @@ namespace StudentPath.DAL.Data.Models
         public virtual Wallet? Wallet { get; set; } // User's in-app wallet
         public string? DefaultPaymentMethodId { get; set; } // Store saved PaymentMethodId
 
+        public virtual ICollection<Job> CreatedJobs { get; set; } = new HashSet<Job>();
 
     }
     // Student subclass
