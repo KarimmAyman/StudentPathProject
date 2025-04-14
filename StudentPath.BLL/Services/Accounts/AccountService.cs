@@ -81,6 +81,12 @@ namespace StudentPath.BLL.Services.AccountService
                 response.PropertyName = nameof(registerDto.Email);
                 return response;
             }
+            if (_userManager.Users.Any(s => s.PhoneNumber == registerDto.PhoneNumber))
+            {
+                response.Errors.Add("Phone number already exists.");
+                response.PropertyName = nameof(registerDto.PhoneNumber);
+                return response;
+            }
 
             User user;
 
@@ -592,6 +598,7 @@ namespace StudentPath.BLL.Services.AccountService
 
             // Generate a new email confirmation token
             var emailConfirmationToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+
 
             // Generate the confirmation link using the URL helper (without full domain)
             var confirmationLink = urlHelper.Action("ConfirmEmail", "Accounts",

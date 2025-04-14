@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using StudentPath.DAL.Data.Configurations;
 using StudentPath.DAL.Data.Models;
+using StudentPath.DAL.Data.Models.Activities;
 using StudentPath.DAL.Data.Models.Housing;
 using System;
 using System.Collections.Generic;
@@ -107,6 +108,9 @@ namespace StudentPath.DAL.Data.DBHelpers
         public virtual DbSet<EscrowAccount> EscrowAccounts { get; set; }
         public virtual DbSet<Notification> Notifications { get; set; }
         public virtual DbSet<CustomRole> CustomRoles { get; set; }
+        public virtual DbSet<Wallet> Wallets { get; set; } // Add Wallet table
+        public virtual DbSet<WalletTransaction> WalletsTransactions { get; set; }
+
 
         //Housing
         public DbSet<Feature> Features { get; set; }
@@ -114,6 +118,7 @@ namespace StudentPath.DAL.Data.DBHelpers
         public DbSet<Property> Properties { get; set; }
         public DbSet<PropertyFeature> PropertyFeatures { get; set; }
         public DbSet<PropertyImage> PropertyImages { get; set; }
+        public DbSet<Job> Jobs { get; set; }
 
     }
 }

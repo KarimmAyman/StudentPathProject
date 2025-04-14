@@ -16,14 +16,19 @@ namespace StudentPath.DAL.Repositories.HousingRepository
         Task<Property> GetByIdAsync(int propertyId);
 
         // Add a new property.
+
         Task AddAsync(Property property);
 
         // Update an existing property.
+
         Task UpdateAsync(Property property);
 
+
         // Soft delete a property by setting its IsDeleted flag to true.
+
         Task DeleteAsync(int propertyId);
 
         Task<List<Feature>> GetAllFeaturesAsync();
+
     }
 }
