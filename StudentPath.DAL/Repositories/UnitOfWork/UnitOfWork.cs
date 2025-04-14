@@ -1,5 +1,8 @@
-﻿using StudentPath.DAL.Data.DBHelpers;
+﻿using Microsoft.EntityFrameworkCore;
+using StudentPath.DAL.Data.DBHelpers;
+using StudentPath.DAL.Data.Models;
 using StudentPath.DAL.Repositories.DriverRepository;
+using StudentPath.DAL.Repositories.GenericRepository;
 using StudentPath.DAL.Repositories.UserRepository;
 using System;
 using System.Collections.Generic;
@@ -15,6 +18,8 @@ namespace StudentPath.DAL.Repositories.UnitOfWork
         public IUserRepo User { get; private set; }
         public IDriverRepo Driver { get; private set; }  // Add Driver repository
 
+        public IGenericRepo<VehicleInfo> VehicleInfo { get; private set; }  // Add Driver repository
+        public IGenericRepo<Location> Locations { get; private set; }  // Add Driver repository
 
 
         public UnitOfWork(StudentPathContext _db)
@@ -23,6 +28,8 @@ namespace StudentPath.DAL.Repositories.UnitOfWork
 
             User = new UserRepo(db);
             Driver = new DriverRepo(db);  // Add Driver repository
+            VehicleInfo = new GenericRepo<VehicleInfo>(db);  // Add this
+            Locations = new GenericRepo<Location>(db);       // Add this
 
         }
 
