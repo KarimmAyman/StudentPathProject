@@ -1,4 +1,5 @@
-﻿using StudentPath.BLL.Dtoes.Accounts;
+﻿using Microsoft.AspNetCore.Http;
+using StudentPath.BLL.Dtoes.Accounts;
 using StudentPath.DAL.Data.Models;
 
 namespace StudentPath.BLL.Dtoes
@@ -12,7 +13,19 @@ namespace StudentPath.BLL.Dtoes
         public GenderType Gender { get; set; }
         public string Address { get; set; } = string.Empty;
         public string SSN { get; set; } = string.Empty;
-        public string DrivingLicense { get; set; } = string.Empty;
+
+        // Personal Documents
+        public string NationalIdFrontPath { get; set; } = string.Empty;
+        public string NationalIdBackPath { get; set; } = string.Empty;
+        public string CriminalStatusRecordPath { get; set; } = string.Empty;
+
+        // Driver License Documents
+        public string LicenseFrontPath { get; set; } = string.Empty;
+        public string LicenseBackPath { get; set; } = string.Empty;
+        public string SelfieWithLicensePath { get; set; } = string.Empty;
+        public string LicenseNumber { get; set; } = string.Empty;
+        public DateTime LicenseExpirationDate { get; set; }
+
         public ApprovalStatus? Status { get; set; }
         public bool IsBanned { get; set; }
         public bool IsDeleted { get; set; }

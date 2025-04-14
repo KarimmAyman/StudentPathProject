@@ -6,11 +6,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace StudentPath.BLL.Dtoes.Accounts
+namespace StudentPath.BLL.Dtoes.Drivers
 {
-    public class VehicleInfoDto
+    public class VehicleAddDTO
     {
-        // Vehicle Details
         public string VehicleBrand { get; set; }
         public string VehicleModel { get; set; }
         public string VehicleColor { get; set; }
@@ -18,7 +17,7 @@ namespace StudentPath.BLL.Dtoes.Accounts
         public string PlateNumber { get; set; }
         public int SeatingCapacity { get; set; }
 
-        // Vehicle Documents (as IFormFile)
+        // Vehicle Documents
         public string? VehiclePicture { get; set; }
         public string? VehicleRegistrationFront { get; set; }
         public string? VehicleRegistrationBack { get; set; }

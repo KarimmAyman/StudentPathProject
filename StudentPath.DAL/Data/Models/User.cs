@@ -84,6 +84,19 @@ namespace StudentPath.DAL.Data.Models
     // Driver subclass
     public class Driver : User
     {
+        public DateTime DateOfBirth { get; set; }
+        public string IdNumber { get; set; }
+        public string IdFrontPath { get; set; }
+        public string IdBackPath { get; set; }
+        public string CriminalRecordPath { get; set; }
+        public string LicenseNumber { get; set; }
+        public DateTime LicenseExpiryDate { get; set; }
+        public string LicenseFrontPath { get; set; }
+        public string LicenseBackPath { get; set; }
+        public string LicenseSelfiePath { get; set; }
+        public string VehiclePicturePath { get; set; }
+        public string VehicleRegistrationFrontPath { get; set; }
+        public string VehicleRegistrationBackPath { get; set; }
         public ApprovalStatus? Status { get; set; } = ApprovalStatus.Pending;
         public string DrivingLicense { get; set; }
         public virtual ICollection<VehicleInfo> VehicleInfo { get; set; } = new HashSet<VehicleInfo>(); // Associated Vehicle

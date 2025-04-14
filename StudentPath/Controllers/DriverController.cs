@@ -1,7 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using StudentPath.BLL.Dtoes;
+using StudentPath.BLL.Dtoes.Accounts;
+using StudentPath.BLL.Dtoes.Drivers;
 using StudentPath.BLL.Services.DriverServices;
 using System.Collections.Generic;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace StudentPath.API.Controllers
@@ -36,15 +39,27 @@ namespace StudentPath.API.Controllers
         }
 
         [HttpPost("AddDriver")]
-        public async Task<ActionResult<ApiResponse<DriverDetailsDTO>>> AddDriver(DriverAddDTO driverDto)
+        public async Task<ActionResult<ApiResponse<DriverReadDTO>>> AddDriver([FromForm] DriverAddDTO driverDto, [FromForm] string vehicleInfoJson, [FromForm] string locationsJson)
         {
+            Console.WriteLine($"vehicleInfoJson: {vehicleInfoJson}");
+
+            // Deserialize the JSON arrays
+            if (!string.IsNullOrEmpty(vehicleInfoJson))
+            {
+                driverDto.VehicleAddDTOs = JsonSerializer.Deserialize<List<VehicleAddDTO>>(vehicleInfoJson);
+            }
+
+            if (!string.IsNullOrEmpty(locationsJson))
+            {
+                driverDto.Locations = JsonSerializer.Deserialize<List<LocationDto>>(locationsJson);
+            }
             var createdDriver = await _driverService.CreateDriverAsync(driverDto);
             return CreatedAtAction(nameof(GetDriverById), new { id = createdDriver.Id },
-                ApiResponse<DriverDetailsDTO>.SuccessResponse("Driver created successfully", 201, createdDriver));
+                ApiResponse<DriverReadDTO>.SuccessResponse("Driver created successfully", 201, createdDriver));
         }
 
         [HttpPut("EditDriver/{id}")]
-        public async Task<ActionResult<ApiResponse<string>>> EditDriver(string id, DriverUpdateDTO driverDto)
+        public async Task<ActionResult<ApiResponse<string>>> EditDriver(string id, [FromForm] DriverUpdateDTO driverDto)
         {
             bool updated = await _driverService.UpdateDriverAsync(id, driverDto);
             if (!updated)

@@ -113,9 +113,14 @@ namespace StudentPath.BLL.Services.AccountService
                     DrivingLicense = registerDto.DrivingLicense,
                     VehicleInfo = registerDto.Vehicleinfo.Select(v => new VehicleInfo
                     {
-                        VehicleType = v.VehicleType,
-                        LicensePlate = v.LicensePlate,
-                        SeatingCapacity = v.SeatingCapacity
+                        VehicleBrand = v.VehicleBrand,
+                        VehicleModel = v.VehicleModel,
+                        VehicleColor = v.VehicleColor,
+                        PlateNumber = v.PlateNumber,
+                        VehiclePicturePath = v.VehiclePicture,
+                        VehicleRegistrationFrontPath = v.VehicleRegistrationFront,
+                        VehicleRegistrationBackPath = v.VehicleRegistrationBack,
+                        SeatingCapacity = v.SeatingCapacity 
                     }).ToList()
                 };
             }
