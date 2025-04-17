@@ -1,6 +1,8 @@
 ﻿
+using Microsoft.AspNetCore.Http;
 using StudentPath.BLL.Dtoes.Accounts;
 using StudentPath.DAL.Data.Models;
+using Swashbuckle.AspNetCore.Annotations;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -55,12 +57,25 @@ namespace StudentPath.BLL.Dtos.Accounts
         public DateTime RegistrationDate { get; set; } = DateTime.UtcNow;
         // Driver-Specific Properties
         public string? DrivingLicense { get; set; }
+        // Add these in RegisterDto (under Driver-specific section)
+        public IFormFile? IdFront { get; set; }
+        public IFormFile? IdBack { get; set; }
+        public IFormFile? CriminalRecord { get; set; }
+
+        public IFormFile? LicenseFront { get; set; }
+        public IFormFile? LicenseBack { get; set; }
+        public IFormFile? LicenseSelfie { get; set; }
+
+        public string? IdNumber { get; set; }
+        public string? LicenseNumber { get; set; }
+        public DateTime? LicenseExpiryDate { get; set; }
 
         // Vehicle Information (Only for Drivers)
+        [SwaggerIgnore]
         public List<VehicleInfoDto>? Vehicleinfo{ get; set; }
-      
 
-        
+
+        [SwaggerIgnore]
         public List<LocationDto>? locations { get; set; }
 
     }

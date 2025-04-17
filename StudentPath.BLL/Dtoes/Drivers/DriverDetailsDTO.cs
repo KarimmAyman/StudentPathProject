@@ -6,7 +6,7 @@ namespace StudentPath.BLL.Dtoes
 {
     public class DriverDetailsDTO
     {
-        public string Id { get; set; } = string.Empty; // IdentityUser ID
+       /* public string Id { get; set; } = string.Empty;*/ // IdentityUser ID
         public string UserName { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
         public int Age { get; set; }

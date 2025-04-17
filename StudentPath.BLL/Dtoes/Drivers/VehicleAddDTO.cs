@@ -18,8 +18,8 @@ namespace StudentPath.BLL.Dtoes.Drivers
         public int SeatingCapacity { get; set; }
 
         // Vehicle Documents
-        public string? VehiclePicture { get; set; }
-        public string? VehicleRegistrationFront { get; set; }
-        public string? VehicleRegistrationBack { get; set; }
+        public IFormFile VehiclePicture { get; set; }
+        public IFormFile VehicleRegistrationFront { get; set; }
+        public IFormFile VehicleRegistrationBack { get; set; }
     }
 }

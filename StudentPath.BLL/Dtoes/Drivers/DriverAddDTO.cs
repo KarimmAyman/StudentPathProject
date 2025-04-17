@@ -3,6 +3,7 @@ using StudentPath.BLL.Dtoes.Accounts;
 using StudentPath.BLL.Dtoes.Drivers;
 using StudentPath.DAL.Data.Models;
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace StudentPath.BLL.Dtoes
 {
@@ -31,5 +32,7 @@ namespace StudentPath.BLL.Dtoes
         public List<VehicleAddDTO> VehicleAddDTOs { get; set; } = new List<VehicleAddDTO>();
 
         public List<LocationDto> Locations { get; set; } = new List<LocationDto>();
+
+        public string Id { get; internal set; }
     }
 }

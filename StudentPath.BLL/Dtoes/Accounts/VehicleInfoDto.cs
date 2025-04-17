@@ -19,8 +19,8 @@ namespace StudentPath.BLL.Dtoes.Accounts
         public int SeatingCapacity { get; set; }
 
         // Vehicle Documents (as IFormFile)
-        public string? VehiclePicture { get; set; }
-        public string? VehicleRegistrationFront { get; set; }
-        public string? VehicleRegistrationBack { get; set; }
+        public IFormFile? VehiclePicture { get; set; }
+        public IFormFile? VehicleRegistrationFront { get; set; }
+        public IFormFile? VehicleRegistrationBack { get; set; }
     }
 }

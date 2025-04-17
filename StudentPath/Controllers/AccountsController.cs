@@ -2,8 +2,10 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using StudentPath.BLL.Dtoes.Accounts;
+using StudentPath.BLL.Dtoes.Drivers;
 using StudentPath.BLL.Dtos.Accounts;
 using StudentPath.BLL.Services.AccountService;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace StudentPath.API.Controllers
@@ -24,8 +26,18 @@ namespace StudentPath.API.Controllers
         }
 
         [HttpPost("Register")]
-        public async Task<IActionResult> Register(RegisterDto registerDto)
+        public async Task<IActionResult> Register(RegisterDto registerDto , [FromForm] string vehicleInfoJson, [FromForm] string locationsJson)
         {
+            // Deserialize the JSON arrays
+            if (!string.IsNullOrEmpty(vehicleInfoJson))
+            {
+                registerDto.Vehicleinfo = JsonSerializer.Deserialize<List<VehicleInfoDto>>(vehicleInfoJson);
+            }
+
+            if (!string.IsNullOrEmpty(locationsJson))
+            {
+                registerDto.locations = JsonSerializer.Deserialize<List<LocationDto>>(locationsJson);
+            }
             var response = await _accountService.Register(registerDto,Url);
             if (response.successed)
                 return Ok(new { successed = true, message = "Registration successful." });
