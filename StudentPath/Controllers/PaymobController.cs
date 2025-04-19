@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
+using Stripe;
 using StudentPath.BLL.Dtoes.Users;
 using StudentPath.BLL.Services.PaymobService;
 using StudentPath.DAL.Data.DBHelpers;
@@ -16,7 +17,7 @@ namespace StudentPath.API.Controllers
         private readonly PaymobService _walletService;
         private readonly StudentPathContext context;
 
-        public PaymobController(PaymobService walletService , StudentPathContext context)
+        public PaymobController(PaymobService walletService, StudentPathContext context)
         {
             _walletService = walletService;
             this.context = context;
@@ -33,19 +34,22 @@ namespace StudentPath.API.Controllers
         {
             // Step 1: Retrieve the payment record based on the Paymob TransactionId
             var payment = await context.Payments
-                .FirstOrDefaultAsync(p => p.TransactionId == request.obj.id.ToString());
+                .FirstOrDefaultAsync(p => p.TransactionId == request.Obj.Id.ToString());
 
             if (payment == null)
-            {
-                return NotFound(); // Payment not found
-            }
+                return NotFound(new { status = "failed", error = $"No payment found with TransactionId = {request.Obj.Id}" });
+            if (string.IsNullOrWhiteSpace(request.Type))
+                return BadRequest(new { status = "failed", error = "Missing 'type' field in payload." });
+            if (request.Obj == null)
+                return BadRequest(new { status = "failed", error = "Missing 'obj' field in payload." });
+
             if (payment.PaymentStatus == PaymentStatus.Paid)
             {
                 return BadRequest("This payment has already been confirmed as paid. Please try a different transaction.");
             }
             // Step 2: Handle payment status based on the webhook response
 
-            if (request.obj.success && request.type == "TRANSACTION") // Successful payment
+            if (request.Obj.Success && request.Type == "TRANSACTION") // Successful payment
             {
                 // Step 2a: Mark the payment as successful
                 payment.PaymentStatus = PaymentStatus.Paid;
@@ -74,7 +78,7 @@ namespace StudentPath.API.Controllers
                 // Commit all changes to the database
                 await context.SaveChangesAsync();
             }
-            else if (!request.obj.success && request.type == "TRANSACTION") // Failed payment
+            else if (!request.Obj.Success && request.Type == "TRANSACTION") // Failed payment
             {
                 // Step 3: Mark the payment as failed
                 payment.PaymentStatus = PaymentStatus.Cancelled;
@@ -96,8 +100,31 @@ namespace StudentPath.API.Controllers
                 }
             }
 
-            return Ok("The Wallet Is Updated");
+            return Ok(new
+            {
+                status = "success",
+                message = "Webhook processed successfully",
+                transactionId = request.Obj.Id,
+                newStatus = payment.PaymentStatus.ToString()
+            });
         }
+
+
+
+        [HttpGet("Paymob-status")]
+        public async Task<IActionResult> GetPaymobStatus([FromQuery] string transactionId)
+        {
+            var payment = await context.Payments.FirstOrDefaultAsync(p => p.TransactionId == transactionId);
+            if (payment == null) return NotFound("Payment not found");
+
+            return Ok(new
+            {
+                Status = payment.PaymentStatus.ToString(),
+                Amount = payment.Amount,
+                Date = payment.PaymentDate
+            });
+        }
+
 
 
 

@@ -125,17 +125,25 @@ namespace StudentPath.BLL.Dtoes.Users
     }
     public class PaymobWebhookRequest
     {
-        public string type { get; set; }
-        public PaymobWebhookObj obj { get; set; }
+
+        public string Type { get; set; }
+
+        public PaymobWebhookObj Obj { get; set; }
     }
 
     public class PaymobWebhookObj
     {
-        public string id { get; set; }  // Transaction ID
-        public bool success { get; set; }  // Payment status (true for success, false for failure)
-        public string order_id { get; set; }  // The order ID in Paymob's system
-        public int amount_cents { get; set; }  // The amount in cents
-        public string currency { get; set; }  // Currency code (e.g., "EGP")
+
+        public long Id { get; set; }  // Transaction ID
+                                        // Payment status (true for success, false for failure)
+
+        public bool Success { get; set; }
+
+        public long OrderId { get; set; }  // The order ID in Paymob's system
+
+        public long AmountCents { get; set; }  // The amount in cents
+
+        public string Currency { get; set; }  // Currency code (e.g., "EGP")
                                               // You can add more fields depending on what Paymob sends in the webhook
     }
 

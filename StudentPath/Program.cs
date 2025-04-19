@@ -142,8 +142,8 @@ public class Program
         });
 
         builder.Services.AddScoped<IAccountService, StudentPath.BLL.Services.AccountService.AccountService>();
-         builder.Services.AddScoped<IEmailService, EmailService>();
-         builder.Services.AddSingleton<IUrlHelperFactory, UrlHelperFactory>();
+        builder.Services.AddScoped<IEmailService, EmailService>();
+        builder.Services.AddSingleton<IUrlHelperFactory, UrlHelperFactory>();
         builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
         builder.Services.AddScoped<IUserService, UserService>();
         builder.Services.AddScoped<IPropertyRepository, PropertyRepository>();
