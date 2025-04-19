@@ -2,15 +2,18 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Stripe;
 using StudentPath.BLL.AutoMappers.DriverMapper;
 using StudentPath.BLL.AutoMappers.UserMapper;
+using StudentPath.BLL.Dtoes;
 using StudentPath.BLL.Dtos.Accounts;
 using StudentPath.BLL.Middlewares;
 using StudentPath.BLL.Services.AccountService;
 using StudentPath.BLL.Services.ActivityService;
+using StudentPath.BLL.Services.AdminServices;
 using StudentPath.BLL.Services.DriverServices;
 using StudentPath.BLL.Services.HousingServices;
 using StudentPath.BLL.Services.PaymobService;
@@ -39,6 +42,7 @@ public class Program
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen(setup =>
         {
+            setup.SchemaFilter<SwaggerIgnoreFilter>();
 
             setup.SwaggerDoc("v1", new OpenApiInfo
             {
@@ -155,8 +159,12 @@ public class Program
         builder.Services.AddScoped<PaymobService>();
         builder.Services.AddScoped<IJobRepository, JobRepository>();
         builder.Services.AddScoped<IJobService, JobService>();
+        builder.Services.AddScoped<IAdminService, AdminService>();
 
+        
+    
         builder.Services.AddHttpContextAccessor();
+
         #endregion
 
 

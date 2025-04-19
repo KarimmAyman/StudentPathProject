@@ -1,40 +1,38 @@
-﻿using StudentPath.BLL.Dtoes.Accounts;
+﻿using Microsoft.AspNetCore.Http;
+using StudentPath.BLL.Dtoes.Accounts;
+using StudentPath.BLL.Dtoes.Drivers;
 using StudentPath.DAL.Data.Models;
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace StudentPath.BLL.Dtoes
 {
     public class DriverAddDTO
     {
-        [Required]
-        public string UserName { get; set; } = string.Empty;
-
-        [Required]
-        [EmailAddress]
-        public string Email { get; set; } = string.Empty;
-
-        [Required]
-        public UserTypeEnum UserType { get; set; }
-
-        [Range(18, 100, ErrorMessage = "Age must be between 18 and 100.")]
-        public int Age { get; set; }
-
-        [Required]
+        // Personal Info
+        public string UserName { get; set; }
+        public string Email { get; set; }
+        public DateTime DateOfBirth { get; set; }
+        public string PhoneNumber { get; set; }
         public GenderType Gender { get; set; }
 
-        [Required]
-        [StringLength(15, MinimumLength = 10, ErrorMessage = "Phone number must be between 10 and 15 characters.")]
-        [RegularExpression(@"^\+?[0-9]{10,15}$", ErrorMessage = "Invalid phone number format.")]
-        public string PhoneNumber { get; set; } = string.Empty;
+        // ID Documents
+        public IFormFile IdFront { get; set; }
+        public IFormFile IdBack { get; set; }
+        public IFormFile CriminalRecord { get; set; }
+        public string IdNumber { get; set; }
 
-        [Required]
-        public DateTime RegistrationDate { get; set; }
+        // License Documents
+        public IFormFile LicenseFront { get; set; }
+        public IFormFile LicenseBack { get; set; }
+        public IFormFile LicenseSelfie { get; set; }
+        public string LicenseNumber { get; set; }
+        public DateTime LicenseExpiryDate { get; set; }
 
-        [Required]
-        public string DrivingLicense { get; set; } = string.Empty;
-
-        public List<VehicleInfoDto> VehicleInfo { get; set; } = new List<VehicleInfoDto>();
+        public List<VehicleAddDTO> VehicleAddDTOs { get; set; } = new List<VehicleAddDTO>();
 
         public List<LocationDto> Locations { get; set; } = new List<LocationDto>();
+
+        public string Id { get; internal set; }
     }
 }

@@ -11,20 +11,21 @@ namespace StudentPath.DAL.Data.Models
     public class VehicleInfo
     {
         public int VehicleInfoId { get; set; }  // Primary key
+        public string VehicleBrand { get; set; }
+        public string VehicleModel { get; set; }
+        public string VehicleColor { get; set; }
+        public int ProductionYear { get; set; }
+        public string PlateNumber { get; set; }
+        public int SeatingCapacity { get; set; }
 
-        [Required, MaxLength(50)]
-        public string VehicleType { get; set; } = null!;
+        // Vehicle Documents
+        public string? VehiclePicturePath { get; set; }
+        public string? VehicleRegistrationFrontPath { get; set; }
+        public string? VehicleRegistrationBackPath { get; set; }
 
-        [Required, MaxLength(20)]
-        public string LicensePlate { get; set; } = null!;
-
-        [Range(1, 50)]
-        public int SeatingCapacity { get; set; } = 0;
-
-        // Foreign key and navigation property specific to Driver
         [ForeignKey("Driver")]
-        public string DriverId { get; set; } = null!;  // Foreign key to Driver
-        public virtual Driver Driver { get; set; } = null!;  // Navigation property to Driver
+        public string DriverId { get; set; }
+        public virtual Driver Driver { get; set; }
     }
 
 }

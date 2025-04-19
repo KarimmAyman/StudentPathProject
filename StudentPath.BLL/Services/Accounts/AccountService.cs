@@ -22,6 +22,9 @@ using System.Collections;
 using System.ComponentModel;
 using System.Drawing;
 using Microsoft.AspNetCore.Http;
+using StudentPath.BLL.Dtoes.Drivers;
+using StudentPath.BLL.Dtoes;
+using StudentPath.BLL.Services.DriverServices;
 
 namespace StudentPath.BLL.Services.AccountService
 {
@@ -38,9 +41,10 @@ namespace StudentPath.BLL.Services.AccountService
         private readonly StudentPathContext _studentPathContext;
         private readonly IMemoryCache _memoryCache;
         private readonly IHttpContextAccessor httpContextAccessor;
-       
+        private readonly IDriverService _driverService;
+
         public AccountService(UserManager<User> userManager, IConfiguration configuration, RoleManager<CustomRole> roleManager,
-            IEmailService emailService, SignInManager<User> signInManager, StudentPathContext studentPathContext,IMemoryCache memoryCache,IHttpContextAccessor httpContextAccessor)
+            IEmailService emailService, SignInManager<User> signInManager, StudentPathContext studentPathContext,IMemoryCache memoryCache,IHttpContextAccessor httpContextAccessor ,IDriverService driverService)
         {
             _userManager = userManager;
             _configuration = configuration;
@@ -50,31 +54,29 @@ namespace StudentPath.BLL.Services.AccountService
             _studentPathContext = studentPathContext;
             _memoryCache = memoryCache;
             this.httpContextAccessor = httpContextAccessor;
+            _driverService = driverService;
         }
-        
+
         public async Task<GeneralRespnose> Register(RegisterDto registerDto, IUrlHelper urlHelper)
         {
             string baseUrl = $"{httpContextAccessor.HttpContext?.Request.Scheme}://{httpContextAccessor.HttpContext?.Request.Host}";
             string logoUrl = $"{baseUrl}/Uploads/Aoun-logo.svg";
-
             var response = new GeneralRespnose();
 
-            // Validate password match
             if (registerDto.Password != registerDto.ConfirmedPassword)
             {
                 response.Errors.Add("Passwords do not match.");
                 response.PropertyName = nameof(registerDto.ConfirmedPassword);
                 return response;
             }
-            #region unique userName
-            // Check if username or email exists
+
+            // Validate uniqueness
             if (_userManager.Users.Any(s => s.UserName == registerDto.FullName))
             {
-                response.Errors.Add("Username is already taken. Please choose another.");
+                response.Errors.Add("Username is already taken.");
                 response.PropertyName = nameof(registerDto.FullName);
                 return response;
             }
-            #endregion
             if (_userManager.Users.Any(s => s.Email == registerDto.Email))
             {
                 response.Errors.Add("Email already exists.");
@@ -88,47 +90,161 @@ namespace StudentPath.BLL.Services.AccountService
                 return response;
             }
 
-            User user;
-
-            if (registerDto.UserType == UserTypeEnum.User)
+            if (registerDto.UserType == UserTypeEnum.Driver)
             {
-                user = new User();
-            }
-            else if (registerDto.UserType == UserTypeEnum.Student)
-            {
-                user = new StudentPath.DAL.Data.Models.Student();
-                ;
-            }
-            else if (registerDto.UserType == UserTypeEnum.Driver)
-            {
-                if (registerDto.Vehicleinfo == null || !registerDto.Vehicleinfo.Any())
+                // Step 1: Create the Identity user
+                var identityDriver = new Driver
                 {
-                    response.Errors.Add("Vehicle information is required for drivers.");
-                    response.PropertyName = nameof(registerDto.Vehicleinfo);
+                    UserName = registerDto.FullName,
+                    Email = registerDto.Email,
+                    PhoneNumber = registerDto.PhoneNumber,
+                    UserType = UserTypeEnum.Driver,
+                    Gender = registerDto.Gender,
+                    Age = registerDto.Age,
+                    ImgUrl = registerDto.ImgUrl
+                };
+
+                var identityResult = await _userManager.CreateAsync(identityDriver, registerDto.Password);
+                if (!identityResult.Succeeded)
+                {
+                    response.Errors = identityResult.Errors.Select(e => e.Description).ToList();
                     return response;
                 }
 
-                user = new Driver
+                // Step 2: Populate the DriverAddDTO and use the existing CreateDriverAsync
+                var driverDto = new DriverAddDTO
                 {
-                    DrivingLicense = registerDto.DrivingLicense,
-                    VehicleInfo = registerDto.Vehicleinfo.Select(v => new VehicleInfo
+                    Id = identityDriver.Id, // IMPORTANT: use existing Identity user ID
+                    UserName = registerDto.FullName,
+                    Email = registerDto.Email,
+                    PhoneNumber = registerDto.PhoneNumber,
+                    DateOfBirth = DateTime.UtcNow.AddYears(-registerDto.Age),
+                    Gender = registerDto.Gender,
+                    IdNumber = registerDto.IdNumber,
+                    LicenseNumber = registerDto.DrivingLicense,
+                    LicenseExpiryDate = (DateTime)registerDto.LicenseExpiryDate,
+                    IdFront = registerDto.IdFront,
+                    IdBack = registerDto.IdBack,
+                    CriminalRecord = registerDto.CriminalRecord,
+                    LicenseFront = registerDto.LicenseFront,
+                    LicenseBack = registerDto.LicenseBack,
+                    LicenseSelfie = registerDto.LicenseSelfie,
+                    Locations = registerDto.locations?.Select(loc => new LocationDto
                     {
-                        VehicleType = v.VehicleType,
-                        LicensePlate = v.LicensePlate,
-                        SeatingCapacity = v.SeatingCapacity
+                        Latitude = loc.Latitude,
+                        Longitude = loc.Longitude,
+                        City = loc.City,
+                        Country = loc.Country
+                    }).ToList(),
+                    VehicleAddDTOs = registerDto.Vehicleinfo?.Select(v => new VehicleAddDTO
+                    {
+                        VehicleBrand = v.VehicleBrand,
+                        VehicleModel = v.VehicleModel,
+                        VehicleColor = v.VehicleColor,
+                        PlateNumber = v.PlateNumber,
+                        SeatingCapacity = v.SeatingCapacity,
+                        ProductionYear = v.ProductionYear,
+                        VehiclePicture = v.VehiclePicture,
+                        VehicleRegistrationFront = v.VehicleRegistrationFront,
+                        VehicleRegistrationBack = v.VehicleRegistrationBack
                     }).ToList()
                 };
-            }
-            else if (registerDto.UserType == UserTypeEnum.Admin)  // Explicitly check for Admin
-            {
-                user = new Admin();
-            }
-            else
-            {
-                throw new ArgumentException("Invalid user type selected.");
+
+
+                // back in your Register method, right after CreateDriverAsync:
+                await _driverService.CreateDriverAsync(driverDto);
+
+                // now re‐normalize the user and save via UserManager:
+                identityDriver.NormalizedUserName = _userManager.NormalizeName(identityDriver.UserName);
+                identityDriver.NormalizedEmail = _userManager.NormalizeEmail(identityDriver.Email);
+                identityDriver.PasswordHash = _userManager.PasswordHasher.HashPassword(identityDriver, registerDto.Password);
+                var updateRes = await _userManager.UpdateAsync(identityDriver);
+
+                await _signInManager.SignInAsync(identityDriver, isPersistent: false);
+
+                // Email confirmation
+                var token = await _userManager.GenerateEmailConfirmationTokenAsync(identityDriver);
+                var confirmationLink = urlHelper.Action("ConfirmEmail", "Accounts", new { userId = identityDriver.Id, token }, "https");
+
+                var emailBody = $@"
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <style>
+                .container {{
+                    max-width: 600px;
+                    margin: auto;
+                    background-color: #f6f9fc;
+                    padding: 20px;
+                    font-family: Arial, sans-serif;
+                    border-radius: 8px;
+                    text-align: left;
+                }}
+                .card {{
+                    background-color: white;
+                    padding: 30px;
+                    border-radius: 8px;
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                }}
+                .button {{
+                    background-color: #83cd20;
+                    color: white;
+                    padding: 12px 24px;
+                    border-radius: 6px;
+                    text-decoration: none;
+                    font-weight: bold;
+                    display: inline-block;
+                    margin-top: 20px;
+                    text-align: center;
+                }}
+                .footer {{
+                    font-size: 12px;
+                    color: #666;
+                    margin-top: 20px;
+                }}
+                .logo {{
+                    width: 150px;
+                    margin-bottom: 20px;
+                }}
+            </style>
+        </head>
+        <body>
+            <div class='container'>
+                <div class='card'>
+                    <img src='{logoUrl}' class='logo' alt='Student Path Logo' />
+                    <p>Thanks for creating a Student Path account. Please verify your email:</p>
+                    <a href='{confirmationLink}' class='button'>Verify Email</a>
+                </div>
+                <div class='footer'>
+                    <p>Student Path, Kafr El-Sheikh, Egypt</p>
+                </div>
+            </div>
+        </body>
+        </html>";
+
+                var emailRes = await _emailService.SendEmailAsync(identityDriver.Email, "Verify Your Account", emailBody);
+                if (!emailRes.successed)
+                {
+                    response.Errors.AddRange(emailRes.Errors);
+                    return response;
+                }
+
+                response.successed = true;
+                return response;
             }
 
-            // Assign general properties
+            // =========================
+            // Non-driver registration
+            // =========================
+            User user;
+
+            if (registerDto.UserType == UserTypeEnum.Student)
+                user = new StudentPath.DAL.Data.Models.Student();
+            else if (registerDto.UserType == UserTypeEnum.Admin)
+                user = new Admin();
+            else
+                user = new User();
+
             user.UserName = registerDto.FullName;
             user.Email = registerDto.Email;
             user.UserType = registerDto.UserType;
@@ -137,150 +253,96 @@ namespace StudentPath.BLL.Services.AccountService
             user.ImgUrl = registerDto.ImgUrl;
             user.PhoneNumber = registerDto.PhoneNumber;
 
-            // Save the user first
-            var result = await _userManager.CreateAsync(user, registerDto.Password);
-
-            if (result.Succeeded)
+            var identityUserResult = await _userManager.CreateAsync(user, registerDto.Password);
+            if (!identityUserResult.Succeeded)
             {
-                //// Check if locations exist and assign them
-                //if (registerDto.locations != null && registerDto.locations.Any())
-                //{
-                    user.Locations = registerDto.locations.Select(loc => new Location
-                    {
-                        Latitude = loc.Latitude,
-                        Longitude = loc.Longitude,
-                        City = loc.City,
-                        Country = loc.Country,
-                        UserId = user.Id  // Ensure UserId is set
-                    }).ToList();
-
-                    // Save the changes (update user to include locations)
-                    await _userManager.UpdateAsync(user);
-                //}
-
-                    // If Driver, ensure VehicleInfo is saved
-                    if (user is Driver driver)
-                {
-                    if (driver.VehicleInfo != null && driver.VehicleInfo.Any())
-                    {
-                        foreach (var vehicle in driver.VehicleInfo)
-                        {
-                            vehicle.DriverId = driver.Id; // Ensure FK is set
-                        }
-                    }
-                }
-
-                await _userManager.UpdateAsync(user); // Save changes explicitly
-
-                await _signInManager.SignInAsync(user, isPersistent: false);
-
-                #region VerifyEmail
-                var emailConfirmationToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-                var confirmationLink = urlHelper.Action("ConfirmEmail", "Accounts",
-                    new { userId = user.Id, token = emailConfirmationToken }, "https");
-
-                var confirmationEmailBody= $@"
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <style>
-           .container {{
-              max-width: 600px;
-              margin: 0 auto;
-                background-color: #f6f9fc;
-               padding: 20px;
-                font-family: Arial, sans-serif;
-               border-radius: 8px;
-                text-align: left;
-        }}
-           .card {{
-                background-color: white;
-              padding: 30px;
-               border-radius: 8px;
-               box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
-          }}
-           .button {{
-             background-color: #83cd20;
-              color: white;
-               padding: 12px 24px;
-              border-radius: 6px;
-              text-decoration: none;
-              font-weight: bold;
-              display: inline-block;
-              margin-top: 20px;
-               text-align: center;
-          }}
-           .footer {{
-               font-size: 12px;
-              color: #666;
-             margin-top: 20px;
-         }}
-           .logo {{
-               display: inline-block;
-               width: 150px; /* Adjust the size as needed */
-                vertical-align: middle;
-               margin-right: 10px;
-           }}
-      </style>
-     </head>
-       <body>
-        <div class='container'>
-         <div class='card'>
-             <div>
-                    <img src='{logoUrl}' class='logo' alt='Student Path Logo' />
-               </div>
-              <p>Thanks for creating a Student Path account. Verify your email so you can get up and running quickly.</p>
-              <a href='{confirmationLink}' class='button'>Verify Email</a>
-               <p>Once your email is verified, you can start setting up your account. If you have questions, visit our <a href='https://support.example.com'>support site</a>.</p>
-           </div>
-            <div class='footer'>
-               <p>Student Path, Kafr El-Sheikh, Egypt</p>
-          </div>
-       </div>
-   </body>
-   </html>";
-
-                var res= await _emailService.SendEmailAsync(user.Email, "Verify Your Account",confirmationEmailBody);
-
-
-                //var res = await _emailService.SendEmailAsync(user.Email, "Confirm Your Email Address", confirmationEmailBody);
-                if (!res.successed)
-                {
-                    response.Errors.AddRange(res.Errors);
-                    return response;
-                }
-                #endregion
-
-                response.successed = true;
+                response.Errors = identityUserResult.Errors.Select(e => e.Description).ToList();
                 return response;
             }
 
-            response.Errors = result.Errors.Select(d => d.Description).ToList();
+            if (registerDto.locations != null)
+            {
+                user.Locations = registerDto.locations.Select(loc => new Location
+                {
+                    Latitude = loc.Latitude,
+                    Longitude = loc.Longitude,
+                    City = loc.City,
+                    Country = loc.Country,
+                    UserId = user.Id
+                }).ToList();
+
+                await _userManager.UpdateAsync(user);
+            }
+
+            await _signInManager.SignInAsync(user, isPersistent: false);
+
+            var confirmationToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+            var confirmLink = urlHelper.Action("ConfirmEmail", "Accounts", new { userId = user.Id, token = confirmationToken }, "https");
+
+            var confirmEmailBody = $@"<html><body><a href='{confirmLink}'>Verify your email</a></body></html>";
+            var emailSendResult = await _emailService.SendEmailAsync(user.Email, "Verify Your Email", confirmEmailBody);
+
+            if (!emailSendResult.successed)
+            {
+                response.Errors.AddRange(emailSendResult.Errors);
+                return response;
+            }
+
+            response.successed = true;
             return response;
         }
+
 
 
         public async Task<LoginResponce> Login(LoginDto loginDto)
         {
             var response = new LoginResponce();
             var user = await _userManager.FindByEmailAsync(loginDto.Email);
-            if (user == null || !await _userManager.IsEmailConfirmedAsync(user))
+
+            // 1) Does the email even exist?
+            if (user == null)
             {
-                response.Errors.Add(user == null ? "Email not found. Please make sure the email is correct." :
-                    "Email not confirmed. Please check your inbox.");
+                response.Errors.Add("Email not found. Please make sure the email is correct.");
                 response.PropName = nameof(loginDto.Email);
                 return response;
             }
 
-            if (user.IsBanned)
+            // 2) Is the email confirmed?
+            if (!await _userManager.IsEmailConfirmedAsync(user))
             {
-                response.Errors.Add("Your account has been banned.");
+                response.Errors.Add("Email not confirmed. Please check your inbox.");
+                response.PropName = nameof(loginDto.Email);
                 return response;
             }
+
+            // 3) Is the user banned?
+            if (user.IsBanned)
+            {
+                response.Errors.Add("You cannot login because your account has been banned.");
+                response.PropName = nameof(loginDto.Email);
+                return response;
+            }
+            //  Is the user deleted?
+            if (user.IsDeleted)
+            {
+                response.Errors.Add("Your account has been deleted and cannot be used to login.");
+                response.PropName = nameof(loginDto.Email);
+                return response;
+            }
+            Driver driver1 = new Driver();
+            //// 3) Is the driver deleted?
+            //if (driver1.IsDeleted)
+            //{
+            //    response.Errors.Add("Your account has been deleted and cannot be used to login.");
+            //    response.PropName = nameof(loginDto.Email);
+            //    return response;
+            //}
+
+
+            // 4) If a driver, check approval status
             if (user.UserType == UserTypeEnum.Driver)
             {
-                var driver = user as StudentPath.DAL.Data.Models.Driver;
-
+                var driver = user as Driver;
                 if (driver != null)
                 {
                     if (driver.Status == ApprovalStatus.Pending)
@@ -288,7 +350,7 @@ namespace StudentPath.BLL.Services.AccountService
                         response.Errors.Add("Your account is pending approval by the admin.");
                         return response;
                     }
-                    else if (driver.Status == ApprovalStatus.Denied)
+                    if (driver.Status == ApprovalStatus.Denied)
                     {
                         response.Errors.Add("Your account has been denied by the admin.");
                         return response;
@@ -296,30 +358,28 @@ namespace StudentPath.BLL.Services.AccountService
                 }
             }
 
-            var result = await _userManager.CheckPasswordAsync(user, loginDto.Password);
-            if (result)
+            // 5) Finally, check password
+            var pwdOk = await _userManager.CheckPasswordAsync(user, loginDto.Password);
+            if (!pwdOk)
             {
-                #region Claims
-                List<Claim> claims = new List<Claim>()
-                {
-                    new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()), // User ID as Subject
-                    new Claim(JwtRegisteredClaimNames.Email, user.Email), // User email
-                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()) // Token identifier
-                };
-                var UserRoles = await _userManager.GetRolesAsync(user);
-                foreach (var role in UserRoles)
-                {
-                    claims.Add(new Claim(ClaimTypes.Role, role));
-                }
-                #endregion
-                await _userManager.AddClaimsAsync(user, claims);
-                response.Token = GenerateToken(claims, loginDto.RememberMe);
-                response.successed = true;
+                response.Errors.Add("Wrong password or email.");
+                response.PropName = nameof(loginDto.Password);
                 return response;
             }
 
-            response.Errors.Add("Wrong Password or Email");
-            response.PropName = nameof(loginDto.Password);
+            // 6) Build claims & issue JWT
+            var claims = new List<Claim>
+    {
+        new Claim(JwtRegisteredClaimNames.Sub, user.Id),
+        new Claim(JwtRegisteredClaimNames.Email, user.Email),
+        new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+    };
+            var roles = await _userManager.GetRolesAsync(user);
+            claims.AddRange(roles.Select(r => new Claim(ClaimTypes.Role, r)));
+
+            await _userManager.AddClaimsAsync(user, claims);
+            response.Token = GenerateToken(claims, loginDto.RememberMe);
+            response.successed = true;
             return response;
         }
 

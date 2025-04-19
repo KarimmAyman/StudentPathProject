@@ -1,4 +1,6 @@
-﻿using StudentPath.DAL.Repositories.DriverRepository;
+﻿using StudentPath.DAL.Data.Models;
+using StudentPath.DAL.Repositories.DriverRepository;
+using StudentPath.DAL.Repositories.GenericRepository;
 using StudentPath.DAL.Repositories.UserRepository;
 using System;
 using System.Collections.Generic;
@@ -12,6 +14,9 @@ namespace StudentPath.DAL.Repositories.UnitOfWork
     {
         public IUserRepo User { get; }
         public IDriverRepo Driver { get; }  // Add Driver repository
+
+        public IGenericRepo<VehicleInfo> VehicleInfo { get; }  // Add Driver repository
+        public IGenericRepo<Location> Locations { get; }  // Add Driver repository
 
         public Task Save();
 
