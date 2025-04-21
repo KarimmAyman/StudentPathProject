@@ -10,32 +10,44 @@ namespace StudentPath.DAL.Data.Models
 {
     public class Trip
     {
-        public int TripId { get; set; }  // Primary key
-
-        [Required, MaxLength(100)]
-        public string FromLocation { get; set; }
-
-        [Required, MaxLength(100)]
-        public string ToLocation { get; set; }
+        [Key]
+        public int TripId { get; set; }
 
         [Required]
-        public DateTime DepartureTime { get; set; }  // Start of the trip
+        [ForeignKey("FromLocation")]
+        public int FromLocationId { get; set; }
+        public virtual TripLocation FromLocation { get; set; }
+
+        [Required]
+        [ForeignKey("ToLocation")]
+        public int ToLocationId { get; set; }
+        public virtual TripLocation ToLocation { get; set; }
+
+        [Required]
+        public DateTime DepartureTime { get; set; }
 
         [Range(1, 50)]
         public int AvailableSeats { get; set; }
 
-        [Required, Range(0.01, 1000.00)]
-        public decimal PricePerSeat { get; set; }  // Cost of each seat
+        [Required]
+        [Range(0.01, 1000.00)]
+        public decimal PricePerSeat { get; set; }
 
         [MaxLength(500)]
-        public string Description { get; set; }  // Optional trip details
+        public string DriverNotes { get; set; }
 
-        // Foreign key to Driver
+        // Amenities
+        public bool HasWiFi { get; set; }
+        public bool HasPhoneCharger { get; set; }
+        public bool HasAirConditioning { get; set; }
+        public bool HasFreeWater { get; set; }
+        public bool HasMusic { get; set; }
+
         [ForeignKey("Driver")]
         public string DriverId { get; set; }
-        public virtual Driver Driver { get; set; }  // Specific navigation to Driver
+        public virtual User Driver { get; set; }
 
-        // Relationship with Bookings
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public virtual ICollection<Booking> Bookings { get; set; } = new HashSet<Booking>();
     }
 

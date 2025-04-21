@@ -29,9 +29,26 @@ namespace StudentPath.DAL.Data.DBHelpers
             base.OnModelCreating(modelBuilder);
             modelBuilder.ApplyConfiguration(new UserEntityTypeConfigurations());
             modelBuilder.ApplyConfiguration(new BookingEntityTypeConfigurations());
-       
+            modelBuilder.ApplyConfiguration(new TripLocationEntityTypeConfigurations());
             modelBuilder.ApplyConfiguration(new UserDriverEntityTypeConfiguration());
 
+            // Configure relationships for Trip and TripLocation
+            modelBuilder.Entity<Trip>()
+                .HasOne(t => t.FromLocation)
+                .WithMany(tl => tl.TripsAsFrom)
+                .HasForeignKey(t => t.FromLocationId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Trip>()
+                .HasOne(t => t.ToLocation)
+                .WithMany(tl => tl.TripsAsTo)
+                .HasForeignKey(t => t.ToLocationId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Configure the primary key for TripLocation
+            modelBuilder.Entity<TripLocation>()
+                .Property(t => t.Id)
+                .UseIdentityColumn();
             // Ignore the conflicting navigation property in UserDriver
             modelBuilder.Entity<UserDriver>()
                 .Ignore(ud => ud.Driver);  // Ignore the Driver navigation property in UserDriver
@@ -110,6 +127,7 @@ namespace StudentPath.DAL.Data.DBHelpers
         public virtual DbSet<CustomRole> CustomRoles { get; set; }
         public virtual DbSet<Wallet> Wallets { get; set; } // Add Wallet table
         public virtual DbSet<WalletTransaction> WalletsTransactions { get; set; }
+        public virtual DbSet<TripLocation> TripLocations { get; set; }
 
 
         //Housing

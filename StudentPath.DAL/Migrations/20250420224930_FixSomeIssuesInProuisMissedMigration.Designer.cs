@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using StudentPath.DAL.Data.DBHelpers;
 
@@ -11,9 +12,11 @@ using StudentPath.DAL.Data.DBHelpers;
 namespace StudentPath.DAL.Migrations
 {
     [DbContext(typeof(StudentPathContext))]
-    partial class StudentPathContextModelSnapshot : ModelSnapshot
+    [Migration("20250420224930_FixSomeIssuesInProuisMissedMigration")]
+    partial class FixSomeIssuesInProuisMissedMigration
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -913,90 +916,36 @@ namespace StudentPath.DAL.Migrations
                     b.Property<int>("AvailableSeats")
                         .HasColumnType("int");
 
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
                     b.Property<DateTime>("DepartureTime")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("DriverId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<string>("DriverNotes")
+                    b.Property<string>("FromLocation")
                         .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<int>("FromLocationId")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("HasAirConditioning")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("HasFreeWater")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("HasMusic")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("HasPhoneCharger")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("HasWiFi")
-                        .HasColumnType("bit");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<decimal>("PricePerSeat")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<int>("ToLocationId")
-                        .HasColumnType("int");
+                    b.Property<string>("ToLocation")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.HasKey("TripId");
 
                     b.HasIndex("DriverId");
 
-                    b.HasIndex("FromLocationId");
-
-                    b.HasIndex("ToLocationId");
-
                     b.ToTable("Trips");
-                });
-
-            modelBuilder.Entity("StudentPath.DAL.Data.Models.TripLocation", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("AdditionalNotes")
-                        .IsRequired()
-                        .HasMaxLength(150)
-                        .HasColumnType("nvarchar(150)");
-
-                    b.Property<string>("DisplayName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<string>("FullAddress")
-                        .IsRequired()
-                        .HasMaxLength(250)
-                        .HasColumnType("nvarchar(250)");
-
-                    b.Property<double>("Latitude")
-                        .HasColumnType("float");
-
-                    b.Property<double>("Longitude")
-                        .HasColumnType("float");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Latitude", "Longitude");
-
-                    b.ToTable("TripLocations");
                 });
 
             modelBuilder.Entity("StudentPath.DAL.Data.Models.User", b =>
@@ -1497,29 +1446,13 @@ namespace StudentPath.DAL.Migrations
 
             modelBuilder.Entity("StudentPath.DAL.Data.Models.Trip", b =>
                 {
-                    b.HasOne("StudentPath.DAL.Data.Models.User", "Driver")
+                    b.HasOne("StudentPath.DAL.Data.Models.Driver", "Driver")
                         .WithMany()
                         .HasForeignKey("DriverId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("StudentPath.DAL.Data.Models.TripLocation", "FromLocation")
-                        .WithMany("TripsAsFrom")
-                        .HasForeignKey("FromLocationId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("StudentPath.DAL.Data.Models.TripLocation", "ToLocation")
-                        .WithMany("TripsAsTo")
-                        .HasForeignKey("ToLocationId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.Navigation("Driver");
-
-                    b.Navigation("FromLocation");
-
-                    b.Navigation("ToLocation");
                 });
 
             modelBuilder.Entity("StudentPath.DAL.Data.Models.UserDriver", b =>
@@ -1588,13 +1521,6 @@ namespace StudentPath.DAL.Migrations
             modelBuilder.Entity("StudentPath.DAL.Data.Models.Trip", b =>
                 {
                     b.Navigation("Bookings");
-                });
-
-            modelBuilder.Entity("StudentPath.DAL.Data.Models.TripLocation", b =>
-                {
-                    b.Navigation("TripsAsFrom");
-
-                    b.Navigation("TripsAsTo");
                 });
 
             modelBuilder.Entity("StudentPath.DAL.Data.Models.User", b =>
