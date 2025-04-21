@@ -17,6 +17,8 @@ namespace StudentPath.DAL.Repositories.UnitOfWork
 
         public IGenericRepo<VehicleInfo> VehicleInfo { get; }  // Add Driver repository
         public IGenericRepo<Location> Locations { get; }  // Add Driver repository
+        public IGenericRepo<Trip> Trips { get; }  // Add Trips repository
+        public IGenericRepo<TripLocation> TripLocations { get; }  // Add TripLocations repository
 
         public Task Save();
 

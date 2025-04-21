@@ -20,6 +20,8 @@ namespace StudentPath.DAL.Repositories.UnitOfWork
 
         public IGenericRepo<VehicleInfo> VehicleInfo { get; private set; }  // Add Driver repository
         public IGenericRepo<Location> Locations { get; private set; }  // Add Driver repository
+        public IGenericRepo<Trip> Trips { get; private set; }  // Add Trips repository
+        public IGenericRepo<TripLocation> TripLocations { get; private set; }  // Add TripLocations repository
 
 
         public UnitOfWork(StudentPathContext _db)
@@ -30,6 +32,8 @@ namespace StudentPath.DAL.Repositories.UnitOfWork
             Driver = new DriverRepo(db);  // Add Driver repository
             VehicleInfo = new GenericRepo<VehicleInfo>(db);  // Add this
             Locations = new GenericRepo<Location>(db);       // Add this
+            Trips = new GenericRepo<Trip>(db);       // Add this
+            TripLocations = new GenericRepo<TripLocation>(db);       // Add this
 
         }
 

@@ -1,0 +1,18 @@
+﻿using StudentPath.BLL.Dtoes;
+using StudentPath.BLL.Dtoes.Trips;
+using System;
+using System.Threading.Tasks;
+
+namespace StudentPath.BLL.Services.TripServices
+{
+    public interface ITripService
+    {
+        Task<ApiResponse<TripResponseDto>> CreateTripAsync(TripCreateDto dto, string driverId);
+        //Task<ApiResponse<TripResponseDto>> UpdateTripAsync(TripUpdateDto dto, string driverId);
+        Task<ApiResponse> DeleteTripAsync(int tripId, string driverId);
+        Task<ApiResponse<TripResponseDto>> GetTripByIdAsync(int tripId);
+        Task<ApiResponse<IEnumerable<TripResponseDto>>> GetAllTripsAsync();
+        Task<ApiResponse<IEnumerable<TripResponseDto>>> GetDriverTripsAsync(string driverId);
+        Task<ApiResponse<IEnumerable<TripResponseDto>>> SearchTripsAsync(string fromCity, string toCity, DateTime? date);
+    }
+}
