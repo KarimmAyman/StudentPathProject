@@ -136,13 +136,17 @@ public class Program
         builder.Services.Configure<StripeSettings>(builder.Configuration.GetSection("Stripe"));
         StripeConfiguration.ApiKey = builder.Configuration.GetValue<string>("Stripe:SecretKey");
 
+
         builder.Services.AddCors(options =>
         {
             options.AddPolicy("AllowFrontend",
-                policy => policy.AllowAnyOrigin()// Your frontend URL
-                                .AllowAnyHeader()
-                                .AllowAnyMethod()
-                                );
+                 policy =>
+                 {
+                     policy.AllowAnyOrigin()
+                            .AllowAnyHeader()
+                            .AllowAnyMethod();
+                 });
+                                
         });
 
         builder.Services.AddScoped<IAccountService, StudentPath.BLL.Services.AccountService.AccountService>();
@@ -249,10 +253,11 @@ public class Program
         //}
             app.UseSwagger();
             app.UseSwaggerUI();
-        app.UseCors("AllowFrontend");
         app.UseStaticFiles();
             app.UseHttpsRedirection();
-            app.UseAuthentication();
+        app.UseCors("AllowFrontend");
+
+        app.UseAuthentication();
             app.UseAuthorization();
             app.MapControllers();
             app.Run();

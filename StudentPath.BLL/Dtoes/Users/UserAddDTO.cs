@@ -146,6 +146,13 @@ namespace StudentPath.BLL.Dtoes.Users
         public string Currency { get; set; }  // Currency code (e.g., "EGP")
                                               // You can add more fields depending on what Paymob sends in the webhook
     }
+    public class CreatePaymentRequest
+    {
+        public long Amount { get; set; }  // Amount in smallest currency unit (e.g., cents)
+        public string Currency { get; set; } = "usd";
+        public string Email { get; set; }
+    }
+   
 
 }
 
