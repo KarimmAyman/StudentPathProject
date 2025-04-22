@@ -8,6 +8,7 @@ using Microsoft.OpenApi.Models;
 using Stripe;
 using StudentPath.BLL.AutoMappers.DriverMapper;
 using StudentPath.BLL.AutoMappers.UserMapper;
+using StudentPath.BLL.AutoMappers.TripMapper;
 using StudentPath.BLL.Dtoes;
 using StudentPath.BLL.Dtos.Accounts;
 using StudentPath.BLL.Middlewares;
@@ -19,6 +20,7 @@ using StudentPath.BLL.Services.HousingServices;
 using StudentPath.BLL.Services.PaymobService;
 using StudentPath.BLL.Services.StripeService;
 using StudentPath.BLL.Services.UserServices;
+using StudentPath.BLL.Services.TripServices;
 using StudentPath.BLL.Utility;
 using StudentPath.DAL.Data.DBHelpers;
 using StudentPath.DAL.Data.Models;
@@ -124,6 +126,7 @@ public class Program
         #region AutoMapper
         builder.Services.AddAutoMapper(x => x.AddProfile(new UserProfile()));
         builder.Services.AddAutoMapper(x => x.AddProfile(new DriverProfile()));
+        builder.Services.AddAutoMapper(x => x.AddProfile(new TripProfile()));
 
 
 
@@ -164,9 +167,10 @@ public class Program
         builder.Services.AddScoped<IJobRepository, JobRepository>();
         builder.Services.AddScoped<IJobService, JobService>();
         builder.Services.AddScoped<IAdminService, AdminService>();
+        builder.Services.AddScoped<ITripService, TripService>();
 
-        
-    
+
+
         builder.Services.AddHttpContextAccessor();
 
         #endregion
