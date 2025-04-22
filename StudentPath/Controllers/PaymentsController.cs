@@ -17,13 +17,15 @@ namespace StudentPath.API.Controllers
     public class PaymentsController : ControllerBase
     {
         private readonly StripeService _stripeService;
+        private readonly IConfiguration configuration;
         private readonly StudentPathContext _context;
 
 
-        public PaymentsController(StudentPathContext context, StripeService stripeService)
+        public PaymentsController(StudentPathContext context, StripeService stripeService,IConfiguration configuration)
         {
             _context = context;
             _stripeService = stripeService;
+            this.configuration = configuration;
         }
         #region RegisterUser
         // **Register User and Create Stripe Customer**
@@ -54,6 +56,7 @@ namespace StudentPath.API.Controllers
 
         }
         #endregion
+
 
         #region AddCard
 
@@ -136,10 +139,10 @@ namespace StudentPath.API.Controllers
 
 
 
-        #region CreatePaymentIntent
+        #region CreatePaymentIntent Using PMI
 
-        [HttpPost("create-payment-intent")]
-        public async Task<IActionResult> CreatePaymentIntent([FromBody] CreatePaymentIntentDto dto)
+        [HttpPost("create-payment-intent-withPMI")]
+        public async Task<IActionResult> CreatePaymentIntentWithPMI([FromBody] CreatePaymentIntentDto dto)
         {
             using var transaction = await _context.Database.BeginTransactionAsync(); // Start DB Transaction
 
@@ -215,7 +218,8 @@ namespace StudentPath.API.Controllers
                     status = "Success",
                     message = "Payment successful via Card",
                     paymentIntentId = paymentIntent.Id,
-                    clientSecret = paymentIntent.ClientSecret
+                    clientSecret = paymentIntent.ClientSecret,
+                    stripeCustomerId=paymentIntent.CustomerId
                    // Return the UserId in the payment transaction response
                 });
             }
@@ -263,10 +267,194 @@ namespace StudentPath.API.Controllers
 
         #endregion
 
-       
+
+        #region Create Payment Intent
+
+
+        [HttpPost("Create-Payment-Intent")]
+        public async Task<IActionResult> CreatePaymentIntent([FromBody] CreatePaymentRequest request)
+        {
+            using var transaction = await _context.Database.BeginTransactionAsync(); // Start DB Transaction
+
+            try
+            {
+
+                var user = await _context.Users
+                   .Where(u => u.Email ==request.Email)
+                   .FirstOrDefaultAsync();
+                // 1. Get or create Stripe customer
+                var customerService = new CustomerService();
+                var customers = await customerService.ListAsync(new CustomerListOptions
+                {
+                    Email = request.Email
+                });
+
+                var customer = customers.FirstOrDefault();
+
+                if (customer == null)
+                {
+                    customer = await customerService.CreateAsync(new CustomerCreateOptions
+                    {
+                        Email = user.Email,
+                        Name=user.UserName
+                    });
+                }
+
+                // 2. Create Ephemeral Key (requires Stripe version override)
+                var ephemeralKeyOptions = new EphemeralKeyCreateOptions
+                {
+                    Customer = customer.Id,
+                    StripeVersion = "2025-02-24.acacia", // Example version
+                };
+                var ephemeralKeyService = new EphemeralKeyService();
+                var ephemeralKey = ephemeralKeyService.Create(ephemeralKeyOptions);
+
+                // 3. Create PaymentIntent with automatic payment methods and status as pending
+                var paymentIntentService = new PaymentIntentService();
+                var paymentIntent = await paymentIntentService.CreateAsync(new PaymentIntentCreateOptions
+                {
+                    Amount = request.Amount * 100,  // Stripe requires the amount in cents
+                    Currency = request.Currency,
+                    Customer = customer.Id,
+                    AutomaticPaymentMethods = new PaymentIntentAutomaticPaymentMethodsOptions
+                    {
+                        Enabled = true,
+                        AllowRedirects="never"
+                    }
+                   
+                });
+
+                // 4. Save payment record in the database (status = pending)
+                var newPayment = new Payment
+                {
+                    UserId = user.Id, // Ensure you are saving the User ID in the payment
+                    Amount = request.Amount,
+                    PaymentDate = DateTime.UtcNow,
+                    PaymentStatus = PaymentStatus.Pending,  // Set initial status to Pending
+                    PaymentMethod = PaymentMethodEnum.CreditCard,  // Assuming CreditCard as the payment method
+                    TransactionId = paymentIntent.Id,  // Save the Stripe PaymentIntent ID
+                    PaymentIntentId = paymentIntent.Id, // Track PaymentIntent ID
+                };
+
+                _context.Payments.Add(newPayment);
+                await _context.SaveChangesAsync();
+
+                // 5. Commit transaction to ensure DB consistency
+                await transaction.CommitAsync();
+
+                // 6. Return the required data to the frontend
+                return Ok(new
+                {
+                    CustomerId = customer.Id,
+                    EphemeralKeySecret = ephemeralKey.Secret,
+                    PaymentIntentClientSecret = paymentIntent.ClientSecret,
+                    PublishableKey = configuration["Stripe:PublishableKey"],  // Your Stripe Publishable Key
+                    PaymentIntentId = paymentIntent.Id
+                });
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync(); // Rollback DB changes in case of error
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        #endregion
+
+
+        #region Stripe Webhook
+        [HttpPost("Stripe-Webhook")]
+        public async Task<IActionResult> StripeWebhook()
+        {
+            var json = await new StreamReader(HttpContext.Request.Body).ReadToEndAsync();
+
+            // You can verify the webhook signature to ensure it comes from Stripe
+            var stripeSignature = Request.Headers["Stripe-Signature"];
+            var secret = configuration["Stripe:WebhookSecret"];  // Your Stripe webhook secret
+            Event stripeEvent;
+
+            try
+            {
+                stripeEvent = EventUtility.ConstructEvent(
+                    json,
+                    stripeSignature,
+                    secret,
+                    throwOnApiVersionMismatch: false
+
+                );
+            }
+            catch (StripeException e)
+            {
+                // Log the error and return bad request
+                return BadRequest(new { message = "Invalid webhook signature." });
+            }
+
+            // Handle the event (you can add more events as needed)
+            switch (stripeEvent.Type)
+            {
+                case "payment_intent.succeeded":
+                    var paymentIntent = stripeEvent.Data.Object as PaymentIntent;
+                    await HandlePaymentIntentSucceeded(paymentIntent);
+                    break;
+
+                case "payment_intent.payment_failed":
+                    var failedPaymentIntent = stripeEvent.Data.Object as PaymentIntent;
+                    await HandlePaymentIntentFailed(failedPaymentIntent);
+                    break;
+
+
+                // Handle other events here (optional)
+                default:
+                    break;
+            }
+
+            return Ok();
+        }
+
+        private async Task HandlePaymentIntentSucceeded(PaymentIntent paymentIntent)
+        {
+            // Find the corresponding payment record in your database
+            var payment = await _context.Payments
+                .FirstOrDefaultAsync(p => p.TransactionId == paymentIntent.Id);
+
+            if (payment != null)
+            {
+                // Update the payment status to "Succeeded"
+                payment.PaymentStatus = PaymentStatus.Paid;
+                payment.PaymentDate = DateTime.UtcNow;
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        private async Task HandlePaymentIntentFailed(PaymentIntent paymentIntent)
+        {
+            // Find the corresponding payment record in your database
+            var payment = await _context.Payments
+                .FirstOrDefaultAsync(p => p.TransactionId == paymentIntent.Id);
+
+            if (payment != null)
+            {
+                // Update the payment status to "Failed"
+                payment.PaymentStatus = PaymentStatus.Cancelled;
+                payment.PaymentDate = DateTime.UtcNow;
+                await _context.SaveChangesAsync();
+            }
+        }
+        #endregion
+
     }
 
 }
+
+
+
+
+
+
+
+
+
+
 
 
 
