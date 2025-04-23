@@ -322,24 +322,16 @@ namespace StudentPath.BLL.Services.AccountService
                 response.PropName = nameof(loginDto.Email);
                 return response;
             }
-            //  Is the user deleted?
+
+            // 4) Is the user deleted?
             if (user.IsDeleted)
             {
                 response.Errors.Add("Your account has been deleted and cannot be used to login.");
                 response.PropName = nameof(loginDto.Email);
                 return response;
             }
-            Driver driver1 = new Driver();
-            //// 3) Is the driver deleted?
-            //if (driver1.IsDeleted)
-            //{
-            //    response.Errors.Add("Your account has been deleted and cannot be used to login.");
-            //    response.PropName = nameof(loginDto.Email);
-            //    return response;
-            //}
 
-
-            // 4) If a driver, check approval status
+            // 5) If a driver, check approval status
             if (user.UserType == UserTypeEnum.Driver)
             {
                 var driver = user as Driver;
@@ -356,9 +348,21 @@ namespace StudentPath.BLL.Services.AccountService
                         return response;
                     }
                 }
+                // Set loggedBy as "driver"
+                response.LoggedBy = "driver";
+            }
+            // 6) If admin, set loggedBy to "admin"
+            else if (user.UserType == UserTypeEnum.Admin)
+            {
+                response.LoggedBy = "admin";
+            }
+            // 7) For regular users, set loggedBy as "user"
+            else
+            {
+                response.LoggedBy = "user";
             }
 
-            // 5) Finally, check password
+            // 8) Finally, check password
             var pwdOk = await _userManager.CheckPasswordAsync(user, loginDto.Password);
             if (!pwdOk)
             {
@@ -367,21 +371,28 @@ namespace StudentPath.BLL.Services.AccountService
                 return response;
             }
 
-            // 6) Build claims & issue JWT
+            // 9) Build claims & issue JWT
             var claims = new List<Claim>
     {
         new Claim(JwtRegisteredClaimNames.Sub, user.Id),
         new Claim(JwtRegisteredClaimNames.Email, user.Email),
         new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
     };
+
+            // Add user roles to the claims
             var roles = await _userManager.GetRolesAsync(user);
             claims.AddRange(roles.Select(r => new Claim(ClaimTypes.Role, r)));
 
+            // Add the claims to the user
             await _userManager.AddClaimsAsync(user, claims);
+
+            // Generate the token
             response.Token = GenerateToken(claims, loginDto.RememberMe);
             response.successed = true;
+
             return response;
         }
+
 
         private string GenerateToken(IList<Claim> claims, bool RememberMe)
         {

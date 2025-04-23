@@ -50,10 +50,23 @@ namespace StudentPath.API.Controllers
         {
             var response = await _accountService.Login(loginDto);
             if (response.successed)
-                return Ok(new { successed = true, message = "Login successful.", token = response.Token });
+            {
+                return Ok(new
+                {
+                    successed = true,
+                    message = "Login successful.",
+                    token = response.Token,
+                    loggedBy = response.LoggedBy
+                });
+            }
 
-            return Unauthorized(new { successed = false, errors = response.Errors });
+            return Unauthorized(new
+            {
+                successed = false,
+                errors = response.Errors
+            });
         }
+
 
         [HttpPost("send-otp-for-password-reset")]
         public async Task<IActionResult> SendOtpForPasswordReset([FromBody] ForgotPasswordDto forgotPasswordDto)

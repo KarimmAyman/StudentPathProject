@@ -29,6 +29,7 @@ using StudentPath.DAL.Repositories.HousingRepository;
 using StudentPath.DAL.Repositories.UnitOfWork;
 using System.Text;
 
+
 public class Program
 {
     public static async Task Main(string[] args)
@@ -44,6 +45,7 @@ public class Program
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen(setup =>
         {
+          
             setup.SchemaFilter<SwaggerIgnoreFilter>();
 
             setup.SwaggerDoc("v1", new OpenApiInfo
@@ -57,10 +59,11 @@ public class Program
                     Email = "umssthasystem@gmail.com"
                 }
 
-
+               
 
             });
             setup.EnableAnnotations();
+
 
             // Include 'SecurityScheme' to use JWT Authentication
             var jwtSecurityScheme = new OpenApiSecurityScheme
@@ -168,6 +171,7 @@ public class Program
         builder.Services.AddScoped<IJobService, JobService>();
         builder.Services.AddScoped<IAdminService, AdminService>();
         builder.Services.AddScoped<ITripService, TripService>();
+       
 
 
 
