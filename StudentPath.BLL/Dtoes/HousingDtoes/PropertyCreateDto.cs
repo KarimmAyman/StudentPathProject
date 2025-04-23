@@ -1,4 +1,5 @@
-﻿using StudentPath.BLL.Dtoes.Accounts;
+﻿using Microsoft.AspNetCore.Http;
+using StudentPath.BLL.Dtoes.Accounts;
 using StudentPath.DAL.Data.Models.Housing;
 using System;
 using System.Collections.Generic;
@@ -33,7 +34,7 @@ namespace StudentPath.BLL.Dtoes.HousingDtoes
 
         // Related data
         public List<LocationCreateDto> Locations { get; set; } = new List<LocationCreateDto>();
-        public List<PropertyImageCreateDto> Images { get; set; } = new List<PropertyImageCreateDto>();
+        public List<IFormFile> Images { get; set; } = new();
         public List<int>? FeatureIds { get; set; }
     }
 }
