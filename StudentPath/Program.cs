@@ -28,6 +28,7 @@ using StudentPath.DAL.Repositories.ActivitesRepository;
 using StudentPath.DAL.Repositories.HousingRepository;
 using StudentPath.DAL.Repositories.UnitOfWork;
 using System.Text;
+using StudentPath.BLL.Services.FileServices;
 
 
 public class Program
@@ -171,7 +172,9 @@ public class Program
         builder.Services.AddScoped<IJobService, JobService>();
         builder.Services.AddScoped<IAdminService, AdminService>();
         builder.Services.AddScoped<ITripService, TripService>();
-       
+        builder.Services.AddScoped<IFileService, StudentPath.BLL.Services.FileServices.FileService>();
+
+
 
 
 
