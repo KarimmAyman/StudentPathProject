@@ -279,7 +279,61 @@ namespace StudentPath.BLL.Services.AccountService
             var confirmationToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
             var confirmLink = urlHelper.Action("ConfirmEmail", "Accounts", new { userId = user.Id, token = confirmationToken }, "https");
 
-            var confirmEmailBody = $@"<html><body><a href='{confirmLink}'>Verify your email</a></body></html>";
+            var confirmEmailBody = $@"
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <style>
+                .container {{
+                    max-width: 600px;
+                    margin: auto;
+                    background-color: #f6f9fc;
+                    padding: 20px;
+                    font-family: Arial, sans-serif;
+                    border-radius: 8px;
+                    text-align: left;
+                }}
+                .card {{
+                    background-color: white;
+                    padding: 30px;
+                    border-radius: 8px;
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                }}
+                .button {{
+                    background-color: #83cd20;
+                    color: white;
+                    padding: 12px 24px;
+                    border-radius: 6px;
+                    text-decoration: none;
+                    font-weight: bold;
+                    display: inline-block;
+                    margin-top: 20px;
+                    text-align: center;
+                }}
+                .footer {{
+                    font-size: 12px;
+                    color: #666;
+                    margin-top: 20px;
+                }}
+                .logo {{
+                    width: 150px;
+                    margin-bottom: 20px;
+                }}
+            </style>
+        </head>
+        <body>
+            <div class='container'>
+                <div class='card'>
+                    <img src='{logoUrl}' class='logo' alt='Student Path Logo' />
+                    <p>Thanks for creating a Student Path account. Please verify your email:</p>
+                    <a href='{confirmLink}' class='button'>Verify Email</a>
+                </div>
+                <div class='footer'>
+                    <p>Student Path, Kafr El-Sheikh, Egypt</p>
+                </div>
+            </div>
+        </body>
+        </html>";
             var emailSendResult = await _emailService.SendEmailAsync(user.Email, "Verify Your Email", confirmEmailBody);
 
             if (!emailSendResult.successed)
