@@ -33,66 +33,79 @@ namespace StudentPath.BLL.Services.HousingServices
             return MapPropertyToPropertyDto(property);
         }
 
-        public async Task<PropertyDto> CreatePropertyAsync(PropertyCreateDto createDto)
+      public async Task<PropertyDto> CreatePropertyAsync(PropertyCreateDto createDto)
+{
+    var property = new Property
+    {
+        AdvertisingStatus = createDto.AdvertisingStatus,
+        HasInsurance = createDto.HasInsurance,
+        HousingType = createDto.HousingType,
+        Rooms = createDto.Rooms,
+        Bathrooms = createDto.Bathrooms,
+        GrossArea = createDto.GrossArea,
+        NetArea = createDto.NetArea,
+        WarmingType = createDto.WarmingType,
+        BuildingAge = createDto.BuildingAge,
+        FloorLocation = createDto.FloorLocation,
+        IsFurnished = createDto.IsFurnished,
+        IsAvailableForLoan = createDto.IsAvailableForLoan,
+        Dues = createDto.Dues,
+        Front = createDto.Front,
+        RentPrice = createDto.RentPrice,
+        Description = createDto.Description,
+        Price = createDto.Price,
+        Currency = createDto.Currency,
+        UserId = createDto.UserId
+    };
+
+    if (createDto.Locations != null && createDto.Locations.Any())
+    {
+        property.Locations = createDto.Locations.Select(l => new LocationProperty
         {
-            // تحويل الـ DTO إلى الـ Entity
-            var property = new Property
-            {
-                AdvertisingStatus = createDto.AdvertisingStatus,
-                HasInsurance = createDto.HasInsurance,
-                HousingType = createDto.HousingType,
-                Rooms = createDto.Rooms,
-                Bathrooms = createDto.Bathrooms,
-                GrossArea = createDto.GrossArea,
-                NetArea = createDto.NetArea,
-                WarmingType = createDto.WarmingType,
-                BuildingAge = createDto.BuildingAge,
-                FloorLocation = createDto.FloorLocation,
-                IsFurnished = createDto.IsFurnished,
-                IsAvailableForLoan = createDto.IsAvailableForLoan,
-                Dues = createDto.Dues,
-                Front = createDto.Front,
-                RentPrice = createDto.RentPrice,
-                Description = createDto.Description,
-                Price = createDto.Price,
-                Currency = createDto.Currency,
-                UserId = createDto.UserId
-            };
+            City = l.City,
+            Country = l.Country,
+            Street = l.Street,
+            Latitude = l.Latitude,
+            Longitude = l.Longitude
+        }).ToList();
+    }
 
-            // تحويل المواقع لو وُجدت
-            if (createDto.Locations != null && createDto.Locations.Any())
+    // 🆕 Save images to wwwroot/housing images
+    if (createDto.Images != null && createDto.Images.Any())
+    {
+        string uploadFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "housing images");
+        Directory.CreateDirectory(uploadFolder);
+
+        property.PropertyImages = new List<PropertyImage>();
+        foreach (var image in createDto.Images)
+        {
+            string uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(image.FileName);
+            string filePath = Path.Combine(uploadFolder, uniqueFileName);
+
+            using (var stream = new FileStream(filePath, FileMode.Create))
             {
-                property.Locations = createDto.Locations.Select(l => new LocationProperty
-                {
-                    City = l.City,
-                    Country = l.Country,
-                    Street = l.Street,
-                    Latitude = l.Latitude,
-                    Longitude = l.Longitude
-                }).ToList();
+                await image.CopyToAsync(stream);
             }
 
-            // تحويل الصور لو وُجدت
-            if (createDto.Images != null && createDto.Images.Any())
+            property.PropertyImages.Add(new PropertyImage
             {
-                property.PropertyImages = createDto.Images.Select(i => new PropertyImage
-                {
-                    ImageUrl = i.ImageUrl
-                }).ToList();
-            }
-
-            // تحويل الخصائص باستخدام قائمة الـ Feature IDs
-            if (createDto.FeatureIds != null && createDto.FeatureIds.Any())
-            {
-                property.PropertyFeatures = createDto.FeatureIds.Select(id => new PropertyFeature
-                {
-                    FeatureId = id
-                }).ToList();
-            }
-
-            await _propertyRepository.AddAsync(property);
-            return MapPropertyToPropertyDto(property);
+                ImageUrl = $"/housing images/{uniqueFileName}" // 🧠 Use relative URL
+            });
         }
+    }
+
+    if (createDto.FeatureIds != null && createDto.FeatureIds.Any())
+    {
+        property.PropertyFeatures = createDto.FeatureIds.Select(id => new PropertyFeature
+        {
+            FeatureId = id
+        }).ToList();
+    }
+
+    await _propertyRepository.AddAsync(property);
+    return MapPropertyToPropertyDto(property);
+}
+
 
         public async Task<PropertyDto> UpdatePropertyAsync(PropertyUpdateDto updateDto)
         {

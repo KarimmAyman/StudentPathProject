@@ -28,6 +28,8 @@ using StudentPath.DAL.Repositories.ActivitesRepository;
 using StudentPath.DAL.Repositories.HousingRepository;
 using StudentPath.DAL.Repositories.UnitOfWork;
 using System.Text;
+using StudentPath.BLL.Services.FileServices;
+
 
 public class Program
 {
@@ -44,6 +46,7 @@ public class Program
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen(setup =>
         {
+          
             setup.SchemaFilter<SwaggerIgnoreFilter>();
 
             setup.SwaggerDoc("v1", new OpenApiInfo
@@ -57,10 +60,11 @@ public class Program
                     Email = "umssthasystem@gmail.com"
                 }
 
-
+               
 
             });
             setup.EnableAnnotations();
+
 
             // Include 'SecurityScheme' to use JWT Authentication
             var jwtSecurityScheme = new OpenApiSecurityScheme
@@ -139,18 +143,22 @@ public class Program
         builder.Services.Configure<StripeSettings>(builder.Configuration.GetSection("Stripe"));
         StripeConfiguration.ApiKey = builder.Configuration.GetValue<string>("Stripe:SecretKey");
 
+
         builder.Services.AddCors(options =>
         {
             options.AddPolicy("AllowFrontend",
-                policy => policy.AllowAnyOrigin()// Your frontend URL
-                                .AllowAnyHeader()
-                                .AllowAnyMethod()
-                                );
+                 policy =>
+                 {
+                     policy.AllowAnyOrigin()
+                            .AllowAnyHeader()
+                            .AllowAnyMethod();
+                 });
+                                
         });
 
         builder.Services.AddScoped<IAccountService, StudentPath.BLL.Services.AccountService.AccountService>();
-         builder.Services.AddScoped<IEmailService, EmailService>();
-         builder.Services.AddSingleton<IUrlHelperFactory, UrlHelperFactory>();
+        builder.Services.AddScoped<IEmailService, EmailService>();
+        builder.Services.AddSingleton<IUrlHelperFactory, UrlHelperFactory>();
         builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
         builder.Services.AddScoped<IUserService, UserService>();
         builder.Services.AddScoped<IPropertyRepository, PropertyRepository>();
@@ -165,6 +173,9 @@ public class Program
         builder.Services.AddScoped<IJobService, JobService>();
         builder.Services.AddScoped<IAdminService, AdminService>();
         builder.Services.AddScoped<ITripService, TripService>();
+        builder.Services.AddScoped<IFileService, StudentPath.BLL.Services.FileServices.FileService>();
+
+
 
 
 
@@ -254,10 +265,11 @@ public class Program
         //}
             app.UseSwagger();
             app.UseSwaggerUI();
-        app.UseCors("AllowFrontend");
         app.UseStaticFiles();
             app.UseHttpsRedirection();
-            app.UseAuthentication();
+        app.UseCors("AllowFrontend");
+
+        app.UseAuthentication();
             app.UseAuthorization();
             app.MapControllers();
             app.Run();

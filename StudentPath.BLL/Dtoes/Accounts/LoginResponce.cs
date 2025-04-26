@@ -11,5 +11,6 @@ namespace StudentPath.BLL.Dtos.Accounts{
         public bool successed { get; set; } = false;
         public List<string> Errors { get; set; } = new List<string>();
         public string PropName { get; set; } = string.Empty;
+        public string LoggedBy { get; set; } // <-- Add this
     }
 }
