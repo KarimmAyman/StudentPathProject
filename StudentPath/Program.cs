@@ -156,6 +156,7 @@ public class Program
         builder.Services.AddScoped<IPropertyRepository, PropertyRepository>();
         builder.Services.AddScoped<IPropertyService, PropertyService>();
         builder.Services.AddScoped<IDriverService, DriverService>();
+        builder.Services.AddScoped<IFileService, StudentPath.BLL.Services.DriverServices.FileService>();
         builder.Services.AddScoped<StripeService>();
         builder.Services.AddHttpClient();
 

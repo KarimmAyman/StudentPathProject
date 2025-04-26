@@ -1,0 +1,26 @@
+﻿using Microsoft.AspNetCore.Http;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace StudentPath.BLL.Dtoes.Drivers
+{
+    public class VehicleReadDTO
+    {
+        // Vehicle Details
+        public string VehicleBrand { get; set; }
+        public string VehicleModel { get; set; }
+        public string VehicleColor { get; set; }
+        public int ProductionYear { get; set; }
+        public string PlateNumber { get; set; }
+        public int SeatingCapacity { get; set; }
+
+        // Vehicle Documents (as IFormFile)
+        public string VehiclePicture { get; set; }
+        public string VehicleRegistrationFront { get; set; }
+        public string VehicleRegistrationBack { get; set; }
+        public int Id { get; internal set; }
+    }
+}

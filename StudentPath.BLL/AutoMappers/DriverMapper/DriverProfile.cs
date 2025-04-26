@@ -10,7 +10,8 @@ namespace StudentPath.BLL.AutoMappers.DriverMapper
     {
         public DriverProfile()
         {
-            CreateMap<Driver, DriverReadDTO>();
+            CreateMap<Driver, DriverReadDTO>()
+                 .ForMember(dest => dest.VehicleInfo, opt => opt.MapFrom(src => src.VehicleInfo));
             CreateMap<Driver, DriverDetailsDTO>();
             CreateMap<DriverAddDTO, Driver>();
             CreateMap<DriverUpdateDTO, Driver>();
@@ -19,7 +20,7 @@ namespace StudentPath.BLL.AutoMappers.DriverMapper
             CreateMap<LocationDto, Location>();
             CreateMap<VehicleInfo, VehicleUpdateDTO>();
             CreateMap<Location, LocationDto>();
-            CreateMap<VehicleInfo, VehicleInfoDto>();
+            CreateMap<VehicleInfo, VehicleReadDTO>();
             CreateMap<Location, LocationDto>();
         }
     }
