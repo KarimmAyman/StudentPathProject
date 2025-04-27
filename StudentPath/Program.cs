@@ -16,6 +16,7 @@ using StudentPath.BLL.Services.AccountService;
 using StudentPath.BLL.Services.ActivityService;
 using StudentPath.BLL.Services.AdminServices;
 using StudentPath.BLL.Services.DriverServices;
+
 using StudentPath.BLL.Services.HousingServices;
 using StudentPath.BLL.Services.PaymobService;
 using StudentPath.BLL.Services.StripeService;
@@ -164,7 +165,7 @@ public class Program
         builder.Services.AddScoped<IPropertyRepository, PropertyRepository>();
         builder.Services.AddScoped<IPropertyService, PropertyService>();
         builder.Services.AddScoped<IDriverService, DriverService>();
-        builder.Services.AddScoped<IFileService, StudentPath.BLL.Services.DriverServices.FileService>();
+        builder.Services.AddScoped<StudentPath.BLL.Services.DriverServices.IFileService, StudentPath.BLL.Services.DriverServices.FileService>();
         builder.Services.AddScoped<StripeService>();
         builder.Services.AddHttpClient();
 
@@ -173,7 +174,7 @@ public class Program
         builder.Services.AddScoped<IJobService, JobService>();
         builder.Services.AddScoped<IAdminService, AdminService>();
         builder.Services.AddScoped<ITripService, TripService>();
-        builder.Services.AddScoped<IFileService, StudentPath.BLL.Services.FileServices.FileService>();
+        builder.Services.AddScoped<StudentPath.BLL.Services.FileServices.IFileService, StudentPath.BLL.Services.FileServices.FileService>();
 
 
 
