@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using StudentPath.BLL.Dtoes;
 using StudentPath.BLL.Dtoes.Accounts;
+using StudentPath.BLL.Dtoes.Drivers;
 using StudentPath.BLL.Services.DriverServices;
 using StudentPath.DAL.Data.DBHelpers;
 using StudentPath.DAL.Data.Models;
@@ -53,7 +54,7 @@ namespace StudentPath.BLL.Services.AdminServices
                 LicenseNumber = d.LicenseNumber,
                 LicenseExpirationDate = d.LicenseExpiryDate,
                 Status = d.Status,
-                VehicleInfo = d.VehicleInfo.Select(v => new VehicleInfoDto
+                VehicleInfo = d.VehicleInfo.Select(v => new VehicleReadDTO
                 {
                     VehicleBrand = v.VehicleBrand,
                     PlateNumber = v.PlateNumber,

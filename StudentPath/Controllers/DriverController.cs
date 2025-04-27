@@ -23,61 +23,182 @@ namespace StudentPath.API.Controllers
         [HttpGet("GetAllDrivers")]
         public async Task<ActionResult<ApiResponse<IEnumerable<DriverReadDTO>>>> GetAllDrivers()
         {
-            var drivers = await _driverService.GetAllDriversAsync();
-            return Ok(ApiResponse<IEnumerable<DriverReadDTO>>.SuccessResponse("Drivers retrieved successfully", 200, drivers));
+            try
+            {
+                var drivers = await _driverService.GetAllDriversAsync();
+                return ApiResponse<IEnumerable<DriverReadDTO>>.SuccessResponse(
+                    "Drivers retrieved successfully",
+                    200,
+                    drivers);
+            }
+            catch (Exception)
+            {
+                return ApiResponse<IEnumerable<DriverReadDTO>>.ErrorResponse(
+                    "An error occurred while retrieving drivers",
+                    500);
+            }
         }
 
         [HttpGet("ById/{id}")]
         public async Task<ActionResult<ApiResponse<DriverDetailsDTO>>> GetDriverById(string id)
         {
-            var driver = await _driverService.GetDriverByIdAsync(id);
-            if (driver == null)
+            try
             {
-                return NotFound(ApiResponse<DriverDetailsDTO>.ErrorResponse("Driver not found", 404));
+                var driver = await _driverService.GetDriverByIdAsync(id);
+                if (driver == null)
+                {
+                    return ApiResponse<DriverDetailsDTO>.ErrorResponse(
+                        "Driver not found",
+                        404);
+                }
+                return ApiResponse<DriverDetailsDTO>.SuccessResponse(
+                    "Driver retrieved successfully",
+                    200,
+                    driver);
             }
-            return Ok(ApiResponse<DriverDetailsDTO>.SuccessResponse("Driver retrieved successfully", 200, driver));
+            catch (Exception)
+            {
+                return ApiResponse<DriverDetailsDTO>.ErrorResponse(
+                    "An error occurred while retrieving the driver",
+                    500);
+            }
         }
 
         [HttpPost("AddDriver")]
-        public async Task<ActionResult<ApiResponse<DriverReadDTO>>> AddDriver([FromForm] DriverAddDTO driverDto, [FromForm] string vehicleInfoJson, [FromForm] string locationsJson)
+        public async Task<ActionResult<ApiResponse<DriverReadDTO>>> AddDriver(
+            [FromForm] DriverAddDTO driverDto,
+            [FromForm] string vehicleInfoJson,
+            [FromForm] string locationsJson)
         {
-            Console.WriteLine($"vehicleInfoJson: {vehicleInfoJson}");
-
-            // Deserialize the JSON arrays
-            if (!string.IsNullOrEmpty(vehicleInfoJson))
+            try
             {
-                driverDto.VehicleAddDTOs = JsonSerializer.Deserialize<List<VehicleAddDTO>>(vehicleInfoJson);
-            }
+                // Deserialize the JSON arrays
+                if (!string.IsNullOrEmpty(vehicleInfoJson))
+                {
+                    driverDto.VehicleAddDTOs = JsonSerializer.Deserialize<List<VehicleAddDTO>>(vehicleInfoJson);
+                }
 
-            if (!string.IsNullOrEmpty(locationsJson))
-            {
-                driverDto.Locations = JsonSerializer.Deserialize<List<LocationDto>>(locationsJson);
+                if (!string.IsNullOrEmpty(locationsJson))
+                {
+                    driverDto.Locations = JsonSerializer.Deserialize<List<LocationDto>>(locationsJson);
+                }
+
+                var createdDriver = await _driverService.CreateDriverAsync(driverDto);
+
+                return CreatedAtAction(
+                    nameof(GetDriverById),
+                    new { id = createdDriver.Id },
+                    ApiResponse<DriverReadDTO>.SuccessResponse(
+                        "Driver created successfully",
+                        201,
+                        createdDriver));
             }
-            var createdDriver = await _driverService.CreateDriverAsync(driverDto);
-            return CreatedAtAction(nameof(GetDriverById), new { id = createdDriver.Id },
-                ApiResponse<DriverReadDTO>.SuccessResponse("Driver created successfully", 201, createdDriver));
+            catch (Exception)
+            {
+                return ApiResponse<DriverReadDTO>.ErrorResponse(
+                    "An error occurred while creating the driver",
+                    500);
+            }
         }
 
         [HttpPut("EditDriver/{id}")]
-        public async Task<ActionResult<ApiResponse<string>>> EditDriver(string id, [FromForm] DriverUpdateDTO driverDto)
+        public async Task<ActionResult<ApiResponse<DriverReadDTO>>> EditDriver(
+            string id,
+            [FromForm] DriverUpdateDTO driverDto)
         {
-            bool updated = await _driverService.UpdateDriverAsync(id, driverDto);
-            if (!updated)
+            try
             {
-                return NotFound(ApiResponse<string>.ErrorResponse("Driver not found", 404));
+                var updatedDriver = await _driverService.UpdateDriverProfileAsync(id, driverDto);
+                if (updatedDriver == null)
+                {
+                    return ApiResponse<DriverReadDTO>.ErrorResponse(
+                        "Driver not found",
+                        404);
+                }
+
+                return ApiResponse<DriverReadDTO>.SuccessResponse(
+                    "Driver profile updated successfully",
+                    200
+                    /*updatedDriver*/);
             }
-            return Ok(ApiResponse<string>.SuccessResponse("Driver updated successfully", 200));
+            catch (Exception)
+            {
+                return ApiResponse<DriverReadDTO>.ErrorResponse(
+                    "An error occurred while updating the driver",
+                    500);
+            }
+        }
+
+        [HttpPut("EditDriverVehicles/{id}")]
+        public async Task<ActionResult<ApiResponse<List<VehicleReadDTO>>>> EditDriverVehicles(
+            string id,
+            [FromForm] string vehiclesJson)
+        {
+            try
+            {
+                var vehicleDto = JsonSerializer.Deserialize<DriverVehicleUpdateDTO>(vehiclesJson);
+
+                // Validate all vehicles have plate numbers
+                if (vehicleDto.Vehicles.Any(v => string.IsNullOrWhiteSpace(v.PlateNumber)))
+                {
+                    return ApiResponse<List<VehicleReadDTO>>.ErrorResponse(
+                        "All vehicles must have a PlateNumber",
+                        400);
+                }
+
+                // Process files
+                for (int i = 0; i < vehicleDto.Vehicles.Count; i++)
+                {
+                    vehicleDto.Vehicles[i].VehiclePicture = Request.Form.Files[$"Vehicles[{i}].VehiclePicture"];
+                    vehicleDto.Vehicles[i].VehicleRegistrationFront = Request.Form.Files[$"Vehicles[{i}].VehicleRegistrationFront"];
+                    vehicleDto.Vehicles[i].VehicleRegistrationBack = Request.Form.Files[$"Vehicles[{i}].VehicleRegistrationBack"];
+                }
+
+                var updatedVehicles = await _driverService.UpdateDriverVehiclesAsync(id, vehicleDto);
+
+                if (updatedVehicles == null)
+                {
+                    return ApiResponse<List<VehicleReadDTO>>.ErrorResponse(
+                        "Driver not found",
+                        404);
+                }
+
+                return ApiResponse<List<VehicleReadDTO>>.SuccessResponse(
+                    "Vehicles updated successfully",
+                    200
+                    /*updatedVehicles*/);
+            }
+            catch (Exception)
+            {
+                return ApiResponse<List<VehicleReadDTO>>.ErrorResponse(
+                    "An error occurred while updating vehicles",
+                    500);
+            }
         }
 
         [HttpDelete("DeleteDriver/{id}")]
         public async Task<ActionResult<ApiResponse<string>>> DeleteDriver(string id)
         {
-            bool deleted = await _driverService.SoftDeleteDriverAsync(id);
-            if (!deleted)
+            try
             {
-                return NotFound(ApiResponse<string>.ErrorResponse("Driver not found", 404));
+                bool deleted = await _driverService.SoftDeleteDriverAsync(id);
+                if (!deleted)
+                {
+                    return ApiResponse<string>.ErrorResponse(
+                        "Driver not found",
+                        404);
+                }
+
+                return ApiResponse<string>.SuccessResponse(
+                    "Driver deleted successfully",
+                    200);
             }
-            return Ok(ApiResponse<string>.SuccessResponse("Driver deleted successfully", 200));
+            catch (Exception)
+            {
+                return ApiResponse<string>.ErrorResponse(
+                    "An error occurred while deleting the driver",
+                    500);
+            }
         }
     }
 }

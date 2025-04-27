@@ -1,7 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using StudentPath.BLL.Dtoes;
+using StudentPath.BLL.Dtoes.Drivers;
+using System.Collections.Generic;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using StudentPath.BLL.Dtoes;
 
 namespace StudentPath.BLL.Services.DriverServices
 {
@@ -10,9 +10,8 @@ namespace StudentPath.BLL.Services.DriverServices
         Task<IEnumerable<DriverReadDTO>> GetAllDriversAsync();
         Task<DriverDetailsDTO?> GetDriverByIdAsync(string id);
         Task<DriverReadDTO> CreateDriverAsync(DriverAddDTO driverDto);
-        Task<bool> UpdateDriverAsync(string id, DriverUpdateDTO driverDto);
-
+        Task<bool> UpdateDriverProfileAsync(string id, DriverUpdateDTO driverDto);
+        Task<bool> UpdateDriverVehiclesAsync(string id, DriverVehicleUpdateDTO vehicleDto);
         Task<bool> SoftDeleteDriverAsync(string id);
-       public IFormFile GetFormFileByKey(string key);
     }
 }
