@@ -31,6 +31,8 @@ namespace StudentPath.DAL.Data.DBHelpers
             modelBuilder.ApplyConfiguration(new BookingEntityTypeConfigurations());
             modelBuilder.ApplyConfiguration(new TripLocationEntityTypeConfigurations());
             modelBuilder.ApplyConfiguration(new UserDriverEntityTypeConfiguration());
+            modelBuilder.ApplyConfiguration(new TripRequestEntityTypeConfigurations());
+
 
             // Configure relationships for Trip and TripLocation
             modelBuilder.Entity<Trip>()
@@ -128,6 +130,8 @@ namespace StudentPath.DAL.Data.DBHelpers
         public virtual DbSet<Wallet> Wallets { get; set; } // Add Wallet table
         public virtual DbSet<WalletTransaction> WalletsTransactions { get; set; }
         public virtual DbSet<TripLocation> TripLocations { get; set; }
+        public virtual DbSet<TripRequest> TripRequests { get; set; }
+
 
 
         //Housing

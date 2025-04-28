@@ -71,6 +71,8 @@ namespace StudentPath.DAL.Data.Models
         public string? DefaultPaymentMethodId { get; set; } // Store saved PaymentMethodId
 
         public virtual ICollection<Job> CreatedJobs { get; set; } = new HashSet<Job>();
+        public bool? IsActive { get; set; } = true; // Accepts null, default to true
+        public bool? CanReceiveTripRequests { get; set; } = false; // Accepts null, default to false
 
     }
     // Student subclass
