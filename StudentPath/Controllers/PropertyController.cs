@@ -44,18 +44,21 @@ namespace StudentPath.API.Controllers
         // POST: api/properties
         [HttpPost]
         [Authorize]
-        public async Task<IActionResult> Create(PropertyCreateDto createDto)
+        [Consumes("multipart/form-data")] // important for IFormFile
+        public async Task<IActionResult> Create([FromForm] PropertyCreateDto createDto)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId))
             {
                 return Unauthorized(new { successed = false, errors = new[] { "User ID not found in token." } });
             }
+
             createDto.UserId = userId;
 
             var createdProperty = await _propertyService.CreatePropertyAsync(createDto);
             return CreatedAtAction(nameof(Get), new { id = createdProperty.PropertyId }, new { successed = true, data = createdProperty });
         }
+
 
         // PUT: api/properties/{id}
         [HttpPut("{id}")]

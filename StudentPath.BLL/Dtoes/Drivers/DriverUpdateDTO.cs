@@ -27,9 +27,6 @@ namespace StudentPath.BLL.Dtoes
         public string LicenseNumber { get; set; }
         public DateTime LicenseExpiryDate { get; set; }
 
-        // Vehicles
-        public List<VehicleUpdateDTO> VehicleUpdateDTOs { get; set; } = new List<VehicleUpdateDTO>();
-
         //// Locations
         public List<LocationDto> Locations { get; set; } = new List<LocationDto>();
     }

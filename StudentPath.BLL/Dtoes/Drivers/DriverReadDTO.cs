@@ -1,4 +1,5 @@
 ﻿using StudentPath.BLL.Dtoes.Accounts;
+using StudentPath.BLL.Dtoes.Drivers;
 using StudentPath.DAL.Data.Models;
 
 namespace StudentPath.BLL.Dtoes
@@ -24,7 +25,7 @@ namespace StudentPath.BLL.Dtoes
         public DateTime LicenseExpirationDate { get; set; }
 
         public ApprovalStatus? Status { get; set; }
-        public List<VehicleInfoDto> VehicleInfo { get; set; } = new List<VehicleInfoDto>();
+        public List<VehicleReadDTO> VehicleInfo { get; set; } = new List<VehicleReadDTO>();
         public List<LocationDto> Locations { get; set; } = new List<LocationDto>();
     }
 }

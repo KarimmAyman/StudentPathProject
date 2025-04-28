@@ -279,7 +279,61 @@ namespace StudentPath.BLL.Services.AccountService
             var confirmationToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
             var confirmLink = urlHelper.Action("ConfirmEmail", "Accounts", new { userId = user.Id, token = confirmationToken }, "https");
 
-            var confirmEmailBody = $@"<html><body><a href='{confirmLink}'>Verify your email</a></body></html>";
+            var confirmEmailBody = $@"
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <style>
+                .container {{
+                    max-width: 600px;
+                    margin: auto;
+                    background-color: #f6f9fc;
+                    padding: 20px;
+                    font-family: Arial, sans-serif;
+                    border-radius: 8px;
+                    text-align: left;
+                }}
+                .card {{
+                    background-color: white;
+                    padding: 30px;
+                    border-radius: 8px;
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                }}
+                .button {{
+                    background-color: #83cd20;
+                    color: white;
+                    padding: 12px 24px;
+                    border-radius: 6px;
+                    text-decoration: none;
+                    font-weight: bold;
+                    display: inline-block;
+                    margin-top: 20px;
+                    text-align: center;
+                }}
+                .footer {{
+                    font-size: 12px;
+                    color: #666;
+                    margin-top: 20px;
+                }}
+                .logo {{
+                    width: 150px;
+                    margin-bottom: 20px;
+                }}
+            </style>
+        </head>
+        <body>
+            <div class='container'>
+                <div class='card'>
+                    <img src='{logoUrl}' class='logo' alt='Student Path Logo' />
+                    <p>Thanks for creating a Student Path account. Please verify your email:</p>
+                    <a href='{confirmLink}' class='button'>Verify Email</a>
+                </div>
+                <div class='footer'>
+                    <p>Student Path, Kafr El-Sheikh, Egypt</p>
+                </div>
+            </div>
+        </body>
+        </html>";
             var emailSendResult = await _emailService.SendEmailAsync(user.Email, "Verify Your Email", confirmEmailBody);
 
             if (!emailSendResult.successed)
@@ -322,24 +376,16 @@ namespace StudentPath.BLL.Services.AccountService
                 response.PropName = nameof(loginDto.Email);
                 return response;
             }
-            //  Is the user deleted?
+
+            // 4) Is the user deleted?
             if (user.IsDeleted)
             {
                 response.Errors.Add("Your account has been deleted and cannot be used to login.");
                 response.PropName = nameof(loginDto.Email);
                 return response;
             }
-            Driver driver1 = new Driver();
-            //// 3) Is the driver deleted?
-            //if (driver1.IsDeleted)
-            //{
-            //    response.Errors.Add("Your account has been deleted and cannot be used to login.");
-            //    response.PropName = nameof(loginDto.Email);
-            //    return response;
-            //}
 
-
-            // 4) If a driver, check approval status
+            // 5) If a driver, check approval status
             if (user.UserType == UserTypeEnum.Driver)
             {
                 var driver = user as Driver;
@@ -356,9 +402,21 @@ namespace StudentPath.BLL.Services.AccountService
                         return response;
                     }
                 }
+                // Set loggedBy as "driver"
+                response.LoggedBy = "driver";
+            }
+            // 6) If admin, set loggedBy to "admin"
+            else if (user.UserType == UserTypeEnum.Admin)
+            {
+                response.LoggedBy = "admin";
+            }
+            // 7) For regular users, set loggedBy as "user"
+            else
+            {
+                response.LoggedBy = "user";
             }
 
-            // 5) Finally, check password
+            // 8) Finally, check password
             var pwdOk = await _userManager.CheckPasswordAsync(user, loginDto.Password);
             if (!pwdOk)
             {
@@ -367,21 +425,28 @@ namespace StudentPath.BLL.Services.AccountService
                 return response;
             }
 
-            // 6) Build claims & issue JWT
+            // 9) Build claims & issue JWT
             var claims = new List<Claim>
     {
         new Claim(JwtRegisteredClaimNames.Sub, user.Id),
         new Claim(JwtRegisteredClaimNames.Email, user.Email),
         new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
     };
+
+            // Add user roles to the claims
             var roles = await _userManager.GetRolesAsync(user);
             claims.AddRange(roles.Select(r => new Claim(ClaimTypes.Role, r)));
 
+            // Add the claims to the user
             await _userManager.AddClaimsAsync(user, claims);
+
+            // Generate the token
             response.Token = GenerateToken(claims, loginDto.RememberMe);
             response.successed = true;
+
             return response;
         }
+
 
         private string GenerateToken(IList<Claim> claims, bool RememberMe)
         {

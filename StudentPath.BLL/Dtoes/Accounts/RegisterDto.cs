@@ -1,11 +1,13 @@
 ﻿
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using StudentPath.BLL.Dtoes.Accounts;
 using StudentPath.DAL.Data.Models;
 using Swashbuckle.AspNetCore.Annotations;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -36,7 +38,13 @@ namespace StudentPath.BLL.Dtos.Accounts
 
 
         [DataType(DataType.ImageUrl)]
+        [SwaggerIgnore]
+        
         public string? ImgUrl { get; set; }
+        [NotMapped]
+        [FromForm(Name = "ImgUrlFile")]
+        public IFormFile? ImgUrlFile { get; set; }
+
 
 
         [Required(ErrorMessage = "UserType is required")]

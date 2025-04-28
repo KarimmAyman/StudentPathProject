@@ -5,6 +5,7 @@ using StudentPath.BLL.Dtoes.Accounts;
 using StudentPath.BLL.Dtoes.Drivers;
 using StudentPath.BLL.Dtos.Accounts;
 using StudentPath.BLL.Services.AccountService;
+using StudentPath.DAL.Data.Models;
 using System.Text.Json;
 using System.Threading.Tasks;
 
@@ -26,9 +27,12 @@ namespace StudentPath.API.Controllers
         }
 
         [HttpPost("Register")]
-        public async Task<IActionResult> Register(RegisterDto registerDto , [FromForm] string vehicleInfoJson, [FromForm] string locationsJson)
+        public async Task<IActionResult> Register(
+           [FromForm] RegisterDto registerDto,
+           [FromForm] string vehicleInfoJson,
+           [FromForm] string locationsJson)
         {
-            // Deserialize the JSON arrays
+            // Deserialize vehicle and location JSON
             if (!string.IsNullOrEmpty(vehicleInfoJson))
             {
                 registerDto.Vehicleinfo = JsonSerializer.Deserialize<List<VehicleInfoDto>>(vehicleInfoJson);
@@ -38,7 +42,28 @@ namespace StudentPath.API.Controllers
             {
                 registerDto.locations = JsonSerializer.Deserialize<List<LocationDto>>(locationsJson);
             }
-            var response = await _accountService.Register(registerDto,Url);
+
+            // Handle user image (for non-driver users)
+            if ( registerDto.ImgUrlFile != null)
+            {
+                var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "UserImages");
+                if (!Directory.Exists(folderPath))
+                    Directory.CreateDirectory(folderPath);
+
+                var uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(registerDto.ImgUrlFile.FileName);
+                var filePath = Path.Combine(folderPath, uniqueFileName);
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await registerDto.ImgUrlFile.CopyToAsync(stream);
+                }
+
+                // Store relative path in ImgUrl (used in frontend or email)
+                registerDto.ImgUrl = $"/UserImages/{uniqueFileName}";
+            }
+
+            var response = await _accountService.Register(registerDto, Url);
+
             if (response.successed)
                 return Ok(new { successed = true, message = "Registration successful." });
 
@@ -50,10 +75,23 @@ namespace StudentPath.API.Controllers
         {
             var response = await _accountService.Login(loginDto);
             if (response.successed)
-                return Ok(new { successed = true, message = "Login successful.", token = response.Token });
+            {
+                return Ok(new
+                {
+                    successed = true,
+                    message = "Login successful.",
+                    token = response.Token,
+                    loggedBy = response.LoggedBy
+                });
+            }
 
-            return Unauthorized(new { successed = false, errors = response.Errors });
+            return Unauthorized(new
+            {
+                successed = false,
+                errors = response.Errors
+            });
         }
+
 
         [HttpPost("send-otp-for-password-reset")]
         public async Task<IActionResult> SendOtpForPasswordReset([FromBody] ForgotPasswordDto forgotPasswordDto)

@@ -16,6 +16,7 @@ using StudentPath.BLL.Services.AccountService;
 using StudentPath.BLL.Services.ActivityService;
 using StudentPath.BLL.Services.AdminServices;
 using StudentPath.BLL.Services.DriverServices;
+
 using StudentPath.BLL.Services.HousingServices;
 using StudentPath.BLL.Services.PaymobService;
 using StudentPath.BLL.Services.StripeService;
@@ -28,6 +29,8 @@ using StudentPath.DAL.Repositories.ActivitesRepository;
 using StudentPath.DAL.Repositories.HousingRepository;
 using StudentPath.DAL.Repositories.UnitOfWork;
 using System.Text;
+using StudentPath.BLL.Services.FileServices;
+
 
 public class Program
 {
@@ -47,6 +50,7 @@ public class Program
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen(setup =>
         {
+          
             setup.SchemaFilter<SwaggerIgnoreFilter>();
 
             setup.SwaggerDoc("v1", new OpenApiInfo
@@ -60,10 +64,11 @@ public class Program
                     Email = "umssthasystem@gmail.com"
                 }
 
-
+               
 
             });
             setup.EnableAnnotations();
+
 
             // Include 'SecurityScheme' to use JWT Authentication
             var jwtSecurityScheme = new OpenApiSecurityScheme
@@ -163,6 +168,7 @@ public class Program
         builder.Services.AddScoped<IPropertyRepository, PropertyRepository>();
         builder.Services.AddScoped<IPropertyService, PropertyService>();
         builder.Services.AddScoped<IDriverService, DriverService>();
+        builder.Services.AddScoped<StudentPath.BLL.Services.DriverServices.IFileService, StudentPath.BLL.Services.DriverServices.FileService>();
         builder.Services.AddScoped<StripeService>();
         builder.Services.AddHttpClient();
 
@@ -171,6 +177,9 @@ public class Program
         builder.Services.AddScoped<IJobService, JobService>();
         builder.Services.AddScoped<IAdminService, AdminService>();
         builder.Services.AddScoped<ITripService, TripService>();
+        builder.Services.AddScoped<StudentPath.BLL.Services.FileServices.IFileService, StudentPath.BLL.Services.FileServices.FileService>();
+
+
 
 
 

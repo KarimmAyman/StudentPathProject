@@ -1,11 +1,14 @@
-﻿using AutoMapper;
-using Microsoft.AspNetCore.Hosting;
+﻿using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using StudentPath.BLL.Dtoes;
 using StudentPath.BLL.Dtoes.Accounts;
+using StudentPath.BLL.Dtoes.Drivers;
 using StudentPath.DAL.Data.Models;
 using StudentPath.DAL.Repositories.UnitOfWork;
+using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace StudentPath.BLL.Services.DriverServices
@@ -13,43 +16,122 @@ namespace StudentPath.BLL.Services.DriverServices
     public class DriverService : IDriverService
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IMapper _mapper;
-        private readonly IWebHostEnvironment _hostingEnvironment;
-        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IFileService _fileService;
 
-        public DriverService(IUnitOfWork unitOfWork, IMapper mapper, IWebHostEnvironment hostEnvironment ,IHttpContextAccessor httpContextAccessor)
+        public DriverService(IUnitOfWork unitOfWork, IFileService fileService)
         {
             _unitOfWork = unitOfWork;
-            _mapper = mapper;
-            _hostingEnvironment = hostEnvironment;
-            _httpContextAccessor = httpContextAccessor;
+            _fileService = fileService;
         }
 
         public async Task<IEnumerable<DriverReadDTO>> GetAllDriversAsync()
         {
-            var drivers = await _unitOfWork.Driver.GetAsync(d => !d.IsDeleted, null, null, 10, false, d => d.VehicleInfo, d => d.Locations);
-            return _mapper.Map<IEnumerable<DriverReadDTO>>(drivers);
+            var drivers = await _unitOfWork.Driver.GetAsync(
+                d => !d.IsDeleted,
+                null, null, 10, false,
+                d => d.VehicleInfo,
+                d => d.Locations
+            );
+
+            return drivers.Select(driver => new DriverReadDTO
+            {
+                Id = driver.Id,
+                UserName = driver.UserName,
+                Email = driver.Email,
+                PhoneNumber = driver.PhoneNumber,
+                Gender = driver.Gender,
+                NationalIdFrontPath = driver.IdFrontPath,
+                NationalIdBackPath = driver.IdBackPath,
+                CriminalStatusRecordPath = driver.CriminalRecordPath,
+                LicenseFrontPath = driver.LicenseFrontPath,
+                LicenseBackPath = driver.LicenseBackPath,
+                SelfieWithLicensePath = driver.LicenseSelfiePath,
+                LicenseNumber = driver.LicenseNumber,
+                LicenseExpirationDate = driver.LicenseExpiryDate,
+                Status = driver.Status,
+                VehicleInfo = driver.VehicleInfo?.Select(v => new VehicleReadDTO
+                {
+                    Id = v.VehicleInfoId,
+                    VehicleBrand = v.VehicleBrand,
+                    VehicleModel = v.VehicleModel,
+                    VehicleColor = v.VehicleColor,
+                    ProductionYear = v.ProductionYear,
+                    PlateNumber = v.PlateNumber,
+                    SeatingCapacity = v.SeatingCapacity,
+                    VehiclePicture = v.VehiclePicturePath,
+                    VehicleRegistrationFront = v.VehicleRegistrationFrontPath,
+                    VehicleRegistrationBack = v.VehicleRegistrationBackPath
+                }).ToList() ?? new List<VehicleReadDTO>(),
+                Locations = driver.Locations?.Select(l => new LocationDto
+                {
+                    City = l.City,
+                    Country = l.Country,
+                    Latitude = l.Latitude,
+                    Longitude = l.Longitude
+                }).ToList() ?? new List<LocationDto>()
+            });
         }
 
         public async Task<DriverDetailsDTO?> GetDriverByIdAsync(string id)
         {
-            var driver = await _unitOfWork.Driver.GetFirstOrDefaultAsync(d => d.Id == id, false, d => d.VehicleInfo, d => d.Locations);
+            var driver = await _unitOfWork.Driver.GetFirstOrDefaultAsync(
+                d => d.Id == id,
+                false,
+                d => d.VehicleInfo,
+                d => d.Locations);
+
             if (driver == null || driver.IsDeleted) return null;
 
-            return _mapper.Map<DriverDetailsDTO>(driver);
+            return new DriverDetailsDTO
+            {
+                UserName = driver.UserName,
+                Email = driver.Email,
+                Age = CalculateAge(driver.DateOfBirth),
+                Gender = driver.Gender,
+                NationalIdFrontPath = driver.IdFrontPath,
+                NationalIdBackPath = driver.IdBackPath,
+                CriminalStatusRecordPath = driver.CriminalRecordPath,
+                LicenseFrontPath = driver.LicenseFrontPath,
+                LicenseBackPath = driver.LicenseBackPath,
+                SelfieWithLicensePath = driver.LicenseSelfiePath,
+                LicenseNumber = driver.LicenseNumber,
+                LicenseExpirationDate = driver.LicenseExpiryDate,
+                Status = driver.Status,
+                IsBanned = driver.IsBanned,
+                IsDeleted = driver.IsDeleted,
+                RegistrationDate = driver.RegistrationDate,
+                VehicleInfo = driver.VehicleInfo?.Select(v => new VehicleReadDTO
+                {
+                    Id = v.VehicleInfoId,
+                    VehicleBrand = v.VehicleBrand,
+                    VehicleModel = v.VehicleModel,
+                    VehicleColor = v.VehicleColor,
+                    ProductionYear = v.ProductionYear,
+                    PlateNumber = v.PlateNumber,
+                    SeatingCapacity = v.SeatingCapacity,
+                    VehiclePicture = v.VehiclePicturePath,
+                    VehicleRegistrationFront = v.VehicleRegistrationFrontPath,
+                    VehicleRegistrationBack = v.VehicleRegistrationBackPath
+                }).ToList() ?? new List<VehicleReadDTO>(),
+                Locations = driver.Locations?.Select(l => new LocationDto
+                {
+                    City = l.City,
+                    Country = l.Country,
+                    Latitude = l.Latitude,
+                    Longitude = l.Longitude
+                }).ToList() ?? new List<LocationDto>()
+            };
         }
 
         public async Task<DriverReadDTO> CreateDriverAsync(DriverAddDTO driverDto)
         {
-            // 1. Get existing user instead of creating new one
             var driver = await _unitOfWork.Driver.GetFirstOrDefaultAsync(d => d.Id == driverDto.Id);
-
             if (driver == null)
             {
                 throw new Exception($"Driver with ID {driverDto.Id} not found in Identity system");
             }
 
-            // 2. Update the existing driver with additional info
+            // Update driver properties
             driver.DateOfBirth = driverDto.DateOfBirth;
             driver.Gender = driverDto.Gender;
             driver.IdNumber = driverDto.IdNumber;
@@ -61,34 +143,19 @@ namespace StudentPath.BLL.Services.DriverServices
             driver.VehicleInfo = new List<VehicleInfo>();
             driver.Locations = new List<Location>();
 
-            // 3. Create Upload Directory
-            var uploadsPath = Path.Combine(_hostingEnvironment.WebRootPath, "Uploads");
-            Directory.CreateDirectory(uploadsPath);
+            // Handle file uploads
+            driver.IdFrontPath = await _fileService.SaveFileAsync(driverDto.IdFront, "Drivers");
+            driver.IdBackPath = await _fileService.SaveFileAsync(driverDto.IdBack, "Drivers");
+            driver.CriminalRecordPath = await _fileService.SaveFileAsync(driverDto.CriminalRecord, "Drivers");
+            driver.LicenseFrontPath = await _fileService.SaveFileAsync(driverDto.LicenseFront, "Drivers");
+            driver.LicenseBackPath = await _fileService.SaveFileAsync(driverDto.LicenseBack, "Drivers");
+            driver.LicenseSelfiePath = await _fileService.SaveFileAsync(driverDto.LicenseSelfie, "Drivers");
 
-            // 4. Upload Driver Documents
-            driver.IdFrontPath = await SaveFile(driverDto.IdFront, uploadsPath, "Drivers");
-            driver.IdBackPath = await SaveFile(driverDto.IdBack, uploadsPath, "Drivers");
-            driver.CriminalRecordPath = await SaveFile(driverDto.CriminalRecord, uploadsPath, "Drivers");
-            driver.LicenseFrontPath = await SaveFile(driverDto.LicenseFront, uploadsPath, "Drivers");
-            driver.LicenseBackPath = await SaveFile(driverDto.LicenseBack, uploadsPath, "Drivers");
-            driver.LicenseSelfiePath = await SaveFile(driverDto.LicenseSelfie, uploadsPath, "Drivers");
-
-            // 5. Process Vehicles (with file form-data fallback)
-            if (driverDto.VehicleAddDTOs != null)
+            // Process vehicles
+            if (driverDto.VehicleAddDTOs != null && driverDto.VehicleAddDTOs.Any())
             {
-                for (int i = 0; i < driverDto.VehicleAddDTOs.Count; i++)
+                foreach (var vehicleDto in driverDto.VehicleAddDTOs)
                 {
-                    var vehicleDto = driverDto.VehicleAddDTOs[i];
-
-                    // Manually extract files using indexed form keys (e.g., VehiclePicture_0)
-                    var vehiclePictureKey = $"VehiclePicture_{i}";
-                    var vehicleRegFrontKey = $"VehicleRegistrationFront_{i}";
-                    var vehicleRegBackKey = $"VehicleRegistrationBack_{i}";
-
-                    var vehiclePicture = GetFormFileByKey(vehiclePictureKey);
-                    var regFront = GetFormFileByKey(vehicleRegFrontKey);
-                    var regBack = GetFormFileByKey(vehicleRegBackKey);
-
                     var vehicle = new VehicleInfo
                     {
                         VehicleBrand = vehicleDto.VehicleBrand,
@@ -98,18 +165,17 @@ namespace StudentPath.BLL.Services.DriverServices
                         PlateNumber = vehicleDto.PlateNumber,
                         SeatingCapacity = vehicleDto.SeatingCapacity,
                         DriverId = driver.Id,
-                        VehiclePicturePath = await SaveFile(vehiclePicture, uploadsPath, "Vehicles"),
-                        VehicleRegistrationFrontPath = await SaveFile(regFront, uploadsPath, "Vehicles"),
-                        VehicleRegistrationBackPath = await SaveFile(regBack, uploadsPath, "Vehicles")
+                        VehiclePicturePath = await _fileService.SaveFileAsync(vehicleDto.VehiclePicture, "Vehicles"),
+                        VehicleRegistrationFrontPath = await _fileService.SaveFileAsync(vehicleDto.VehicleRegistrationFront, "Vehicles"),
+                        VehicleRegistrationBackPath = await _fileService.SaveFileAsync(vehicleDto.VehicleRegistrationBack, "Vehicles")
                     };
-
                     await _unitOfWork.VehicleInfo.CreateOrUpdateAsync(vehicle);
                     driver.VehicleInfo.Add(vehicle);
                 }
             }
 
-            // 6. Process Locations
-            if (driverDto.Locations != null)
+            // Process locations
+            if (driverDto.Locations != null && driverDto.Locations.Any())
             {
                 foreach (var locationDto in driverDto.Locations)
                 {
@@ -121,180 +187,200 @@ namespace StudentPath.BLL.Services.DriverServices
                         Longitude = locationDto.Longitude,
                         UserId = driver.Id
                     };
-
                     await _unitOfWork.Locations.CreateOrUpdateAsync(location);
+                    driver.Locations.Add(location);
                 }
             }
 
-            // 7. Final Save
             await _unitOfWork.Driver.CreateOrUpdateAsync(driver);
             await _unitOfWork.Save();
 
-            // 8. Fetch and Return Full Driver With Vehicles
             var driverWithVehicles = await _unitOfWork.Driver.GetFirstOrDefaultAsync(
                 d => d.Id == driver.Id,
-                includeProperties: d => d.VehicleInfo
-            );
+                includeProperties: d => d.VehicleInfo);
 
-            return _mapper.Map<DriverReadDTO>(driverWithVehicles);
+            return new DriverReadDTO
+            {
+                Id = driverWithVehicles.Id,
+                UserName = driverWithVehicles.UserName,
+                Email = driverWithVehicles.Email,
+                PhoneNumber = driverWithVehicles.PhoneNumber,
+                Gender = driverWithVehicles.Gender,
+                NationalIdFrontPath = driverWithVehicles.IdFrontPath,
+                NationalIdBackPath = driverWithVehicles.IdBackPath,
+                CriminalStatusRecordPath = driverWithVehicles.CriminalRecordPath,
+                LicenseFrontPath = driverWithVehicles.LicenseFrontPath,
+                LicenseBackPath = driverWithVehicles.LicenseBackPath,
+                SelfieWithLicensePath = driverWithVehicles.LicenseSelfiePath,
+                LicenseNumber = driverWithVehicles.LicenseNumber,
+                LicenseExpirationDate = driverWithVehicles.LicenseExpiryDate,
+                Status = driverWithVehicles.Status,
+                VehicleInfo = driverWithVehicles.VehicleInfo?.Select(v => new VehicleReadDTO
+                {
+                    Id = v.VehicleInfoId,
+                    VehicleBrand = v.VehicleBrand,
+                    VehicleModel = v.VehicleModel,
+                    VehicleColor = v.VehicleColor,
+                    ProductionYear = v.ProductionYear,
+                    PlateNumber = v.PlateNumber,
+                    SeatingCapacity = v.SeatingCapacity,
+                    VehiclePicture = v.VehiclePicturePath,
+                    VehicleRegistrationFront = v.VehicleRegistrationFrontPath,
+                    VehicleRegistrationBack = v.VehicleRegistrationBackPath
+                }).ToList() ?? new List<VehicleReadDTO>(),
+                Locations = driverWithVehicles.Locations?.Select(l => new LocationDto
+                {
+                    City = l.City,
+                    Country = l.Country,
+                    Latitude = l.Latitude,
+                    Longitude = l.Longitude
+                }).ToList() ?? new List<LocationDto>()
+            };
         }
 
-  public async Task<bool> UpdateDriverAsync(string id, DriverUpdateDTO driverDto)
-{
-    var driver = await _unitOfWork.Driver.GetFirstOrDefaultAsync(
-        d => d.Id == id,
-        includeProperties: d => d.VehicleInfo
-    );
-
-    if (driver == null || driver.IsDeleted) return false;
-
-    var uploadsPath = Path.Combine(_hostingEnvironment.WebRootPath, "Uploads");
-    Directory.CreateDirectory(uploadsPath);
-
-    // Update driver basic info
-    _mapper.Map(driverDto, driver);
-
-    // Handle driver document updates
-    if (driverDto.IdFront != null)
-        driver.IdFrontPath = await SaveFile(driverDto.IdFront, uploadsPath, "Drivers");
-    if (driverDto.IdBack != null)
-        driver.IdBackPath = await SaveFile(driverDto.IdBack, uploadsPath, "Drivers");
-    if (driverDto.CriminalRecord != null)
-        driver.CriminalRecordPath = await SaveFile(driverDto.CriminalRecord, uploadsPath, "Drivers");
-    if (driverDto.LicenseFront != null)
-        driver.LicenseFrontPath = await SaveFile(driverDto.LicenseFront, uploadsPath, "Drivers");
-    if (driverDto.LicenseBack != null)
-        driver.LicenseBackPath = await SaveFile(driverDto.LicenseBack, uploadsPath, "Drivers");
-    if (driverDto.LicenseSelfie != null)
-        driver.LicenseSelfiePath = await SaveFile(driverDto.LicenseSelfie, uploadsPath, "Drivers");
-
-    // Handle vehicle updates
-    var existingVehicles = driver.VehicleInfo.ToList();
-    foreach (var vehicleDto in driverDto.VehicleUpdateDTOs)
-    {
-        var existingVehicle = existingVehicles.FirstOrDefault(v => v.VehicleInfoId == vehicleDto.Id);
-        if (existingVehicle == null)
+        public async Task<bool> UpdateDriverProfileAsync(string id, DriverUpdateDTO driverDto)
         {
-            // Add new vehicle
-            var newVehicle = _mapper.Map<VehicleInfo>(vehicleDto);
-            newVehicle.DriverId = driver.Id;
+            var driver = await _unitOfWork.Driver.GetFirstOrDefaultAsync(
+                d => d.Id == id,
+                includeProperties: d => d.Locations);
 
-            // Handle file uploads for new vehicle
-            newVehicle.VehiclePicturePath = vehicleDto.VehiclePicture != null 
-                ? await SaveFile(vehicleDto.VehiclePicture, uploadsPath, "Vehicles") 
-                : "default-vehicle.jpg";
-                
-            newVehicle.VehicleRegistrationFrontPath = vehicleDto.VehicleRegistrationFront != null 
-                ? await SaveFile(vehicleDto.VehicleRegistrationFront, uploadsPath, "Vehicles") 
-                : "default-registration-front.jpg";
-                
-            newVehicle.VehicleRegistrationBackPath = vehicleDto.VehicleRegistrationBack != null 
-                ? await SaveFile(vehicleDto.VehicleRegistrationBack, uploadsPath, "Vehicles") 
-                : "default-registration-back.jpg";
+            if (driver == null || driver.IsDeleted) return false;
 
-            driver.VehicleInfo.Add(newVehicle);
+            // Update basic driver properties
+            driver.UserName = driverDto.UserName;
+            driver.Email = driverDto.Email;
+            driver.PhoneNumber = driverDto.PhoneNumber;
+            driver.DateOfBirth = driverDto.DateOfBirth;
+            driver.IdNumber = driverDto.IdNumber;
+            driver.LicenseNumber = driverDto.LicenseNumber;
+            driver.LicenseExpiryDate = driverDto.LicenseExpiryDate;
+
+            // Handle document updates
+            if (driverDto.IdFront != null)
+                driver.IdFrontPath = await _fileService.SaveFileAsync(driverDto.IdFront, "Drivers");
+            if (driverDto.IdBack != null)
+                driver.IdBackPath = await _fileService.SaveFileAsync(driverDto.IdBack, "Drivers");
+            if (driverDto.CriminalRecord != null)
+                driver.CriminalRecordPath = await _fileService.SaveFileAsync(driverDto.CriminalRecord, "Drivers");
+            if (driverDto.LicenseFront != null)
+                driver.LicenseFrontPath = await _fileService.SaveFileAsync(driverDto.LicenseFront, "Drivers");
+            if (driverDto.LicenseBack != null)
+                driver.LicenseBackPath = await _fileService.SaveFileAsync(driverDto.LicenseBack, "Drivers");
+            if (driverDto.LicenseSelfie != null)
+                driver.LicenseSelfiePath = await _fileService.SaveFileAsync(driverDto.LicenseSelfie, "Drivers");
+
+            // Update locations
+            await UpdateDriverLocations(driver, driverDto.Locations);
+
+            await _unitOfWork.Driver.CreateOrUpdateAsync(driver);
+            await _unitOfWork.Save();
+            return true;
         }
-        else
+
+
+        public async Task<bool> UpdateDriverVehiclesAsync(string id, DriverVehicleUpdateDTO vehicleDto)
         {
-            // Update existing vehicle
-            _mapper.Map(vehicleDto, existingVehicle);
+            // Get driver with their vehicles
+            var driver = await _unitOfWork.Driver.GetFirstOrDefaultAsync(
+                d => d.Id == id,
+                includeProperties: d => d.VehicleInfo);
 
-            // Handle file uploads for existing vehicle
-            if (vehicleDto.VehiclePicture != null)
-                existingVehicle.VehiclePicturePath = await SaveFile(vehicleDto.VehiclePicture, uploadsPath, "Vehicles");
-                
-            if (vehicleDto.VehicleRegistrationFront != null)
-                existingVehicle.VehicleRegistrationFrontPath = await SaveFile(vehicleDto.VehicleRegistrationFront, uploadsPath, "Vehicles");
-                
-            if (vehicleDto.VehicleRegistrationBack != null)
-                existingVehicle.VehicleRegistrationBackPath = await SaveFile(vehicleDto.VehicleRegistrationBack, uploadsPath, "Vehicles");
-        }
-    }
+            if (driver == null || driver.IsDeleted) return false;
 
-    // Remove vehicles not in the DTO
-    var vehiclesToRemove = existingVehicles
-        .Where(v => !driverDto.VehicleUpdateDTOs.Any(dto => dto.Id == v.VehicleInfoId))
-        .ToList();
-    
-    foreach (var vehicle in vehiclesToRemove)
-    {
-        // Optional: Delete associated files before removing
-        DeleteFileIfExists(vehicle.VehiclePicturePath);
-        DeleteFileIfExists(vehicle.VehicleRegistrationFrontPath);
-        DeleteFileIfExists(vehicle.VehicleRegistrationBackPath);
-        
-        driver.VehicleInfo.Remove(vehicle);
-    }
+            foreach (var vehicleUpdateDto in vehicleDto.Vehicles)
+            {
+                // Validate required fields for composite key
+                if (string.IsNullOrWhiteSpace(vehicleUpdateDto.PlateNumber))
+                {
+                    throw new ArgumentException("PlateNumber is required for vehicle updates");
+                }
 
-    // Update Locations
-    var existingLocations = driver.Locations.ToList();
-    foreach (var locationDto in driverDto.Locations)
-    {
-        var location = existingLocations.FirstOrDefault(l => l.City == locationDto.City && l.Country == locationDto.Country);
-        if (location == null)
-        {
-            location = _mapper.Map<Location>(locationDto);
-            location.UserId = driver.Id;
-            driver.Locations.Add(location);
-        }
-        else
-        {
-            _mapper.Map(locationDto, location);
-        }
-    }
+                // Find existing vehicle by composite key (DriverId + PlateNumber)
+                var existingVehicle = driver.VehicleInfo.FirstOrDefault(v =>
+                    v.DriverId == id &&
+                    v.PlateNumber == vehicleUpdateDto.PlateNumber);
 
-    // Remove locations not in the update DTO
-    var locationsToRemove = existingLocations
-        .Where(l => !driverDto.Locations.Any(dto => dto.City == l.City && dto.Country == l.Country))
-        .ToList();
+                if (existingVehicle == null)
+                {
+                    // Create new vehicle if not found
+                    var newVehicle = new VehicleInfo
+                    {
+                        DriverId = id, // Part of composite key
+                        PlateNumber = vehicleUpdateDto.PlateNumber, // Part of composite key
+                        VehicleBrand = vehicleUpdateDto.VehicleBrand,
+                        VehicleModel = vehicleUpdateDto.VehicleModel,
+                        VehicleColor = vehicleUpdateDto.VehicleColor,
+                        ProductionYear = vehicleUpdateDto.ProductionYear,
+                        SeatingCapacity = vehicleUpdateDto.SeatingCapacity
+                    };
 
-    foreach (var location in locationsToRemove)
-    {
-        driver.Locations.Remove(location);
-    }
+                    // Handle file uploads for new vehicle
+                    if (vehicleUpdateDto.VehiclePicture != null)
+                    {
+                        newVehicle.VehiclePicturePath = await _fileService.SaveFileAsync(
+                            vehicleUpdateDto.VehiclePicture, "Vehicles");
+                    }
 
-    await _unitOfWork.Driver.CreateOrUpdateAsync(driver);
-    await _unitOfWork.Save();
-    return true;
-}
+                    if (vehicleUpdateDto.VehicleRegistrationFront != null)
+                    {
+                        newVehicle.VehicleRegistrationFrontPath = await _fileService.SaveFileAsync(
+                            vehicleUpdateDto.VehicleRegistrationFront, "Vehicles");
+                    }
 
-// Helper method to delete files
-private void DeleteFileIfExists(string filePath)
-{
-    if (!string.IsNullOrEmpty(filePath) && File.Exists(filePath))
-    {
-        try
-        {
-            File.Delete(filePath);
-        }
-        catch
-        {
-            // Log error if needed
-        }
-    }
-}
+                    if (vehicleUpdateDto.VehicleRegistrationBack != null)
+                    {
+                        newVehicle.VehicleRegistrationBackPath = await _fileService.SaveFileAsync(
+                            vehicleUpdateDto.VehicleRegistrationBack, "Vehicles");
+                    }
 
-        private async Task<string?> SaveFile(IFormFile file, string basePath, string subFolder)
-        {
-            if (file == null || file.Length == 0)
-                return null;
+                    await _unitOfWork.VehicleInfo.CreateOrUpdateAsync(newVehicle);
+                    driver.VehicleInfo.Add(newVehicle);
+                    continue;
+                }
 
-            var validExtensions = new[] { ".jpg", ".jpeg", ".png", ".pdf" };
-            var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+                // Update existing vehicle (maintain composite key values)
+                existingVehicle.VehicleBrand = vehicleUpdateDto.VehicleBrand;
+                existingVehicle.VehicleModel = vehicleUpdateDto.VehicleModel;
+                existingVehicle.VehicleColor = vehicleUpdateDto.VehicleColor;
+                existingVehicle.ProductionYear = vehicleUpdateDto.ProductionYear;
+                existingVehicle.SeatingCapacity = vehicleUpdateDto.SeatingCapacity;
 
-            if (!validExtensions.Contains(extension))
-                throw new Exception($"Invalid file type. Allowed types: {string.Join(", ", validExtensions)}");
+                // Only update files if new ones are provided
+                if (vehicleUpdateDto.VehiclePicture != null)
+                {
+                    if (!string.IsNullOrEmpty(existingVehicle.VehiclePicturePath))
+                    {
+                        _fileService.DeleteFile(existingVehicle.VehiclePicturePath);
+                    }
+                    existingVehicle.VehiclePicturePath = await _fileService.SaveFileAsync(
+                        vehicleUpdateDto.VehiclePicture, "Vehicles");
+                }
 
-            var folderPath = Path.Combine(basePath, subFolder);
-            Directory.CreateDirectory(folderPath);
+                if (vehicleUpdateDto.VehicleRegistrationFront != null)
+                {
+                    if (!string.IsNullOrEmpty(existingVehicle.VehicleRegistrationFrontPath))
+                    {
+                        _fileService.DeleteFile(existingVehicle.VehicleRegistrationFrontPath);
+                    }
+                    existingVehicle.VehicleRegistrationFrontPath = await _fileService.SaveFileAsync(
+                        vehicleUpdateDto.VehicleRegistrationFront, "Vehicles");
+                }
 
-            var fileName = $"{Guid.NewGuid()}{extension}";
-            var filePath = Path.Combine(folderPath, fileName);
+                if (vehicleUpdateDto.VehicleRegistrationBack != null)
+                {
+                    if (!string.IsNullOrEmpty(existingVehicle.VehicleRegistrationBackPath))
+                    {
+                        _fileService.DeleteFile(existingVehicle.VehicleRegistrationBackPath);
+                    }
+                    existingVehicle.VehicleRegistrationBackPath = await _fileService.SaveFileAsync(
+                        vehicleUpdateDto.VehicleRegistrationBack, "Vehicles");
+                }
 
-            using var stream = new FileStream(filePath, FileMode.Create);
-            await file.CopyToAsync(stream);
+                await _unitOfWork.VehicleInfo.CreateOrUpdateAsync(existingVehicle);
+            }
 
-            return Path.Combine("Uploads", subFolder, fileName);
+            await _unitOfWork.Save();
+            return true;
         }
         public async Task<bool> SoftDeleteDriverAsync(string id)
         {
@@ -305,9 +391,57 @@ private void DeleteFileIfExists(string filePath)
             await _unitOfWork.Save();
             return true;
         }
-        public IFormFile GetFormFileByKey(string key)
+
+        private async Task UpdateDriverLocations(Driver driver, List<LocationDto> locationDtos)
         {
-            return _httpContextAccessor.HttpContext?.Request.Form.Files.FirstOrDefault(f => f.Name == key);
+            var existingLocations = driver.Locations.ToList();
+
+            foreach (var locationDto in locationDtos)
+            {
+                var location = existingLocations.FirstOrDefault(l =>
+                    l.Longitude == locationDto.Longitude &&
+                    l.Latitude == locationDto.Latitude);
+
+                if (location == null)
+                {
+                    location = new Location
+                    {
+                        City = locationDto.City,
+                        Country = locationDto.Country,
+                        Latitude = locationDto.Latitude,
+                        Longitude = locationDto.Longitude,
+                        UserId = driver.Id
+                    };
+                    driver.Locations.Add(location);
+                }
+                else
+                {
+                    location.City = locationDto.City;
+                    location.Country = locationDto.Country;
+                    location.Latitude = locationDto.Latitude;
+                    location.Longitude = locationDto.Longitude;
+                }
+            }
+
+            // Remove locations not in DTO
+            var locationsToRemove = existingLocations
+                .Where(l => !locationDtos.Any(dto =>
+                    dto.Latitude == l.Latitude &&
+                    dto.Longitude == l.Longitude))
+                .ToList();
+
+            foreach (var location in locationsToRemove)
+            {
+                driver.Locations.Remove(location);
+            }
+        }
+
+        private int CalculateAge(DateTime dateOfBirth)
+        {
+            var today = DateTime.Today;
+            var age = today.Year - dateOfBirth.Year;
+            if (dateOfBirth.Date > today.AddYears(-age)) age--;
+            return age;
         }
     }
 }
