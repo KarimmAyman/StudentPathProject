@@ -28,10 +28,14 @@ namespace StudentPath.DAL.Data.Models
         public string FullAddress { get; set; }
 
         [MaxLength(150)]
-        public string AdditionalNotes { get; set; }
+        public string? AdditionalNotes { get; set; }
 
         public virtual ICollection<Trip> TripsAsFrom { get; set; }
         public virtual ICollection<Trip> TripsAsTo { get; set; }
+        public virtual ICollection<TripRequest> TripsRequestAsFrom { get; set; }
+        public virtual ICollection<TripRequest> TripsRequestAsTo{ get; set; }
+
+
     }
 
 }

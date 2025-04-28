@@ -57,14 +57,26 @@ namespace StudentPath.API.Controllers
 
                 // Step 2b: Update the wallet balance and log the transaction
                 var wallet = await context.Wallets.FirstOrDefaultAsync(w => w.UserId == payment.UserId);
-                if (wallet != null)
+                if (wallet == null) // Create a wallet if it doesn't exist
+                {
+                    wallet = new Wallet
+                    {
+                        UserId = payment.UserId,
+                        Balance = payment.Amount,  // Set the balance to the payment amount
+                        LastTransactionId = payment.TransactionId
+                    };
+
+                    // Add the new wallet to the database
+                    context.Wallets.Add(wallet);
+                    await context.SaveChangesAsync();
+                }
+                else
                 {
                     // Step 2b1: Add the payment amount to the user's wallet balance
                     wallet.Balance += payment.Amount;
                     wallet.LastTransactionId = payment.TransactionId;
-
-                    // Step 2b2: Log the wallet transaction
-                    var walletTransaction = new WalletTransaction
+                }
+                var walletTransaction = new WalletTransaction
                     {
                         WalletId = wallet.WalletId,
                         Amount = payment.Amount,
@@ -73,7 +85,7 @@ namespace StudentPath.API.Controllers
                     };
 
                     context.WalletsTransactions.Add(walletTransaction);
-                }
+                
 
                 // Commit all changes to the database
                 await context.SaveChangesAsync();
