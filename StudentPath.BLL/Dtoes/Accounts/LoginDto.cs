@@ -19,6 +19,6 @@ namespace StudentPath.BLL.Dtos.Accounts
         [StringLength(100, ErrorMessage = "Password must be at least 6 characters long", MinimumLength = 6)]
         public string Password { get; set; }
 
-        public bool RememberMe { get; set; } = false;
+        public bool RememberMe { get; set; } = true;
     }
 }
