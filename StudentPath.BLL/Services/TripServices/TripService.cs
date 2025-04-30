@@ -61,6 +61,9 @@ namespace StudentPath.BLL.Services.TripServices
                     AvailableSeats = dto.AvailableSeats,
                     PricePerSeat = dto.PricePerSeat,
                     DriverNotes = dto.DriverNotes,
+                    EstimatedDistance = dto.EstimatedDistance,
+                    EstimatedDuration = dto.EstimatedDuration,
+                    EstimatedArrivalTime = dto.EstimatedArrivalTime,
                     HasWiFi = dto.HasWiFi,
                     HasPhoneCharger = dto.HasPhoneCharger,
                     HasAirConditioning = dto.HasAirConditioning,
@@ -210,10 +213,10 @@ namespace StudentPath.BLL.Services.TripServices
             {
                 var trip = await _unitOfWork.Trips.GetFirstOrDefaultAsync(
                     t => t.TripId == tripId,
-                    includeProperties: new Expression<Func<Trip, object>>[] {
+                    includeProperties: [
                         t => t.FromLocation,
                         t => t.ToLocation
-                    });
+                    ]);
 
                 if (trip == null)
                     return ApiResponse.ErrorResponse("Trip not found", 404);
@@ -238,12 +241,12 @@ namespace StudentPath.BLL.Services.TripServices
             {
                 var trip = await _unitOfWork.Trips.GetFirstOrDefaultAsync(
                     t => t.TripId == tripId,
-                    includeProperties: new Expression<Func<Trip, object>>[] {
+                    includeProperties: [
                         t => t.FromLocation,
                         t => t.ToLocation,
                         t => t.Driver,
                         t => t.Bookings
-                    });
+                    ]);
 
                 if (trip == null)
                     return ApiResponse<TripResponseDto>.ErrorResponse("Trip not found", 404);
@@ -287,18 +290,23 @@ namespace StudentPath.BLL.Services.TripServices
             }
         }
 
-        public async Task<ApiResponse<IEnumerable<TripResponseDto>>> GetAllTripsAsync()
+        public async Task<ApiResponse<IEnumerable<TripResponseDto>>> GetAllTripsAsync(bool includePast = false)
         {
             try
             {
+                // Fixed filter logic
+                Expression<Func<Trip, bool>>? filter = includePast
+                    ? null
+                    : t => t.DepartureTime > DateTime.UtcNow; // Changed to >
+
                 var trips = await _unitOfWork.Trips.GetAsync(
-                    filter: t => t.DepartureTime > DateTime.UtcNow,
-                    orderBy: q => q.OrderBy(t => t.DepartureTime),
-                    includeProperties: new Expression<Func<Trip, object>>[] {
+                    filter: filter,
+                    orderBy: q => q.OrderBy(t => t.DepartureTime), // Consider OrderByDescending
+                    includeProperties: [
                         t => t.FromLocation,
                         t => t.ToLocation,
                         t => t.Driver
-                    });
+                    ]);
 
                 // Manual mapping
                 var result = trips.Select(trip => new TripResponseDto
@@ -345,11 +353,11 @@ namespace StudentPath.BLL.Services.TripServices
             {
                 var trips = await _unitOfWork.Trips.GetAsync(
                     t => t.DriverId == driverId,
-                    includeProperties: new Expression<Func<Trip, object>>[] {
+                    includeProperties: [
                         t => t.FromLocation,
                         t => t.ToLocation,
                         t => t.Driver
-                    });
+                    ]);
 
                 // Manual mapping
                 var result = trips.Select(trip => new TripResponseDto
@@ -390,29 +398,23 @@ namespace StudentPath.BLL.Services.TripServices
             }
         }
 
-        public async Task<ApiResponse<IEnumerable<TripResponseDto>>> SearchTripsAsync(string fromCity, string toCity, DateTime? date)
+        public async Task<ApiResponse<IEnumerable<TripResponseDto>>> SearchTripsAsync(string fromAddress, string toAddress)
         {
             try
             {
+                // Case-insensitive search on FullAddress containing the search terms
                 Expression<Func<Trip, bool>> filter = t =>
-                    t.FromLocation.DisplayName.Contains(fromCity) &&
-                    t.ToLocation.DisplayName.Contains(toCity) &&
+                    t.FromLocation.FullAddress.ToLower().Contains(fromAddress.ToLower()) &&
+                    t.ToLocation.FullAddress.ToLower().Contains(toAddress.ToLower())&&
                     t.DepartureTime > DateTime.UtcNow;
-
-                if (date.HasValue)
-                {
-                    filter = t => t.FromLocation.DisplayName.Contains(fromCity) &&
-                                t.ToLocation.DisplayName.Contains(toCity) &&
-                                t.DepartureTime.Date == date.Value.Date;
-                }
 
                 var trips = await _unitOfWork.Trips.GetAsync(
                     filter,
-                    includeProperties: new Expression<Func<Trip, object>>[] {
+                    includeProperties: [    
                         t => t.FromLocation,
                         t => t.ToLocation,
                         t => t.Driver
-                    });
+                    ]);
 
                 // Manual mapping
                 var result = trips.Select(trip => new TripResponseDto
@@ -453,82 +455,83 @@ namespace StudentPath.BLL.Services.TripServices
             }
         }
 
-        public async Task<ApiResponse<IEnumerable<TripResponseDto>>> GetTripsByAmenitiesAsync(TripAmenitiesDto amenities)
-        {
-            try
-            {
-                Expression<Func<Trip, bool>> filter = t =>
-                    t.DepartureTime > DateTime.UtcNow;
+        //    public async Task<ApiResponse<IEnumerable<TripResponseDto>>> GetTripsByAmenitiesAsync(TripAmenitiesDto amenities)
+        //    {
+        //        try
+        //        {
+        //            Expression<Func<Trip, bool>> filter = t =>
+        //                t.DepartureTime > DateTime.UtcNow;
 
-                // Apply amenity filters if specified
-                if (amenities.HasWiFi.HasValue)
-                    filter = filter.And(t => t.HasWiFi == amenities.HasWiFi);
-                if (amenities.HasPhoneCharger.HasValue)
-                    filter = filter.And(t => t.HasPhoneCharger == amenities.HasPhoneCharger);
-                if (amenities.HasAirConditioning.HasValue)
-                    filter = filter.And(t => t.HasAirConditioning == amenities.HasAirConditioning);
-                if (amenities.HasFreeWater.HasValue)
-                    filter = filter.And(t => t.HasFreeWater == amenities.HasFreeWater);
-                if (amenities.HasMusic.HasValue)
-                    filter = filter.And(t => t.HasMusic == amenities.HasMusic);
+        //            // Apply amenity filters if specified
+        //            if (amenities.HasWiFi.HasValue)
+        //                filter = filter.And(t => t.HasWiFi == amenities.HasWiFi);
+        //            if (amenities.HasPhoneCharger.HasValue)
+        //                filter = filter.And(t => t.HasPhoneCharger == amenities.HasPhoneCharger);
+        //            if (amenities.HasAirConditioning.HasValue)
+        //                filter = filter.And(t => t.HasAirConditioning == amenities.HasAirConditioning);
+        //            if (amenities.HasFreeWater.HasValue)
+        //                filter = filter.And(t => t.HasFreeWater == amenities.HasFreeWater);
+        //            if (amenities.HasMusic.HasValue)
+        //                filter = filter.And(t => t.HasMusic == amenities.HasMusic);
 
-                var trips = await _unitOfWork.Trips.GetAsync(
-                    filter,
-                    includeProperties: new Expression<Func<Trip, object>>[] {
-                        t => t.FromLocation,
-                        t => t.ToLocation,
-                        t => t.Driver
-                    });
+        //            var trips = await _unitOfWork.Trips.GetAsync(
+        //                filter,
+        //                includeProperties: new Expression<Func<Trip, object>>[] {
+        //                    t => t.FromLocation,
+        //                    t => t.ToLocation,
+        //                    t => t.Driver
+        //                });
 
-                // Manual mapping
-                var result = trips.Select(trip => new TripResponseDto
-                {
-                    Id = trip.TripId,
-                    FromLocation = new TripLocationDto
-                    {
-                        Latitude = trip.FromLocation.Latitude,
-                        Longitude = trip.FromLocation.Longitude,
-                        DisplayName = trip.FromLocation.DisplayName,
-                        FullAddress = trip.FromLocation.FullAddress,
-                        AdditionalNotes = trip.FromLocation.AdditionalNotes
-                    },
-                    ToLocation = new TripLocationDto
-                    {
-                        Latitude = trip.ToLocation.Latitude,
-                        Longitude = trip.ToLocation.Longitude,
-                        DisplayName = trip.ToLocation.DisplayName,
-                        FullAddress = trip.ToLocation.FullAddress,
-                        AdditionalNotes = trip.ToLocation.AdditionalNotes
-                    },
-                    DriverName = trip.Driver?.UserName,
-                    DriverPhone = trip.Driver?.PhoneNumber,
-                    StartingPoint = trip.FromLocation.DisplayName,
-                    Destination = trip.ToLocation.DisplayName,
-                    DepartureTime = trip.DepartureTime,
-                    AvailableSeats = trip.AvailableSeats,
-                    PricePerSeat = trip.PricePerSeat,
-                    Notes = trip.DriverNotes,
-                    CreatedAt = trip.CreatedAt
-                });
+        //            // Manual mapping
+        //            var result = trips.Select(trip => new TripResponseDto
+        //            {
+        //                Id = trip.TripId,
+        //                FromLocation = new TripLocationDto
+        //                {
+        //                    Latitude = trip.FromLocation.Latitude,
+        //                    Longitude = trip.FromLocation.Longitude,
+        //                    DisplayName = trip.FromLocation.DisplayName,
+        //                    FullAddress = trip.FromLocation.FullAddress,
+        //                    AdditionalNotes = trip.FromLocation.AdditionalNotes
+        //                },
+        //                ToLocation = new TripLocationDto
+        //                {
+        //                    Latitude = trip.ToLocation.Latitude,
+        //                    Longitude = trip.ToLocation.Longitude,
+        //                    DisplayName = trip.ToLocation.DisplayName,
+        //                    FullAddress = trip.ToLocation.FullAddress,
+        //                    AdditionalNotes = trip.ToLocation.AdditionalNotes
+        //                },
+        //                DriverName = trip.Driver?.UserName,
+        //                DriverPhone = trip.Driver?.PhoneNumber,
+        //                StartingPoint = trip.FromLocation.DisplayName,
+        //                Destination = trip.ToLocation.DisplayName,
+        //                DepartureTime = trip.DepartureTime,
+        //                AvailableSeats = trip.AvailableSeats,
+        //                PricePerSeat = trip.PricePerSeat,
+        //                Notes = trip.DriverNotes,
+        //                CreatedAt = trip.CreatedAt
+        //            });
 
-                return ApiResponse<IEnumerable<TripResponseDto>>.SuccessResponse("Trips retrieved successfully", data: result);
-            }
-            catch (Exception ex)
-            {
-                return ApiResponse<IEnumerable<TripResponseDto>>.ErrorResponse($"An error occurred: {ex.Message}", 500);
-            }
-        }
-    }
+        //            return ApiResponse<IEnumerable<TripResponseDto>>.SuccessResponse("Trips retrieved successfully", data: result);
+        //        }
+        //        catch (Exception ex)
+        //        {
+        //            return ApiResponse<IEnumerable<TripResponseDto>>.ErrorResponse($"An error occurred: {ex.Message}", 500);
+        //        }
+        //    }
+        //}
 
-    public static class ExpressionExtensions
-    {
-        public static Expression<Func<T, bool>> And<T>(this Expression<Func<T, bool>> expr1, Expression<Func<T, bool>> expr2)
-        {
-            var parameter = Expression.Parameter(typeof(T));
-            var body = Expression.AndAlso(
-                Expression.Invoke(expr1, parameter),
-                Expression.Invoke(expr2, parameter));
-            return Expression.Lambda<Func<T, bool>>(body, parameter);
-        }
+        //public static class ExpressionExtensions
+        //{
+        //    public static Expression<Func<T, bool>> And<T>(this Expression<Func<T, bool>> expr1, Expression<Func<T, bool>> expr2)
+        //    {
+        //        var parameter = Expression.Parameter(typeof(T));
+        //        var body = Expression.AndAlso(
+        //            Expression.Invoke(expr1, parameter),
+        //            Expression.Invoke(expr2, parameter));
+        //        return Expression.Lambda<Func<T, bool>>(body, parameter);
+        //    }
+        //}
     }
 }

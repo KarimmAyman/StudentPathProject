@@ -10,6 +10,9 @@
         public string StartingPoint { get; set; }
         public string Destination { get; set; }
         public DateTime DepartureTime { get; set; }
+        public double? EstimatedDistance { get; set; }
+        public TimeSpan? EstimatedDuration { get; set; }
+        public DateTime? EstimatedArrivalTime { get; set; }
         public int AvailableSeats { get; set; }
         public decimal PricePerSeat { get; set; }
         public string? Notes { get; set; }

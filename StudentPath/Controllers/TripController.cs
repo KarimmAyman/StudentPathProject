@@ -97,11 +97,12 @@ namespace StudentPath.Controllers
         /// <returns>List of upcoming trips</returns>
         [AllowAnonymous]
         [HttpGet]
-        public async Task<IActionResult> GetAllTrips()
+        public async Task<IActionResult> GetAllTrips([FromQuery] bool includePast = false)
         {
-            var result = await _tripService.GetAllTripsAsync();
+            var result = await _tripService.GetAllTripsAsync(includePast);
             return StatusCode(result.StatusCode, result);
         }
+
 
         /// <summary>
         /// Get trips created by the current driver
@@ -128,17 +129,16 @@ namespace StudentPath.Controllers
         [AllowAnonymous]
         [HttpGet("search")]
         public async Task<IActionResult> SearchTrips(
-            [FromQuery] string fromCity,
-            [FromQuery] string toCity,
-            [FromQuery] DateTime? date)
+            [FromQuery] string fromAddress,
+            [FromQuery] string toAddress)
         {
-            if (string.IsNullOrWhiteSpace(fromCity))
-                return BadRequest("From city is required");
+            if (string.IsNullOrWhiteSpace(fromAddress))
+                return BadRequest("From address is required");
 
-            if (string.IsNullOrWhiteSpace(toCity))
-                return BadRequest("To city is required");
+            if (string.IsNullOrWhiteSpace(toAddress))
+                return BadRequest("To address is required");
 
-            var result = await _tripService.SearchTripsAsync(fromCity, toCity, date);
+            var result = await _tripService.SearchTripsAsync(fromAddress, toAddress);
             return StatusCode(result.StatusCode, result);
         }
 
