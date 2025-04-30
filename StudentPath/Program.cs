@@ -39,7 +39,10 @@ public class Program
         var builder = WebApplication.CreateBuilder(args);
     
         // Add services to the container.
-        builder.Services.AddControllers();
+        //builder.Services.AddControllers();
+        builder.Services.AddControllers()
+    .AddJsonOptions(x =>
+        x.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles);
 
         #region Swagger
 

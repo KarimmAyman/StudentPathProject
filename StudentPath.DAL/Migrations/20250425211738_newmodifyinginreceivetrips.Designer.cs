@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using StudentPath.DAL.Data.DBHelpers;
 
@@ -11,9 +12,11 @@ using StudentPath.DAL.Data.DBHelpers;
 namespace StudentPath.DAL.Migrations
 {
     [DbContext(typeof(StudentPathContext))]
-    partial class StudentPathContextModelSnapshot : ModelSnapshot
+    [Migration("20250425211738_newmodifyinginreceivetrips")]
+    partial class newmodifyinginreceivetrips
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -924,17 +927,9 @@ namespace StudentPath.DAL.Migrations
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("DriverNotes")
+                        .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
-
-                    b.Property<DateTime?>("EstimatedArrivalTime")
-                        .HasColumnType("datetime2");
-
-                    b.Property<double?>("EstimatedDistance")
-                        .HasColumnType("float");
-
-                    b.Property<TimeSpan?>("EstimatedDuration")
-                        .HasColumnType("time");
 
                     b.Property<int>("FromLocationId")
                         .HasColumnType("int");
@@ -980,6 +975,7 @@ namespace StudentPath.DAL.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("AdditionalNotes")
+                        .IsRequired()
                         .HasMaxLength(150)
                         .HasColumnType("nvarchar(150)");
 
@@ -1001,46 +997,9 @@ namespace StudentPath.DAL.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("FullAddress");
-
                     b.HasIndex("Latitude", "Longitude");
 
                     b.ToTable("TripLocations");
-                });
-
-            modelBuilder.Entity("StudentPath.DAL.Data.Models.TripRequest", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("FromLocationId")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("IsLookingForTrip")
-                        .HasColumnType("bit");
-
-                    b.Property<DateTime>("RequestDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("ToLocationId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("FromLocationId");
-
-                    b.HasIndex("ToLocationId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("TripRequests");
                 });
 
             modelBuilder.Entity("StudentPath.DAL.Data.Models.User", b =>
@@ -1572,33 +1531,6 @@ namespace StudentPath.DAL.Migrations
                     b.Navigation("ToLocation");
                 });
 
-            modelBuilder.Entity("StudentPath.DAL.Data.Models.TripRequest", b =>
-                {
-                    b.HasOne("StudentPath.DAL.Data.Models.TripLocation", "FromLocation")
-                        .WithMany("TripsRequestAsFrom")
-                        .HasForeignKey("FromLocationId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("StudentPath.DAL.Data.Models.TripLocation", "ToLocation")
-                        .WithMany("TripsRequestAsTo")
-                        .HasForeignKey("ToLocationId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("StudentPath.DAL.Data.Models.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("FromLocation");
-
-                    b.Navigation("ToLocation");
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("StudentPath.DAL.Data.Models.UserDriver", b =>
                 {
                     b.HasOne("StudentPath.DAL.Data.Models.User", "User")
@@ -1672,10 +1604,6 @@ namespace StudentPath.DAL.Migrations
                     b.Navigation("TripsAsFrom");
 
                     b.Navigation("TripsAsTo");
-
-                    b.Navigation("TripsRequestAsFrom");
-
-                    b.Navigation("TripsRequestAsTo");
                 });
 
             modelBuilder.Entity("StudentPath.DAL.Data.Models.User", b =>

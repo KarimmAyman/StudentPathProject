@@ -36,4 +36,16 @@ namespace StudentPath.BLL.Dtoes.Trips
         public bool HasFreeWater { get; set; }
         public bool HasMusic { get; set; }
     }
+    public class TripSearchOrRequestDto
+    {
+       
+
+        [Required]
+        public TripLocationDto FromLocation { get; set; }
+
+        [Required]
+        public TripLocationDto ToLocation { get; set; }
+    }
+   
+
 }
