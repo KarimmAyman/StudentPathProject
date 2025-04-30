@@ -34,7 +34,10 @@ namespace StudentPath.DAL.Data.Models
         public decimal PricePerSeat { get; set; }
 
         [MaxLength(500)]
-        public string DriverNotes { get; set; }
+        public string? DriverNotes { get; set; }
+        public double? EstimatedDistance { get; set; } // in kilometers
+        public TimeSpan? EstimatedDuration { get; set; }
+        public DateTime? EstimatedArrivalTime { get; set; }
 
         // Amenities
         public bool HasWiFi { get; set; }

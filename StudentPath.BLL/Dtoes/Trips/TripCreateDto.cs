@@ -23,7 +23,10 @@ namespace StudentPath.BLL.Dtoes.Trips
         public decimal PricePerSeat { get; set; }
 
         [MaxLength(500)]
-        public string DriverNotes { get; set; }
+        public string? DriverNotes { get; set; }
+        public double? EstimatedDistance { get; set; }
+        public TimeSpan? EstimatedDuration { get; set; }
+        public DateTime? EstimatedArrivalTime { get; set; }
 
         // Amenities
         public bool HasWiFi { get; set; }
