@@ -41,6 +41,12 @@ namespace StudentPath.BLL.Services.PaymobService
             var integrationId = int.Parse(_config["Paymob:IntegrationId"]);
             var baseUrl = _config["Paymob:BaseUrl"];
 
+
+            var booking = await _context.Bookings
+       .FirstOrDefaultAsync(b => b.BookingId == request.BookingId);
+            if (booking == null)
+                throw new Exception($"Booking #{request.BookingId} not found.");
+
             // 1. Authenticate
             var authResp = await _httpClient.PostAsJsonAsync($"{baseUrl}/auth/tokens", new { api_key = apiKey });
             if (!authResp.IsSuccessStatusCode) throw new Exception("Authentication with Paymob failed.");
@@ -121,6 +127,7 @@ namespace StudentPath.BLL.Services.PaymobService
             var payment = new Payment
             {
                 UserId = user.Id,
+                BookingId = request.BookingId,              // ← link payment to booking
                 Amount = request.Amount,
                 PaymentStatus = PaymentStatus.Pending, // Or Pending if you want to wait for webhook
                 PaymentDate = DateTime.UtcNow,

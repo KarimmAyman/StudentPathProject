@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using StudentPath.DAL.Data.DBHelpers;
 
@@ -11,9 +12,11 @@ using StudentPath.DAL.Data.DBHelpers;
 namespace StudentPath.DAL.Migrations
 {
     [DbContext(typeof(StudentPathContext))]
-    partial class StudentPathContextModelSnapshot : ModelSnapshot
+    [Migration("20250429071149_editinbookingandpaymentmodel")]
+    partial class editinbookingandpaymentmodel
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -943,17 +946,9 @@ namespace StudentPath.DAL.Migrations
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("DriverNotes")
+                        .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
-
-                    b.Property<DateTime?>("EstimatedArrivalTime")
-                        .HasColumnType("datetime2");
-
-                    b.Property<double?>("EstimatedDistance")
-                        .HasColumnType("float");
-
-                    b.Property<TimeSpan?>("EstimatedDuration")
-                        .HasColumnType("time");
 
                     b.Property<int>("FromLocationId")
                         .HasColumnType("int");
@@ -1019,8 +1014,6 @@ namespace StudentPath.DAL.Migrations
                         .HasColumnType("float");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("FullAddress");
 
                     b.HasIndex("Latitude", "Longitude");
 

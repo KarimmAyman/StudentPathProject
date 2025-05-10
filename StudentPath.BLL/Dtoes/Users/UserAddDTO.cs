@@ -110,6 +110,7 @@ namespace StudentPath.BLL.Dtoes.Users
     }
     public class WalletPaymentRequest
     {
+        public int BookingId { get; set; }
         public string WalletId { get; set; }
         public decimal Amount { get; set; }
         public string Email { get; set; }
@@ -151,8 +152,11 @@ namespace StudentPath.BLL.Dtoes.Users
         public long Amount { get; set; }  // Amount in smallest currency unit (e.g., cents)
         public string Currency { get; set; } = "usd";
         public string Email { get; set; }
+        public int BookingId { get; set; }
+
+
     }
-   
+
 
 }
 

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using StudentPath.DAL.Data.DBHelpers;
 
@@ -11,9 +12,11 @@ using StudentPath.DAL.Data.DBHelpers;
 namespace StudentPath.DAL.Migrations
 {
     [DbContext(typeof(StudentPathContext))]
-    partial class StudentPathContextModelSnapshot : ModelSnapshot
+    [Migration("20250429045340_checkbookingstatus")]
+    partial class checkbookingstatus
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -888,9 +891,6 @@ namespace StudentPath.DAL.Migrations
                     b.Property<decimal>("Amount")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<int?>("BookingId")
-                        .HasColumnType("int");
-
                     b.Property<DateTime>("PaymentDate")
                         .HasColumnType("datetime2");
 
@@ -913,8 +913,6 @@ namespace StudentPath.DAL.Migrations
                         .HasColumnType("nvarchar(450)");
 
                     b.HasKey("PaymentId");
-
-                    b.HasIndex("BookingId");
 
                     b.HasIndex("UserId");
 
@@ -943,17 +941,9 @@ namespace StudentPath.DAL.Migrations
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("DriverNotes")
+                        .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
-
-                    b.Property<DateTime?>("EstimatedArrivalTime")
-                        .HasColumnType("datetime2");
-
-                    b.Property<double?>("EstimatedDistance")
-                        .HasColumnType("float");
-
-                    b.Property<TimeSpan?>("EstimatedDuration")
-                        .HasColumnType("time");
 
                     b.Property<int>("FromLocationId")
                         .HasColumnType("int");
@@ -1019,8 +1009,6 @@ namespace StudentPath.DAL.Migrations
                         .HasColumnType("float");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("FullAddress");
 
                     b.HasIndex("Latitude", "Longitude");
 
@@ -1289,9 +1277,6 @@ namespace StudentPath.DAL.Migrations
                     b.Property<decimal>("Amount")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<int?>("PaymentId")
-                        .HasColumnType("int");
-
                     b.Property<string>("PaymobTransactionId")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -1303,8 +1288,6 @@ namespace StudentPath.DAL.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("WalletTransactionId");
-
-                    b.HasIndex("PaymentId");
 
                     b.HasIndex("WalletId");
 
@@ -1560,18 +1543,11 @@ namespace StudentPath.DAL.Migrations
 
             modelBuilder.Entity("StudentPath.DAL.Data.Models.Payment", b =>
                 {
-                    b.HasOne("StudentPath.DAL.Data.Models.Booking", "Booking")
-                        .WithMany("Payments")
-                        .HasForeignKey("BookingId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.HasOne("StudentPath.DAL.Data.Models.User", "User")
                         .WithMany("Payments")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("Booking");
 
                     b.Navigation("User");
                 });
@@ -1665,25 +1641,13 @@ namespace StudentPath.DAL.Migrations
 
             modelBuilder.Entity("StudentPath.DAL.Data.Models.WalletTransaction", b =>
                 {
-                    b.HasOne("StudentPath.DAL.Data.Models.Payment", "Payment")
-                        .WithMany("WalletTransactions")
-                        .HasForeignKey("PaymentId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.HasOne("StudentPath.DAL.Data.Models.Wallet", "Wallet")
                         .WithMany()
                         .HasForeignKey("WalletId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Payment");
-
                     b.Navigation("Wallet");
-                });
-
-            modelBuilder.Entity("StudentPath.DAL.Data.Models.Booking", b =>
-                {
-                    b.Navigation("Payments");
                 });
 
             modelBuilder.Entity("StudentPath.DAL.Data.Models.EscrowAccount", b =>
@@ -1703,11 +1667,6 @@ namespace StudentPath.DAL.Migrations
                     b.Navigation("PropertyFeatures");
 
                     b.Navigation("PropertyImages");
-                });
-
-            modelBuilder.Entity("StudentPath.DAL.Data.Models.Payment", b =>
-                {
-                    b.Navigation("WalletTransactions");
                 });
 
             modelBuilder.Entity("StudentPath.DAL.Data.Models.Trip", b =>

@@ -32,9 +32,23 @@ namespace StudentPath.DAL.Data.Models
         public decimal TotalPrice { get; set; }  // Total price for the booking
 
         public bool IsCancelled { get; set; } = false;  // Default value is false
+        [Required]
+        public int NumberOfSeats { get; set; }
+
+        [MaxLength(200)]
+        public string? MeetingPoint { get; set; }
+
+        [MaxLength(500)]
+        public string? Note { get; set; }
+        [Required]
+        public BookingStatus BookingStatus { get; set; }
 
         [Required]
         public PaymentStatus PaymentStatus { get; set; }  // Status of the payment (Pending, Paid, Cancelled)
+
+
+        public virtual ICollection<Payment> Payments { get; set; } = new HashSet<Payment>();
+
 
         // Relationship to EscrowAccount (optional)
         public int? EscrowAccountId { get; set; }  // Foreign Key to EscrowAccount

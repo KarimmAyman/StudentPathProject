@@ -54,6 +54,12 @@ namespace StudentPath.API.Controllers
                 // Step 2a: Mark the payment as successful
                 payment.PaymentStatus = PaymentStatus.Paid;
                 payment.PaymentDate = DateTime.UtcNow;
+                var booking = await context.Bookings.FirstOrDefaultAsync(b => b.BookingId == payment.BookingId);
+                if (booking != null)
+                {
+                    booking.PaymentStatus = PaymentStatus.Paid;
+                    booking.BookingStatus = BookingStatus.Confirmed; // or another status like BookingStatus.Approved
+                }
 
                 // Step 2b: Update the wallet balance and log the transaction
                 var wallet = await context.Wallets.FirstOrDefaultAsync(w => w.UserId == payment.UserId);
@@ -81,8 +87,9 @@ namespace StudentPath.API.Controllers
                         WalletId = wallet.WalletId,
                         Amount = payment.Amount,
                         TransactionDate = DateTime.UtcNow,
-                        PaymobTransactionId = payment.TransactionId
-                    };
+                        PaymobTransactionId = payment.TransactionId,
+                        PaymentId= payment.PaymentId
+                };
 
                     context.WalletsTransactions.Add(walletTransaction);
                 
@@ -95,6 +102,12 @@ namespace StudentPath.API.Controllers
                 // Step 3: Mark the payment as failed
                 payment.PaymentStatus = PaymentStatus.Cancelled;
                 payment.PaymentDate = DateTime.UtcNow;
+                var booking = await context.Bookings.FirstOrDefaultAsync(b => b.BookingId == payment.BookingId);
+                if (booking != null)
+                {
+                    booking.PaymentStatus = PaymentStatus.Cancelled;
+                    booking.BookingStatus = BookingStatus.Cancelled; // or another appropriate status
+                }
 
                 // No wallet update since the payment is failed, just update the payment record
                 await context.SaveChangesAsync();
@@ -107,8 +120,16 @@ namespace StudentPath.API.Controllers
                 // Set a timeout period for pending payments (e.g., 24 hours)
                 if (DateTime.UtcNow - payment.PaymentDate > TimeSpan.FromHours(24))
                 {
-                    payment.PaymentStatus = PaymentStatus.Pending; // Timeout exceeded, mark as failed
+                    payment.PaymentStatus = PaymentStatus.Pending;// Timeout exceeded, mark as failed
+                    var booking = await context.Bookings.FirstOrDefaultAsync(b => b.BookingId == payment.BookingId);
+                    if (booking != null)
+                    {
+                        booking.PaymentStatus = PaymentStatus.Cancelled;
+                        booking.BookingStatus = BookingStatus.Cancelled;
+                    }
                     await context.SaveChangesAsync();
+                    return Ok(new { status = "timeout", transactionId = request.Obj.Id });
+
                 }
             }
 

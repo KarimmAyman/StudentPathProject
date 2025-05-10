@@ -26,5 +26,9 @@ namespace StudentPath.DAL.Data.Models
         public DateTime TransactionDate { get; set; } = DateTime.UtcNow;  // Date when the transaction occurred
 
         public string PaymobTransactionId { get; set; }  // Paymob Transaction ID (for tracking purposes)
+        [ForeignKey("Payment")]
+        public int? PaymentId { get; set; }  // Always linked to Payment
+        public virtual Payment Payment { get; set; }
+
     }
 }

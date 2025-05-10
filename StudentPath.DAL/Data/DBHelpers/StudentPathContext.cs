@@ -27,11 +27,18 @@ namespace StudentPath.DAL.Data.DBHelpers
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+
             modelBuilder.ApplyConfiguration(new UserEntityTypeConfigurations());
             modelBuilder.ApplyConfiguration(new BookingEntityTypeConfigurations());
             modelBuilder.ApplyConfiguration(new TripLocationEntityTypeConfigurations());
             modelBuilder.ApplyConfiguration(new UserDriverEntityTypeConfiguration());
             modelBuilder.ApplyConfiguration(new TripRequestEntityTypeConfigurations());
+            
+          modelBuilder.ApplyConfiguration(new PaymentEntityTypeConfigurations());
+            modelBuilder.ApplyConfiguration(new WalletTransactionsEntityTypeConfiguration());
+
+
 
 
             // Configure relationships for Trip and TripLocation
