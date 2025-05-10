@@ -299,6 +299,7 @@ namespace StudentPath.API.Controllers
                         Name=user.UserName
                     });
                 }
+                
 
                 // 2. Create Ephemeral Key (requires Stripe version override)
                 var ephemeralKeyOptions = new EphemeralKeyCreateOptions
@@ -308,6 +309,10 @@ namespace StudentPath.API.Controllers
                 };
                 var ephemeralKeyService = new EphemeralKeyService();
                 var ephemeralKey = ephemeralKeyService.Create(ephemeralKeyOptions);
+                //get booking from db
+                var booking = await _context.Bookings.FirstOrDefaultAsync(b => b.BookingId == request.BookingId);
+                if (booking == null)
+                    return BadRequest(new { error = $"Booking #{request.BookingId} not found." });
 
                 // 3. Create PaymentIntent with automatic payment methods and status as pending
                 var paymentIntentService = new PaymentIntentService();
@@ -328,12 +333,13 @@ namespace StudentPath.API.Controllers
                 var newPayment = new Payment
                 {
                     UserId = user.Id, // Ensure you are saving the User ID in the payment
-                    Amount = request.Amount,
+                    Amount = booking.TotalPrice,
                     PaymentDate = DateTime.UtcNow,
                     PaymentStatus = PaymentStatus.Pending,  // Set initial status to Pending
                     PaymentMethod = PaymentMethodEnum.CreditCard,  // Assuming CreditCard as the payment method
                     TransactionId = paymentIntent.Id,  // Save the Stripe PaymentIntent ID
                     PaymentIntentId = paymentIntent.Id, // Track PaymentIntent ID
+                    BookingId=request.BookingId
                 };
 
                 _context.Payments.Add(newPayment);
@@ -422,6 +428,14 @@ namespace StudentPath.API.Controllers
                 // Update the payment status to "Succeeded"
                 payment.PaymentStatus = PaymentStatus.Paid;
                 payment.PaymentDate = DateTime.UtcNow;
+                var booking = await _context.Bookings
+             .FirstOrDefaultAsync(b => b.BookingId == payment.BookingId);
+
+                if (booking != null)
+                {
+                    booking.PaymentStatus = PaymentStatus.Paid;
+                    booking.BookingStatus = BookingStatus.Confirmed; // or BookingStatus.Approved, as appropriate
+                }
                 await _context.SaveChangesAsync();
             }
         }
@@ -437,6 +451,14 @@ namespace StudentPath.API.Controllers
                 // Update the payment status to "Failed"
                 payment.PaymentStatus = PaymentStatus.Cancelled;
                 payment.PaymentDate = DateTime.UtcNow;
+                var booking = await _context.Bookings
+             .FirstOrDefaultAsync(b => b.BookingId == payment.BookingId);
+
+                if (booking != null)
+                {
+                    booking.PaymentStatus = PaymentStatus.Cancelled;
+                    booking.BookingStatus = BookingStatus.Cancelled; // or BookingStatus.Approved, as appropriate
+                }
                 await _context.SaveChangesAsync();
             }
         }

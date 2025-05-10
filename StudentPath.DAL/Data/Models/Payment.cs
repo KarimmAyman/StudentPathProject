@@ -41,9 +41,14 @@ namespace StudentPath.DAL.Data.Models
         public PaymentMethodEnum PaymentMethod { get; set; }
 
         public string? PaymentIntentId { get; set; } // Securely reference Stripe PaymentIntent    }
-      }
-       
-
+        [ForeignKey("Booking")]
+        public int? BookingId { get; set; }
+        public virtual Booking Booking { get; set; }
+        public  virtual ICollection<WalletTransaction> WalletTransactions { get; set; } = new HashSet<WalletTransaction>();
 
     }
+
+
+
+}
 
