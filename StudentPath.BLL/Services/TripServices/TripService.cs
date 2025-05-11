@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
+using static StudentPath.BLL.Dtoes.Trips.TripResponseDto;
 
 namespace StudentPath.BLL.Services.TripServices
 {
@@ -96,14 +97,54 @@ namespace StudentPath.BLL.Services.TripServices
                         FullAddress = toLocation.FullAddress,
                         AdditionalNotes = toLocation.AdditionalNotes
                     },
-                    DriverName = driver.UserName,
-                    DriverPhone = driver.PhoneNumber,
-                    StartingPoint = fromLocation.DisplayName,
-                    Destination = toLocation.DisplayName,
-                    DepartureTime = trip.DepartureTime,
-                    AvailableSeats = trip.AvailableSeats,
+                    BasicInfo = new BasicInfoDTO
+                    {
+                        DepartureTime = trip.DepartureTime,
+                        EstimatedDistance = trip.EstimatedDistance,
+                        EstimatedDuration = trip.EstimatedDuration,
+                        AvailableSeats = trip.AvailableSeats
+                    },
+                    DriverInfo = new DriverInfoDto
+                    {
+                        DriverId = trip.DriverId,
+                        DriverName = trip.Driver?.UserName,
+                        DriverPhone = trip.Driver?.PhoneNumber,
+                        AvailableSeats = trip.AvailableSeats,
+                        VehicleInfo = (trip.Driver as Driver)?.VehicleInfo?
+                      .Where(v => v.DriverId == trip.DriverId).
+                 Select(v => new VehicleInfoDto
+                 {
+                     VehicleModel = v.VehicleModel,
+                     SeatingCapacity = v.SeatingCapacity,
+                     PlateNumber = v.PlateNumber
+
+                 })
+                .FirstOrDefault()// Get the first vehicle (or use .ToList() to return all)
+                    },
+                    AdditionalInfo = new AdditionalInfoDTO
+                    {
+                        StartingPoint = trip.FromLocation.DisplayName,
+                        Notes = trip.DriverNotes,
+                        HasWiFi = trip.HasWiFi,  // Assuming `HasWiFi` exists in the trip model
+                        HasMusic = trip.HasMusic, // Assuming `HasMusic` exists in the trip model
+                        HasPhoneCharger = trip.HasPhoneCharger,
+                        HasAirConditioning = trip.HasAirConditioning,
+                        HasFreeWater = trip.HasFreeWater,
+                       Amenities = trip.HasWiFi || trip.HasMusic || trip.HasPhoneCharger || trip.HasAirConditioning || trip.HasFreeWater
+                    ? new AdditionalInfoDTO
+                    {
+                        HasWiFi = trip.HasWiFi,
+                        HasMusic = trip.HasMusic,
+                        HasPhoneCharger = trip.HasPhoneCharger,
+                        HasAirConditioning = trip.HasAirConditioning,
+                        HasFreeWater = trip.HasFreeWater
+                    }.GetTrueFeatures()
+                    : "No features available"
+                                },
+
+
                     PricePerSeat = trip.PricePerSeat,
-                    Notes = trip.DriverNotes,
+
                     CreatedAt = trip.CreatedAt
                 };
 
@@ -251,6 +292,8 @@ namespace StudentPath.BLL.Services.TripServices
                 if (trip == null)
                     return ApiResponse<TripResponseDto>.ErrorResponse("Trip not found", 404);
 
+
+
                 // Manual mapping
                 var result = new TripResponseDto
                 {
@@ -271,16 +314,57 @@ namespace StudentPath.BLL.Services.TripServices
                         FullAddress = trip.ToLocation.FullAddress,
                         AdditionalNotes = trip.ToLocation.AdditionalNotes
                     },
-                    DriverName = trip.Driver?.UserName,
-                    DriverPhone = trip.Driver?.PhoneNumber,
-                    StartingPoint = trip.FromLocation.DisplayName,
-                    Destination = trip.ToLocation.DisplayName,
-                    DepartureTime = trip.DepartureTime,
-                    AvailableSeats = trip.AvailableSeats,
+
+                    BasicInfo = new BasicInfoDTO
+                    {
+                        DepartureTime= trip.DepartureTime,
+                        EstimatedDistance = trip.EstimatedDistance,
+                        EstimatedDuration = trip.EstimatedDuration,
+                        AvailableSeats = trip.AvailableSeats
+                    },
+                    DriverInfo = new DriverInfoDto
+                    {
+                        DriverId = trip.DriverId,
+                        DriverName = trip.Driver?.UserName,
+                        DriverPhone = trip.Driver?.PhoneNumber,
+                        VehicleInfo = (trip.Driver as Driver)?.VehicleInfo?
+                      .Where(v => v.DriverId == trip.DriverId).
+                 Select(v => new VehicleInfoDto
+                 {
+                     VehicleModel = v.VehicleModel,
+                     SeatingCapacity = v.SeatingCapacity,
+                      PlateNumber = v.PlateNumber
+                   
+                 })
+                .FirstOrDefault()// Get the first vehicle (or use .ToList() to return all)
+                    },
+                    AdditionalInfo = new AdditionalInfoDTO
+                    {
+                        StartingPoint = trip.FromLocation.DisplayName,
+                        Notes = trip.DriverNotes,
+                        HasWiFi = trip.HasWiFi,  // Assuming `HasWiFi` exists in the trip model
+                        HasMusic = trip.HasMusic, // Assuming `HasMusic` exists in the trip model
+                        HasPhoneCharger = trip.HasPhoneCharger,
+                        HasAirConditioning = trip.HasAirConditioning,
+                        HasFreeWater = trip.HasFreeWater,
+                        Amenities = trip.HasWiFi || trip.HasMusic || trip.HasPhoneCharger || trip.HasAirConditioning || trip.HasFreeWater
+        ? new AdditionalInfoDTO
+        {
+            HasWiFi = trip.HasWiFi,
+            HasMusic = trip.HasMusic,
+            HasPhoneCharger = trip.HasPhoneCharger,
+            HasAirConditioning = trip.HasAirConditioning,
+            HasFreeWater = trip.HasFreeWater
+        }.GetTrueFeatures()
+        : "No features available"
+                    },
+                   
+                    
                     PricePerSeat = trip.PricePerSeat,
-                    Notes = trip.DriverNotes,
+                   
                     CreatedAt = trip.CreatedAt
                 };
+
 
                 return ApiResponse<TripResponseDto>.SuccessResponse("Trip retrieved successfully", data: result);
             }
@@ -303,9 +387,11 @@ namespace StudentPath.BLL.Services.TripServices
                     filter: filter,
                     orderBy: q => q.OrderBy(t => t.DepartureTime), // Consider OrderByDescending
                     includeProperties: [
+                        
                         t => t.FromLocation,
                         t => t.ToLocation,
                         t => t.Driver
+                        
                     ]);
 
                 // Manual mapping
@@ -328,14 +414,54 @@ namespace StudentPath.BLL.Services.TripServices
                         FullAddress = trip.ToLocation.FullAddress,
                         AdditionalNotes = trip.ToLocation.AdditionalNotes
                     },
-                    DriverName = trip.Driver?.UserName,
-                    DriverPhone = trip.Driver?.PhoneNumber,
-                    StartingPoint = trip.FromLocation.DisplayName,
-                    Destination = trip.ToLocation.DisplayName,
-                    DepartureTime = trip.DepartureTime,
-                    AvailableSeats = trip.AvailableSeats,
+                    BasicInfo = new BasicInfoDTO
+                    {
+                        DepartureTime = trip.DepartureTime,
+                        EstimatedDistance = trip.EstimatedDistance,
+                        EstimatedDuration = trip.EstimatedDuration,
+                        AvailableSeats = trip.AvailableSeats
+                    },
+                    DriverInfo = new DriverInfoDto
+                    {
+                        DriverId = trip.DriverId,
+                        DriverName = trip.Driver?.UserName,
+                        DriverPhone = trip.Driver?.PhoneNumber,
+                        VehicleInfo = (trip.Driver as Driver)?.VehicleInfo?
+                      .Where(v => v.DriverId == trip.DriverId).
+                 Select(v => new VehicleInfoDto
+                 {
+                     VehicleModel = v.VehicleModel,
+                     SeatingCapacity = v.SeatingCapacity,
+
+                     PlateNumber = v.PlateNumber
+
+                 })
+                .FirstOrDefault()// Get the first vehicle (or use .ToList() to return all)
+                    },
+                    AdditionalInfo = new AdditionalInfoDTO
+                    {
+                        StartingPoint = trip.FromLocation.DisplayName,
+                        Notes = trip.DriverNotes,
+                        HasWiFi = trip.HasWiFi,  // Assuming `HasWiFi` exists in the trip model
+                        HasMusic = trip.HasMusic, // Assuming `HasMusic` exists in the trip model
+                        HasPhoneCharger = trip.HasPhoneCharger,
+                        HasAirConditioning = trip.HasAirConditioning,
+                        HasFreeWater = trip.HasFreeWater,
+                        Amenities = trip.HasWiFi || trip.HasMusic || trip.HasPhoneCharger || trip.HasAirConditioning || trip.HasFreeWater
+        ? new AdditionalInfoDTO
+        {
+            HasWiFi = trip.HasWiFi,
+            HasMusic = trip.HasMusic,
+            HasPhoneCharger = trip.HasPhoneCharger,
+            HasAirConditioning = trip.HasAirConditioning,
+            HasFreeWater = trip.HasFreeWater
+        }.GetTrueFeatures()
+        : "No features available"
+                    },
+
+
                     PricePerSeat = trip.PricePerSeat,
-                    Notes = trip.DriverNotes,
+
                     CreatedAt = trip.CreatedAt
                 });
 
@@ -354,6 +480,7 @@ namespace StudentPath.BLL.Services.TripServices
                 var trips = await _unitOfWork.Trips.GetAsync(
                     t => t.DriverId == driverId,
                     includeProperties: [
+
                         t => t.FromLocation,
                         t => t.ToLocation,
                         t => t.Driver
@@ -379,14 +506,39 @@ namespace StudentPath.BLL.Services.TripServices
                         FullAddress = trip.ToLocation.FullAddress,
                         AdditionalNotes = trip.ToLocation.AdditionalNotes
                     },
-                    DriverName = trip.Driver?.UserName,
-                    DriverPhone = trip.Driver?.PhoneNumber,
-                    StartingPoint = trip.FromLocation.DisplayName,
-                    Destination = trip.ToLocation.DisplayName,
-                    DepartureTime = trip.DepartureTime,
-                    AvailableSeats = trip.AvailableSeats,
+                    BasicInfo = new BasicInfoDTO
+                    {
+                        DepartureTime = trip.DepartureTime,
+                        EstimatedDistance = trip.EstimatedDistance,
+                        EstimatedDuration = trip.EstimatedDuration,
+                        AvailableSeats = trip.AvailableSeats
+                    },
+                    DriverInfo = new DriverInfoDto
+                    {
+                        DriverId = trip.DriverId,
+                        DriverName = trip.Driver?.UserName,
+                        DriverPhone = trip.Driver?.PhoneNumber,
+                        VehicleInfo = (trip.Driver as Driver)?.VehicleInfo?
+                      .Where(v => v.DriverId == trip.DriverId).
+                 Select(v => new VehicleInfoDto
+                 {
+                     VehicleModel = v.VehicleModel,
+                     SeatingCapacity = v.SeatingCapacity,
+
+                     PlateNumber = v.PlateNumber
+
+                 })
+                .FirstOrDefault()// Get the first vehicle (or use .ToList() to return all)
+                    },
+                    AdditionalInfo = new AdditionalInfoDTO
+                    {
+                        StartingPoint = trip.FromLocation.DisplayName,
+                        Notes = trip.DriverNotes
+                    },
+
+
                     PricePerSeat = trip.PricePerSeat,
-                    Notes = trip.DriverNotes,
+
                     CreatedAt = trip.CreatedAt
                 });
 
@@ -436,14 +588,52 @@ namespace StudentPath.BLL.Services.TripServices
                         FullAddress = trip.ToLocation.FullAddress,
                         AdditionalNotes = trip.ToLocation.AdditionalNotes
                     },
-                    DriverName = trip.Driver?.UserName,
-                    DriverPhone = trip.Driver?.PhoneNumber,
-                    StartingPoint = trip.FromLocation.DisplayName,
-                    Destination = trip.ToLocation.DisplayName,
-                    DepartureTime = trip.DepartureTime,
-                    AvailableSeats = trip.AvailableSeats,
+                    BasicInfo = new BasicInfoDTO
+                    {
+                        DepartureTime = trip.DepartureTime,
+                        EstimatedDistance = trip.EstimatedDistance,
+                        EstimatedDuration = trip.EstimatedDuration,
+                        AvailableSeats = trip.AvailableSeats
+                    },
+                    DriverInfo = new DriverInfoDto
+                    {
+                        DriverId = trip.DriverId,
+                        DriverName = trip.Driver?.UserName,
+                        DriverPhone = trip.Driver?.PhoneNumber,
+                        VehicleInfo = (trip.Driver as Driver)?.VehicleInfo?
+                      .Where(v => v.DriverId == trip.DriverId).
+                 Select(v => new VehicleInfoDto
+                 {
+                     VehicleModel = v.VehicleModel,
+                     SeatingCapacity = v.SeatingCapacity,
+                     PlateNumber = v.PlateNumber
+
+                 })
+                .FirstOrDefault()// Get the first vehicle (or use .ToList() to return all)
+                    },
+                    AdditionalInfo = new AdditionalInfoDTO
+                    {
+                        StartingPoint = trip.FromLocation.DisplayName,
+                        Notes = trip.DriverNotes,
+                        HasWiFi = trip.HasWiFi,  // Assuming `HasWiFi` exists in the trip model
+                        HasMusic = trip.HasMusic, // Assuming `HasMusic` exists in the trip model
+                        HasPhoneCharger = trip.HasPhoneCharger,
+                        HasAirConditioning = trip.HasAirConditioning,
+                        HasFreeWater = trip.HasFreeWater,
+                        Amenities = trip.HasWiFi || trip.HasMusic || trip.HasPhoneCharger || trip.HasAirConditioning || trip.HasFreeWater
+                        ? new AdditionalInfoDTO
+                        {
+                            HasWiFi = trip.HasWiFi,
+                            HasMusic = trip.HasMusic,
+                            HasPhoneCharger = trip.HasPhoneCharger,
+                            HasAirConditioning = trip.HasAirConditioning,
+                            HasFreeWater = trip.HasFreeWater
+                        }.GetTrueFeatures()
+                        : "No features available"
+                                    },
+
+
                     PricePerSeat = trip.PricePerSeat,
-                    Notes = trip.DriverNotes,
                     CreatedAt = trip.CreatedAt
                 });
 
