@@ -8,6 +8,7 @@ using StudentPath.DAL.Data.DBHelpers;
 using StudentPath.DAL.Data.Models;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using static StudentPath.BLL.Dtoes.Trips.TripResponseDto;
 
 namespace StudentPath.Controllers
 {
@@ -100,6 +101,7 @@ namespace StudentPath.Controllers
         public async Task<IActionResult> GetAllTrips([FromQuery] bool includePast = false)
         {
             var result = await _tripService.GetAllTripsAsync(includePast);
+            
             return StatusCode(result.StatusCode, result);
         }
 
@@ -202,14 +204,39 @@ namespace StudentPath.Controllers
                             Latitude = t.ToLocation.Latitude,
                             Longitude = t.ToLocation.Longitude
                         },
-                        DriverName = t.Driver.UserName,
-                        DriverPhone = t.Driver.PhoneNumber,
-                        StartingPoint = t.FromLocation.DisplayName,
-                        Destination = t.ToLocation.DisplayName,
-                        DepartureTime = t.DepartureTime,
-                        AvailableSeats = t.AvailableSeats,
-                        PricePerSeat = t.PricePerSeat,
-                        Notes = t.DriverNotes,
+                        BasicInfo = new BasicInfoDTO
+                        {
+                            DepartureTime = t.DepartureTime,
+                            AvailableSeats = t.AvailableSeats,
+
+                        },
+                        DriverInfo = new DriverInfoDto
+                        {
+                            DriverName = t.Driver.UserName,
+                            DriverPhone = t.Driver.PhoneNumber,
+                        },
+                        AdditionalInfo = new AdditionalInfoDTO
+                        {
+                             StartingPoint = t.FromLocation.DisplayName,
+                            Notes = t.DriverNotes,
+                            HasWiFi = t.HasWiFi,  // Assuming `HasWiFi` exists in the trip model
+                            HasMusic = t.HasMusic, // Assuming `HasMusic` exists in the trip model
+                            HasPhoneCharger = t.HasPhoneCharger,
+                            HasAirConditioning = t.HasAirConditioning,
+                            HasFreeWater = t.HasFreeWater,
+                            Amenities = t.HasWiFi || t.HasMusic || t.HasPhoneCharger || t.HasAirConditioning || t.HasFreeWater
+                                ? new AdditionalInfoDTO
+                                {
+                                    HasWiFi = t.HasWiFi,
+                                    HasMusic = t.HasMusic,
+                                    HasPhoneCharger = t.HasPhoneCharger,
+                                    HasAirConditioning = t.HasAirConditioning,
+                                    HasFreeWater = t.HasFreeWater
+                                }.GetTrueFeatures()
+                                : "No features available"
+
+                                            },
+                         PricePerSeat = t.PricePerSeat,
                         CreatedAt = t.CreatedAt
                     })
                     .ToListAsync();
@@ -323,7 +350,6 @@ namespace StudentPath.Controllers
                     {
                         FromLocation = new
                         {
-                            group.First().FromLocation.Id,
                             group.First().FromLocation.Latitude,
                             group.First().FromLocation.Longitude,
                             group.First().FromLocation.DisplayName,
@@ -331,7 +357,6 @@ namespace StudentPath.Controllers
                         },
                         ToLocation = new
                         {
-                            group.First().ToLocation.Id,
                             group.First().ToLocation.Latitude,
                             group.First().ToLocation.Longitude,
                             group.First().ToLocation.DisplayName,
@@ -346,6 +371,7 @@ namespace StudentPath.Controllers
 
 
 
+       
 
 
 

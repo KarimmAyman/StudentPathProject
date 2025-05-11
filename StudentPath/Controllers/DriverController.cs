@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Stripe;
 using StudentPath.BLL.Dtoes;
 using StudentPath.BLL.Dtoes.Accounts;
 using StudentPath.BLL.Dtoes.Drivers;
@@ -199,6 +200,65 @@ namespace StudentPath.API.Controllers
                     "An error occurred while deleting the driver",
                     500);
             }
+        }
+
+
+        [HttpPost("driver/stripe/create-account")]
+        public async Task<IActionResult> CreateStripeAccount([FromBody] StripeAccountRequest dto)
+        {
+            var accountService = new AccountService();
+
+            var accountOptions = new AccountCreateOptions
+            {
+                Type = "express",
+                Country = "EG", // or your driver's country
+                Email = dto.Email, // use actual driver email
+                Capabilities = new AccountCapabilitiesOptions
+                {
+                    Transfers = new AccountCapabilitiesTransfersOptions { Requested = true },
+                },
+               TosAcceptance = new AccountTosAcceptanceOptions { ServiceAgreement = "recipient" },
+
+            };
+
+            var account = await accountService.CreateAsync(accountOptions);
+
+            var domain = "https://localhost:7092"; // replace with your real domain or use config
+
+            var accountLinkService = new AccountLinkService();
+            var link = await accountLinkService.CreateAsync(new AccountLinkCreateOptions
+            {
+                Account = account.Id,
+                RefreshUrl = $"{domain}/driver/stripe/refresh?account={account.Id}",
+                ReturnUrl = $"{domain}/driver/stripe/return?account={account.Id}",
+                Type = "account_onboarding"
+            });
+
+            // Save `account.Id` in your DB linked to the driver
+
+            return Ok(new { OnboardingUrl = link.Url });
+        }
+
+        [HttpGet("driver/stripe/refresh")]
+        public IActionResult StripeRefresh([FromQuery] string account)
+        {
+            // Optionally log or alert that onboarding was cancelled or expired
+            return Content("Stripe onboarding was cancelled or expired. Please try again.");
+        }
+
+        [HttpGet("driver/stripe/return")]
+        public async Task<IActionResult> StripeReturn([FromQuery] string account)
+        {
+            var accountService = new AccountService();
+            var stripeAccount = await accountService.GetAsync(account);
+
+            if (stripeAccount.ChargesEnabled && stripeAccount.PayoutsEnabled)
+            {
+                // ✅ Update your DB: mark driver as onboarded
+                return Content("Stripe onboarding completed successfully.");
+            }
+
+            return Content("Stripe onboarding not yet complete. Please finish the process.");
         }
     }
 }
