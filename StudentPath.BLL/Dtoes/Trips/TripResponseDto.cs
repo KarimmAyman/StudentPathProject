@@ -29,7 +29,6 @@ namespace StudentPath.BLL.Dtoes.Trips
             public string DriverId { get; set; }
             public string DriverName { get; set; }
             public string DriverPhone { get; set; }
-            public int AvailableSeats { get; set; }
 
             // If the driver has multiple vehicles
             public VehicleInfoDto? VehicleInfo { get; set; }
@@ -102,49 +101,37 @@ namespace StudentPath.BLL.Dtoes.Trips
         {
             public string StartingPoint { get; set; }
             public string? Notes { get; set; }
-            public string Amenities { get; set; }
+            public List<string> Amenities { get; set; } = new();
 
             [JsonIgnore]
-
             public bool? HasWiFi { get; set; }
-            [JsonIgnore]
 
+            [JsonIgnore]
             public bool? HasPhoneCharger { get; set; }
-            [JsonIgnore]
 
+            [JsonIgnore]
             public bool? HasAirConditioning { get; set; }
-            [JsonIgnore]
 
+            [JsonIgnore]
             public bool? HasFreeWater { get; set; }
-            [JsonIgnore]
 
+            [JsonIgnore]
             public bool? HasMusic { get; set; }
-            public string GetTrueFeatures()
+
+            public void PopulateAmenities()
             {
-                var trueFeatures = new List<string>();
+                Amenities = new List<string>();
 
                 if (HasWiFi == true)
-                {
-                    trueFeatures.Add("WiFi");
-                }
+                    Amenities.Add("WiFi");
                 if (HasMusic == true)
-                {
-                    trueFeatures.Add("Music");
-                }
+                    Amenities.Add("Music");
                 if (HasPhoneCharger == true)
-                {
-                    trueFeatures.Add("Phone Charger");
-                }
+                    Amenities.Add("Phone Charger");
                 if (HasAirConditioning == true)
-                {
-                    trueFeatures.Add("Air Conditioning");
-                }
+                    Amenities.Add("Air Conditioning");
                 if (HasFreeWater == true)
-                {
-                    trueFeatures.Add("Free Water");
-                }
-
-                return trueFeatures.Count > 0 ? string.Join(", ", trueFeatures) : "No additional features available";
+                    Amenities.Add("Free Water");
             }
 
 
