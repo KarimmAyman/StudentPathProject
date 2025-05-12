@@ -36,6 +36,15 @@ namespace StudentPath.API.Controllers
             if (!string.IsNullOrEmpty(vehicleInfoJson))
             {
                 registerDto.Vehicleinfo = JsonSerializer.Deserialize<List<VehicleInfoDto>>(vehicleInfoJson);
+                // اربط الصور المرفوعة مع العناصر بناءً على الـ index
+                for (int i = 0; i < registerDto.Vehicleinfo.Count; i++)
+                {
+                    var vehicle = registerDto.Vehicleinfo[i];
+
+                    vehicle.VehiclePicture = Request.Form.Files[$"VehiclePicture_{i}"];
+                    vehicle.VehicleRegistrationFront = Request.Form.Files[$"VehicleRegistrationFront_{i}"];
+                    vehicle.VehicleRegistrationBack = Request.Form.Files[$"VehicleRegistrationBack_{i}"];
+                }
             }
 
             if (!string.IsNullOrEmpty(locationsJson))
