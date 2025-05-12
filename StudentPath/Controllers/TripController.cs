@@ -173,17 +173,38 @@ namespace StudentPath.Controllers
                     return Unauthorized(new { message = "Only regular users are allowed to request or search for trips." });
                 }
 
-                // Check if any trip exists between the two locations
-                var existingTrips = await context.Trips
-                    .Include(t => t.FromLocation)
-                    .Include(t => t.ToLocation)
-                    .Include(t => t.Driver)
-                    .Where(t =>
-                        t.FromLocation.Latitude == request.FromLocation.Latitude &&
-                        t.FromLocation.Longitude == request.FromLocation.Longitude &&
-                        t.ToLocation.Latitude == request.ToLocation.Latitude &&
-                        t.ToLocation.Longitude == request.ToLocation.Longitude)
-                    .Select(t => new TripResponseDto
+            // Check if any trip exists between the two locations
+            var existingTrips = await context.Trips
+                .Include(t => t.FromLocation)
+                .Include(t => t.ToLocation)
+                .Include(t => t.Driver)
+                .Where(t =>
+                    t.FromLocation.Latitude == request.FromLocation.Latitude &&
+                    t.FromLocation.Longitude == request.FromLocation.Longitude &&
+                    t.ToLocation.Latitude == request.ToLocation.Latitude &&
+                    t.ToLocation.Longitude == request.ToLocation.Longitude)
+                    .ToListAsync();
+
+            var tripDtos = existingTrips.Select(t =>
+
+                     {
+
+                    var additionalInfo = new AdditionalInfoDTO
+                    {
+                        StartingPoint = t.FromLocation.DisplayName,
+                        Notes = t.DriverNotes,
+                        HasWiFi = t.HasWiFi,  // Assuming `HasWiFi` exists in the trip model
+                        HasMusic = t.HasMusic, // Assuming `HasMusic` exists in the trip model
+                        HasPhoneCharger = t.HasPhoneCharger,
+                        HasAirConditioning = t.HasAirConditioning,
+                        HasFreeWater = t.HasFreeWater
+
+                    };
+                    additionalInfo.PopulateAmenities();
+
+
+
+                   return new TripResponseDto
                     {
                         Id = t.TripId,
                         FromLocation = new TripLocationDto
@@ -207,44 +228,38 @@ namespace StudentPath.Controllers
                         BasicInfo = new BasicInfoDTO
                         {
                             DepartureTime = t.DepartureTime,
+                            EstimatedDistance = t.EstimatedDistance,
+                            EstimatedDuration = t.EstimatedDuration,
                             AvailableSeats = t.AvailableSeats,
 
                         },
                         DriverInfo = new DriverInfoDto
                         {
-                            DriverName = t.Driver.UserName,
-                            DriverPhone = t.Driver.PhoneNumber,
-                        },
-                        AdditionalInfo = new AdditionalInfoDTO
-                        {
-                             StartingPoint = t.FromLocation.DisplayName,
-                            Notes = t.DriverNotes,
-                            HasWiFi = t.HasWiFi,  // Assuming `HasWiFi` exists in the trip model
-                            HasMusic = t.HasMusic, // Assuming `HasMusic` exists in the trip model
-                            HasPhoneCharger = t.HasPhoneCharger,
-                            HasAirConditioning = t.HasAirConditioning,
-                            HasFreeWater = t.HasFreeWater,
-                            Amenities = t.HasWiFi || t.HasMusic || t.HasPhoneCharger || t.HasAirConditioning || t.HasFreeWater
-                                ? new AdditionalInfoDTO
-                                {
-                                    HasWiFi = t.HasWiFi,
-                                    HasMusic = t.HasMusic,
-                                    HasPhoneCharger = t.HasPhoneCharger,
-                                    HasAirConditioning = t.HasAirConditioning,
-                                    HasFreeWater = t.HasFreeWater
-                                }.GetTrueFeatures()
-                                : "No features available"
+                            DriverId = t.DriverId,
+                            DriverName = t.Driver?.UserName,
+                            DriverPhone = t.Driver?.PhoneNumber,
+                            VehicleInfo = (t.Driver as Driver)?.VehicleInfo?
+                          .Where(v => v.DriverId == t.DriverId).
+                     Select(v => new VehicleInfoDto
+                     {
+                         VehicleModel = v.VehicleModel,
+                         SeatingCapacity = v.SeatingCapacity,
 
-                                            },
-                         PricePerSeat = t.PricePerSeat,
+                         PlateNumber = v.PlateNumber
+
+                     })
+                    .FirstOrDefault()
+                        },
+                        AdditionalInfo = additionalInfo,
+                        PricePerSeat = t.PricePerSeat,
                         CreatedAt = t.CreatedAt
-                    })
-                    .ToListAsync();
+                    };
+                });
 
                 // Return trips if any exist
                 if (existingTrips.Any())
                 {
-                    return Ok(new { message = "Trips found.", trips = existingTrips });
+                    return Ok(new { message = "Trips found.", trips = tripDtos });
                 }
 
 
