@@ -8,6 +8,6 @@ namespace StudentPath.BLL.Dtoes.Drivers
 {
     public class DriverVehicleUpdateDTO
     {
-        public List<VehicleUpdateDTO> Vehicles { get; set; } = new List<VehicleUpdateDTO>();
+        public List<VehicleUpdateDTO>? Vehicles { get; set; } = new List<VehicleUpdateDTO>();
     }
 }
