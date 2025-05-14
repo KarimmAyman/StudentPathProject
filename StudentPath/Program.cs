@@ -6,7 +6,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Stripe;
-using StudentPath.BLL.AutoMappers.DriverMapper;
 using StudentPath.BLL.AutoMappers.UserMapper;
 using StudentPath.BLL.AutoMappers.TripMapper;
 using StudentPath.BLL.Dtoes;
@@ -133,7 +132,6 @@ public class Program
      
         #region AutoMapper
         builder.Services.AddAutoMapper(x => x.AddProfile(new UserProfile()));
-        builder.Services.AddAutoMapper(x => x.AddProfile(new DriverProfile()));
         builder.Services.AddAutoMapper(x => x.AddProfile(new TripProfile()));
 
 

@@ -5,15 +5,13 @@ using StudentPath.DAL.Data.Models;
 
 namespace StudentPath.BLL.Dtoes
 {
-    public class DriverDetailsDTO
+    public class DriverDetailsDTO : DriverReadDTO
     {
        /* public string Id { get; set; } = string.Empty;*/ // IdentityUser ID
         public string UserName { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
         public int Age { get; set; }
-        public GenderType Gender { get; set; }
-        public string Address { get; set; } = string.Empty;
-        public string SSN { get; set; } = string.Empty;
+        public GenderType Gender { get; set; } 
 
         // Personal Documents
         public string NationalIdFrontPath { get; set; } = string.Empty;

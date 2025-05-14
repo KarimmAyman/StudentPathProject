@@ -9,9 +9,12 @@ namespace StudentPath.BLL.Dtoes
         public string Id { get; set; } = string.Empty;
         public string UserName { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
-        public string PhoneNumber { get; internal set; }
+        public string? PhoneNumber { get; internal set; }
+        public int Age { get; set; }
+        public UserTypeEnum UserType { get; set; }
+        public string? ImgUrl { get; set; }
+        public string? IdNumber { get; set; }
         public GenderType Gender { get; set; }
-
         // Personal Documents
         public string NationalIdFrontPath { get; set; } = string.Empty;
         public string NationalIdBackPath { get; set; } = string.Empty;
@@ -25,6 +28,8 @@ namespace StudentPath.BLL.Dtoes
         public DateTime LicenseExpirationDate { get; set; }
 
         public ApprovalStatus? Status { get; set; }
+        public bool IsBanned { get; set; }
+        public bool IsDeleted { get; set; }
         public List<VehicleReadDTO> VehicleInfo { get; set; } = new List<VehicleReadDTO>();
         public List<LocationDto> Locations { get; set; } = new List<LocationDto>();
     }
