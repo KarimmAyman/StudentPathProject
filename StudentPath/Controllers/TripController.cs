@@ -381,8 +381,14 @@ namespace StudentPath.Controllers
                     })
         .ToListAsync();
 
-            return Ok(activeTripRequests);
-            }
+            return Ok(new
+            {
+                data = activeTripRequests,
+                message = "Trip requests retrieved successfully.",
+                success = true,
+                statusCode = 200
+            });
+        }
 
 
 

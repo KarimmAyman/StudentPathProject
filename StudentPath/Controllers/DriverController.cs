@@ -1,9 +1,12 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Stripe;
+using Stripe.Identity;
 using StudentPath.BLL.Dtoes;
 using StudentPath.BLL.Dtoes.Accounts;
 using StudentPath.BLL.Dtoes.Drivers;
 using StudentPath.BLL.Services.DriverServices;
+using StudentPath.DAL.Data.DBHelpers;
 using System.Collections.Generic;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -15,10 +18,12 @@ namespace StudentPath.API.Controllers
     public class DriverController : ControllerBase
     {
         private readonly IDriverService _driverService;
+        private readonly StudentPathContext context;
 
-        public DriverController(IDriverService driverService)
+        public DriverController(IDriverService driverService,StudentPathContext context)
         {
             _driverService = driverService;
+            this.context = context;
         }
 
         [HttpGet("GetAllDrivers")]
@@ -203,62 +208,241 @@ namespace StudentPath.API.Controllers
         }
 
 
-        [HttpPost("driver/stripe/create-account")]
-        public async Task<IActionResult> CreateStripeAccount([FromBody] StripeAccountRequest dto)
-        {
-            var accountService = new AccountService();
 
-            var accountOptions = new AccountCreateOptions
-            {
-                Type = "express",
-                Country = "EG", // or your driver's country
-                Email = dto.Email, // use actual driver email
-                Capabilities = new AccountCapabilitiesOptions
-                {
-                    Transfers = new AccountCapabilitiesTransfersOptions { Requested = true },
-                },
-               TosAcceptance = new AccountTosAcceptanceOptions { ServiceAgreement = "recipient" },
 
-            };
+        #region stripedriver
 
-            var account = await accountService.CreateAsync(accountOptions);
 
-            var domain = "https://localhost:7092"; // replace with your real domain or use config
+        //[HttpPost("driver/stripe/create-account")]
+        //public async Task<IActionResult> CreateStripeAccount([FromBody] StripeAccountRequest dto)
+        //{
+        //    var accountService = new AccountService();
 
-            var accountLinkService = new AccountLinkService();
-            var link = await accountLinkService.CreateAsync(new AccountLinkCreateOptions
-            {
-                Account = account.Id,
-                RefreshUrl = $"{domain}/driver/stripe/refresh?account={account.Id}",
-                ReturnUrl = $"{domain}/driver/stripe/return?account={account.Id}",
-                Type = "account_onboarding"
-            });
+        //    var accountOptions = new AccountCreateOptions
+        //    {
+        //        Type = "express",
+        //        Country = "EG", // or your driver's country
+        //        Email = dto.Email, // use actual driver email
+        //        Capabilities = new AccountCapabilitiesOptions
+        //        {
+        //            Transfers = new AccountCapabilitiesTransfersOptions { Requested = true },
+        //        },
+        //        TosAcceptance = new AccountTosAcceptanceOptions { ServiceAgreement = "recipient" },
 
-            // Save `account.Id` in your DB linked to the driver
+        //    };
 
-            return Ok(new { OnboardingUrl = link.Url });
-        }
+        //    var account = await accountService.CreateAsync(accountOptions);
 
-        [HttpGet("driver/stripe/refresh")]
-        public IActionResult StripeRefresh([FromQuery] string account)
-        {
-            // Optionally log or alert that onboarding was cancelled or expired
-            return Content("Stripe onboarding was cancelled or expired. Please try again.");
-        }
+        //    var domain = "https://localhost:7092"; // replace with your real domain or use config
 
-        [HttpGet("driver/stripe/return")]
-        public async Task<IActionResult> StripeReturn([FromQuery] string account)
-        {
-            var accountService = new AccountService();
-            var stripeAccount = await accountService.GetAsync(account);
+        //    var accountLinkService = new AccountLinkService();
+        //    var link = await accountLinkService.CreateAsync(new AccountLinkCreateOptions
+        //    {
+        //        Account = account.Id,
+        //        RefreshUrl = $"{domain}/api/Driver/driver/stripe/refresh?account={account.Id}",
+        //        ReturnUrl = $"{domain}/api/Driver/driver/stripe/return?account={account.Id}",
+        //        Type = "account_onboarding"
+        //    });
+        ////    var identityService = new Stripe.Identity.VerificationSessionService();
 
-            if (stripeAccount.ChargesEnabled && stripeAccount.PayoutsEnabled)
-            {
-                // ✅ Update your DB: mark driver as onboarded
-                return Content("Stripe onboarding completed successfully.");
-            }
 
-            return Content("Stripe onboarding not yet complete. Please finish the process.");
-        }
+        ////    var identitySession = await identityService.CreateAsync(new VerificationSessionCreateOptions
+        ////    {
+        ////        Type = "document", // your flow ID
+        ////        Metadata = new Dictionary<string, string>
+        ////{
+        ////    { "email", dto.Email },
+        ////    { "phone", dto.PhoneNumber },
+        ////    { "stripe_account_id", dto.StripeAccountId }
+        ////}
+        ////    });
+        ////    var returnUrl = $"{domain}/api/Driver/driver/identity/complete?session_id={identitySession.Id}";
+
+
+
+        //    // Save `account.Id` in your DB linked to the driver
+
+        //    return Ok(new
+        //    {
+        //    //    SessionId = identitySession.Id,
+        //        OnboardingUrl = link.Url
+        //        //IdentityVerificationUrl = identitySession.Url,
+        //        //ReturnUrl=returnUrl
+        //    });
+        //}
+
+
+
+
+
+        //public async Task<IActionResult> CreateOrVerifyStripeAccount([FromBody] StripeAccountRequest dto)
+        //{
+        //    var domain = "https://localhost:7092"; // replace with your real domain or use config
+
+        //    // Check if the user already has a Stripe account
+        //    var existingAccountId = await context.Users
+        //        .Where(u => u.Email == dto.Email)
+        //        .Select(u => u.StripeAccountId) // Assuming you save the Stripe Account ID in your user table
+        //        .FirstOrDefaultAsync();
+
+        //    if (!string.IsNullOrEmpty(existingAccountId))
+        //    {
+        //        // User already has a Stripe account, proceed to verification
+        //        return await VerifyStripeAccount(existingAccountId, dto.Email, dto.PhoneNumber, domain);
+        //    }
+
+        //    // If user doesn't have an account, create a new Stripe account
+        //    return await CreateStripeAccount(dto, domain);
+        //}
+
+        //private async Task<IActionResult> CreateStripeAccount(StripeAccountRequest dto, string domain)
+        //{
+        //    var accountService = new AccountService();
+
+        //    // Create a new Stripe account
+        //    var accountOptions = new AccountCreateOptions
+        //    {
+        //        Type = "express",
+        //        Country = "EG", // or your driver's country
+        //        Email = dto.Email, // use actual driver email
+        //        Capabilities = new AccountCapabilitiesOptions
+        //        {
+        //            Transfers = new AccountCapabilitiesTransfersOptions { Requested = true },
+        //        },
+        //        TosAcceptance = new AccountTosAcceptanceOptions { ServiceAgreement = "recipient" },
+        //    };
+
+        //    var account = await accountService.CreateAsync(accountOptions);
+
+        //    // Save the account ID in the user record in your database
+        //    var user = await context.Users
+        //        .Where(u => u.Email == dto.Email)
+        //        .FirstOrDefaultAsync();
+
+        //    if (user != null)
+        //    {
+        //        user.StripeAccountId = account.Id;  // Store the Stripe account ID
+        //        await context.SaveChangesAsync();
+        //    }
+
+        //    // Generate the account link for onboarding
+        //    var accountLinkService = new AccountLinkService();
+        //    var link = await accountLinkService.CreateAsync(new AccountLinkCreateOptions
+        //    {
+        //        Account = account.Id,
+        //        RefreshUrl = $"{domain}/api/Driver/driver/stripe/refresh?account={account.Id}",
+        //        ReturnUrl = $"{domain}/api/Driver/driver/stripe/return?account={account.Id}",
+        //        Type = "account_onboarding"
+        //    });
+
+        //    // Create the verification session for the new account
+        //    var identityService = new Stripe.Identity.VerificationSessionService();
+        //    var identitySession = await identityService.CreateAsync(new VerificationSessionCreateOptions
+        //    {
+        //        VerificationFlow = "vf_1RNeMYG7zadl0u1PqbPV2QL5", // your flow ID
+        //        Metadata = new Dictionary<string, string>
+        //{
+        //    { "email", dto.Email },
+        //    { "phone", dto.PhoneNumber },
+        //    { "stripe_account_id", account.Id }
+        //},
+        //        ReturnUrl = $"{domain}/api/Driver/driver/identity/complete"
+        //    });
+
+        //    return Ok(new
+        //    {
+        //        OnboardingUrl = link.Url,
+        //        IdentityVerificationUrl = identitySession.Url
+        //    });
+        //}
+
+        //private async Task<IActionResult> VerifyStripeAccount(string accountId, string email, string phoneNumber, string domain)
+        //{
+        //    var accountService = new AccountService();
+
+        //    // Retrieve the existing Stripe account
+        //    var account = await accountService.GetAsync(accountId);
+
+        //    // Check if the account is already verified
+        //    if (account.Verification.Status == "verified")
+        //    {
+        //        return Ok("Account is already verified.");
+        //    }
+
+        //    // Create a verification session for the existing account
+        //    var identityService = new Stripe.Identity.VerificationSessionService();
+        //    var identitySession = await identityService.CreateAsync(new VerificationSessionCreateOptions
+        //    {
+        //        VerificationFlow = "vf_1RNeMYG7zadl0u1PqbPV2QL5", // your flow ID
+        //        Metadata = new Dictionary<string, string>
+        //{
+        //    { "email", email },
+        //    { "phone", phoneNumber },
+        //    { "stripe_account_id", accountId }
+        //},
+        //        ReturnUrl = $"{domain}/api/Driver/driver/identity/complete"
+        //    });
+
+        //    return Ok(new
+        //    {
+        //        IdentityVerificationUrl = identitySession.Url
+        //    });
+        //}
+
+
+        //[HttpGet("driver/stripe/refresh")]
+        //public IActionResult StripeRefresh([FromQuery] string account)
+        //{
+        //    // Optionally log or alert that onboarding was cancelled or expired
+        //    return Content("Stripe onboarding was cancelled or expired. Please try again.");
+        //}
+
+        //[HttpGet("driver/stripe/return")]
+        //public async Task<IActionResult> StripeReturn([FromQuery] string account)
+        //{
+        //    var accountService = new AccountService();
+        //    var stripeAccount = await accountService.GetAsync(account);
+
+        //    if (stripeAccount.ChargesEnabled && stripeAccount.PayoutsEnabled)
+        //    {
+        //        // ✅ Update your DB: mark driver as onboarded
+        //        return Content("Stripe onboarding completed successfully.");
+        //    }
+
+        //    return Content("Stripe onboarding not yet complete. Please finish the process.");
+        //}
+        //[HttpGet("driver/identity/complete")]
+        //public async Task<IActionResult> IdentityComplete([FromQuery] string session_id)
+        //{
+        //    if (string.IsNullOrEmpty(session_id))
+        //        return BadRequest("Missing session_id");
+
+        //    var service = new Stripe.Identity.VerificationSessionService();
+        //    var session = await service.GetAsync(session_id);
+
+        //    var email = session.Metadata.ContainsKey("email") ? session.Metadata["email"] : "unknown";
+
+        //    switch (session.Status)
+        //    {
+        //        case "verified":
+        //            // 🔒 Update the database to mark the driver as verified using email or driver_id from metadata
+        //            // Example: await _driverService.MarkAsVerified(email);
+        //            return Ok($"✅ Identity verification completed for {email}.");
+
+        //        case "requires_input":
+        //            return Ok("⚠️ Verification not completed. Please go back and finish the steps.");
+
+        //        case "canceled":
+        //            return Ok("❌ Verification was canceled.");
+
+        //        case "processing":
+        //            return Ok("⏳ Verification is still being processed. Please check back later.");
+
+        //        default:
+        //            return Ok($"ℹ️ Current verification status: {session.Status}");
+        //    }
+        //}
+        #endregion
+
     }
 }

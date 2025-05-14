@@ -36,8 +36,11 @@ namespace StudentPath.BLL.Dtoes
         public string Id { get; internal set; }
     }
 
-    public class StripeAccountRequest
-    {
-        public string Email { get; set; }
-    }
+    //public class StripeAccountRequest
+    //{
+    //    public string Email { get; set; }
+    //    //public string PhoneNumber { get; set; }
+    //    //public string StripeAccountId { get; set; }
+
+    //}
 }
