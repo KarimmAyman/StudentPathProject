@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using StudentPath.BLL.Dtoes.HousingDtoes;
 using StudentPath.BLL.Services.HousingServices;
 using StudentPath.DAL.Data.Models.Housing;
@@ -40,12 +41,19 @@ namespace StudentPath.API.Controllers
             }
             return Ok(new { successed = true, data = property });
         }
+        [HttpGet("user/{userId}")]
+        public async Task<IActionResult> GetPropertiesByUser(string userId)
+        {
+            var properties = await _propertyService.GetPropertiesByUserIdAsync(userId);
+            return Ok(properties);
+        }
+
 
         // POST: api/properties
         [HttpPost]
         [Authorize]
-        [Consumes("multipart/form-data")] // important for IFormFile
-        public async Task<IActionResult> Create([FromForm] PropertyCreateDto createDto)
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> Create([FromForm] PropertyCreateDto createDto, [FromForm] string locationsJson)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId))
@@ -55,9 +63,23 @@ namespace StudentPath.API.Controllers
 
             createDto.UserId = userId;
 
+            // 🧠 Deserialize the locations from JSON string
+            if (!string.IsNullOrWhiteSpace(locationsJson))
+            {
+                try
+                {
+                    createDto.Locations = JsonConvert.DeserializeObject<List<LocationCreateDto>>(locationsJson);
+                }
+                catch (Exception ex)
+                {
+                    return BadRequest(new { successed = false, errors = new[] { "Invalid locations format", ex.Message } });
+                }
+            }
+
             var createdProperty = await _propertyService.CreatePropertyAsync(createDto);
             return CreatedAtAction(nameof(Get), new { id = createdProperty.PropertyId }, new { successed = true, data = createdProperty });
         }
+
 
 
         // PUT: api/properties/{id}
@@ -95,5 +117,6 @@ namespace StudentPath.API.Controllers
             var features = await _propertyService.GetAllFeaturesAsync();
             return Ok(new { successed = true, data = features });
         }
+
     }
 }

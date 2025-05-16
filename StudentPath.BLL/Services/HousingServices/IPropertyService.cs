@@ -25,6 +25,8 @@ namespace StudentPath.BLL.Services.HousingServices
         Task DeletePropertyAsync(int propertyId);
 
         Task<List<FeatureDto>> GetAllFeaturesAsync();
+        Task<IEnumerable<PropertyDto>> GetPropertiesByUserIdAsync(string userId);
+
 
     }
 }

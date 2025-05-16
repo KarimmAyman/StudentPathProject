@@ -51,5 +51,12 @@ namespace StudentPath.DAL.Repositories.ActivitesRepository
         {
             return await _context.SaveChangesAsync() > 0;
         }
+        public async Task<IEnumerable<Job>> GetJobsByUserIdAsync(string userId)
+        {
+            return await _context.Jobs
+                .Where(j => j.CreatedByUserId == userId && !j.IsDeleted)
+                .ToListAsync();
+        }
+
     }
 }

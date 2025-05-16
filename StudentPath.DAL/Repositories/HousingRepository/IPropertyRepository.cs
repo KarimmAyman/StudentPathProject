@@ -29,6 +29,7 @@ namespace StudentPath.DAL.Repositories.HousingRepository
         Task DeleteAsync(int propertyId);
 
         Task<List<Feature>> GetAllFeaturesAsync();
+        Task<IEnumerable<Property>> GetPropertiesByUserIdAsync(string userId);
 
     }
 }

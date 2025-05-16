@@ -15,5 +15,7 @@ namespace StudentPath.DAL.Repositories.ActivitesRepository
         void Update(Job job);
         void SoftDelete(Job job);
         Task<bool> SaveChangesAsync();
+        Task<IEnumerable<Job>> GetJobsByUserIdAsync(string userId);
+
     }
 }

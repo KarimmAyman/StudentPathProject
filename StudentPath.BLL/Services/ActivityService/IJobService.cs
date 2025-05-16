@@ -14,5 +14,7 @@ namespace StudentPath.BLL.Services.ActivityService
         Task<JobResponseDto> CreateJobAsync(JobCreateDto jobDto);
         Task<bool> UpdateJobAsync(JobUpdateDto jobDto);
         Task<bool> DeleteJobAsync(int id);
+        Task<IEnumerable<JobResponseDto>> GetJobsByUserIdAsync(string userId);
+
     }
 }

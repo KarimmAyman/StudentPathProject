@@ -37,6 +37,12 @@ namespace StudentPath.API.Controllers
             }
             return Ok(new { successed = true, data = job });
         }
+        [HttpGet("user/{userId}")]
+        public async Task<IActionResult> GetJobsByUser(string userId)
+        {
+            var jobs = await _jobService.GetJobsByUserIdAsync(userId);
+            return Ok(jobs);
+        }
 
         // POST: api/jobs
         [HttpPost]
@@ -87,5 +93,6 @@ namespace StudentPath.API.Controllers
             }
             return Ok(new { successed = true, message = "Job deleted successfully." });
         }
+
     }
 }
