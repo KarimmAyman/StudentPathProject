@@ -41,6 +41,13 @@ namespace StudentPath.API.Controllers
             }
             return Ok(new { successed = true, data = property });
         }
+        [HttpGet("user/{userId}")]
+        public async Task<IActionResult> GetPropertiesByUser(string userId)
+        {
+            var properties = await _propertyService.GetPropertiesByUserIdAsync(userId);
+            return Ok(properties);
+        }
+
 
         // POST: api/properties
         [HttpPost]
@@ -110,5 +117,6 @@ namespace StudentPath.API.Controllers
             var features = await _propertyService.GetAllFeaturesAsync();
             return Ok(new { successed = true, data = features });
         }
+
     }
 }

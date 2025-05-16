@@ -237,5 +237,11 @@ namespace StudentPath.BLL.Services.HousingServices
                 Category = f.Category.ToString()
             }).ToList();
         }
+        public async Task<IEnumerable<PropertyDto>> GetPropertiesByUserIdAsync(string userId)
+        {
+            var properties = await _propertyRepository.GetPropertiesByUserIdAsync(userId);
+            return properties.Select(MapPropertyToPropertyDto);
+        }
+
     }
 }

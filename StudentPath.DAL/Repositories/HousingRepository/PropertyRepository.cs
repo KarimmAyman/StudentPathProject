@@ -58,5 +58,17 @@ namespace StudentPath.DAL.Repositories.HousingRepository
         {
             return await _context.Features.ToListAsync();
         }
+        public async Task<IEnumerable<Property>> GetPropertiesByUserIdAsync(string userId)
+        {
+            return await _context.Properties
+                .Where(p => p.UserId == userId && !p.IsDeleted)
+                .Include(p => p.Locations)
+                .Include(p => p.PropertyImages)
+                .Include(p => p.PropertyFeatures)
+                    .ThenInclude(pf => pf.Feature)
+                .ToListAsync();
+        }
+
+
     }
 }

@@ -75,6 +75,35 @@ namespace StudentPath.BLL.Services.ActivityService
                 DaysRemaining = j.DaysRemaining
             };
         }
+        public async Task<IEnumerable<JobResponseDto>> GetJobsByUserIdAsync(string userId)
+        {
+            var jobs = await _jobRepository.GetJobsByUserIdAsync(userId);
+
+            return jobs.Select(j => new JobResponseDto
+            {
+                Id = j.Id,
+                Title = j.Title,
+                ContractType = j.ContractType,
+                CompanyName = j.CompanyName,
+                CompanyWebsite = j.CompanyWebsite,
+                CompanyPhone = j.CompanyPhone,
+                CompanyEmail = j.CompanyEmail,
+                Location = j.Location,
+                MinSalary = j.MinSalary,
+                MaxSalary = j.MaxSalary,
+                SalaryPeriod = j.SalaryPeriod,
+                Description = j.Description,
+                Responsibilities = j.Responsibilities,
+                PostedDate = j.PostedDate,
+                ExpiryDate = j.ExpiryDate,
+                Experience = j.Experience,
+                Category = j.Category,
+                JobType = j.JobType,
+                IsActive = j.IsActive,
+                DaysRemaining = j.DaysRemaining
+            });
+        }
+
 
         public async Task<JobResponseDto> CreateJobAsync(JobCreateDto jobDto)
         {
