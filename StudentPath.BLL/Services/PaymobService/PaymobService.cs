@@ -43,12 +43,31 @@ namespace StudentPath.BLL.Services.PaymobService
 
 
             var booking = await _context.Bookings
-       .FirstOrDefaultAsync(b => b.BookingId == request.BookingId);
+           .FirstOrDefaultAsync(b => b.BookingId == request.BookingId);
             if (booking == null)
                 throw new Exception($"Booking #{request.BookingId} not found.");
+            if (booking.TotalPrice <= 0)
+                throw new InvalidOperationException("Invalid booking total price. Cannot proceed with payment.");
 
-            // 1. Authenticate
-            var authResp = await _httpClient.PostAsJsonAsync($"{baseUrl}/auth/tokens", new { api_key = apiKey });
+            if (request.Amount <= 0 || request.Amount != booking.TotalPrice)
+                throw new InvalidOperationException("Invalid payment amount.");
+            var existingPayment = await _context.Payments
+                .OrderByDescending(p => p.PaymentDate)
+                .FirstOrDefaultAsync(p => p.BookingId == booking.BookingId && p.PaymentMethod == PaymentMethodEnum.Wallet);
+
+            if (existingPayment != null)
+            {
+                if (existingPayment.PaymentStatus == PaymentStatus.Paid)
+                    throw new InvalidOperationException("This booking has already been paid.");
+
+                if (existingPayment.PaymentStatus == PaymentStatus.Pending)
+                    throw new InvalidOperationException("A wallet payment is already pending for this booking. Please wait for confirmation.");
+
+            }                
+
+
+                // 1. Authenticate
+                var authResp = await _httpClient.PostAsJsonAsync($"{baseUrl}/auth/tokens", new { api_key = apiKey });
             if (!authResp.IsSuccessStatusCode) throw new Exception("Authentication with Paymob failed.");
 
             var authResult = JsonConvert.DeserializeObject<AuthResponse>(await authResp.Content.ReadAsStringAsync());
@@ -74,7 +93,7 @@ namespace StudentPath.BLL.Services.PaymobService
             var tokenRequest = new
             {
                 auth_token = authToken,
-                amount_cents = (int)(request.Amount * 100),
+                amount_cents = (int)(booking.TotalPrice * 100),
                 expiration = 3600,
                 order_id = orderResult.Id,
                 billing_data = new
@@ -128,7 +147,7 @@ namespace StudentPath.BLL.Services.PaymobService
             {
                 UserId = user.Id,
                 BookingId = request.BookingId,              // ← link payment to booking
-                Amount = request.Amount,
+                Amount = booking.TotalPrice,
                 PaymentStatus = PaymentStatus.Pending, // Or Pending if you want to wait for webhook
                 PaymentDate = DateTime.UtcNow,
                 TransactionId = transactionId,

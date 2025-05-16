@@ -157,7 +157,8 @@ namespace StudentPath.Controllers
         //    return StatusCode(result.StatusCode, result);
         //}
             [HttpPost("Create-or-request-trip")]
-            public async Task<IActionResult> CreateOrRequestTrip([FromBody] TripSearchOrRequestDto request)
+
+        public async Task<IActionResult> CreateOrRequestTrip([FromBody] TripSearchOrRequestDto request)
             {
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 var user = await context.Users.FirstOrDefaultAsync(u => u.Id == userId);
@@ -165,12 +166,14 @@ namespace StudentPath.Controllers
                 // Check if the user exists and is a regular user
                 if (user == null)
                 {
-                    return BadRequest(new { message = "User not found" });
+               
+                    return Unauthorized("You must be user to be logged in to create a trip request.");
+                
                 }
 
                 if (user.UserType != UserTypeEnum.User)
                 {
-                    return Unauthorized(new { message = "Only regular users are allowed to request or search for trips." });
+                    return Forbid("Only regular users are allowed to request or search for trips.");
                 }
 
             // Check if any trip exists between the two locations
@@ -325,6 +328,16 @@ namespace StudentPath.Controllers
                         if (existingTripRequest != null)
                         {
                             return BadRequest(new { message = "You have already requested a trip for these locations." });
+                        }
+
+                        var existingRequests = await context.TripRequests
+                 .Where(tr => tr.UserId == user.Id)
+                 .ToListAsync();
+
+                        if (existingRequests.Any())
+                        {
+                            context.TripRequests.RemoveRange(existingRequests);
+                            await context.SaveChangesAsync();
                         }
                         // Create the TripRequest
                         var tripRequest = new TripRequest

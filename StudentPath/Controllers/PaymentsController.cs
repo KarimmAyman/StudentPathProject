@@ -9,6 +9,7 @@ using StudentPath.BLL.Services.StripeService;
 using StudentPath.DAL.Data.DBHelpers;
 using StudentPath.DAL.Data.Models;
 using System;
+using System.Security.Claims;
 
 namespace StudentPath.API.Controllers
 {
@@ -279,16 +280,44 @@ namespace StudentPath.API.Controllers
             try
             {
 
-                var user = await _context.Users
-                   .Where(u => u.Email ==request.Email)
-                   .FirstOrDefaultAsync();
-                // 1. Get or create Stripe customer
-                var customerService = new CustomerService();
-                var customers = await customerService.ListAsync(new CustomerListOptions
-                {
-                    Email = request.Email
-                });
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(userId))
+                    return Unauthorized("You must be logged in to proceed.");
 
+                var user = await _context.Users.FindAsync(userId);
+                if (user == null)
+                    return Unauthorized("User not found.");
+
+               //get booking from db
+                var booking = await _context.Bookings
+                 .Include(b => b.Trip) // optional if you want to check trip data
+                 .FirstOrDefaultAsync(b => b.BookingId == request.BookingId && b.UserId == userId);
+                if (booking == null)
+                    return BadRequest(new { error = $"Booking #{request.BookingId} not found." });
+
+                if (booking.TotalPrice <= 0)
+                    return BadRequest(new { error = "Invalid booking price. Cannot proceed with payment." });
+                if (request.Amount <= 0)
+                {
+                    return BadRequest(new { error = "Payment amount must be greater than zero." });
+                }
+                if (request.Amount != booking.TotalPrice)
+                    return BadRequest(new { error = $"Payment amount mismatch. Expected: {booking.TotalPrice}, but received: {request.Amount}." });
+                 
+                  if (booking.IsCancelled)
+                    return BadRequest(new { error = "This booking has been cancelled." });
+
+                if (booking.Trip.DepartureTime <= DateTime.UtcNow)
+                    return BadRequest(new { error = "This trip has already departed." });
+                var existingPayment = await _context.Payments
+                 .FirstOrDefaultAsync(p => p.BookingId == booking.BookingId && p.PaymentStatus == PaymentStatus.Paid);
+
+                if (existingPayment != null)
+                    return BadRequest(new { error = "This booking has already been paid." });
+
+                // ✅ Use authenticated user's email
+                var customerService = new CustomerService();
+                var customers = await customerService.ListAsync(new CustomerListOptions { Email = user.Email });
                 var customer = customers.FirstOrDefault();
 
                 if (customer == null)
@@ -296,12 +325,12 @@ namespace StudentPath.API.Controllers
                     customer = await customerService.CreateAsync(new CustomerCreateOptions
                     {
                         Email = user.Email,
-                        Name=user.UserName
+                        Name = user.UserName
                     });
                 }
-                
 
                 // 2. Create Ephemeral Key (requires Stripe version override)
+
                 var ephemeralKeyOptions = new EphemeralKeyCreateOptions
                 {
                     Customer = customer.Id,
@@ -309,16 +338,12 @@ namespace StudentPath.API.Controllers
                 };
                 var ephemeralKeyService = new EphemeralKeyService();
                 var ephemeralKey = ephemeralKeyService.Create(ephemeralKeyOptions);
-                //get booking from db
-                var booking = await _context.Bookings.FirstOrDefaultAsync(b => b.BookingId == request.BookingId);
-                if (booking == null)
-                    return BadRequest(new { error = $"Booking #{request.BookingId} not found." });
 
                 // 3. Create PaymentIntent with automatic payment methods and status as pending
                 var paymentIntentService = new PaymentIntentService();
                 var paymentIntent = await paymentIntentService.CreateAsync(new PaymentIntentCreateOptions
                 {
-                    Amount = request.Amount * 100,  // Stripe requires the amount in cents
+                    Amount = (long)booking.TotalPrice * 100,  // Stripe requires the amount in cents
                     Currency = request.Currency,
                     Customer = customer.Id,
                     AutomaticPaymentMethods = new PaymentIntentAutomaticPaymentMethodsOptions
