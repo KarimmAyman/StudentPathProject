@@ -101,6 +101,8 @@ namespace StudentPath.DAL.Data.Models
         public string VehicleRegistrationBackPath { get; set; }
         public ApprovalStatus? Status { get; set; } = ApprovalStatus.Pending;
         public string DrivingLicense { get; set; }
+
+        public decimal? Balance { get; set; } = 0;
         public virtual ICollection<VehicleInfo> VehicleInfo { get; set; } = new HashSet<VehicleInfo>(); // Associated Vehicle
                                                                                                         // Relationship with students (if needed)
         public virtual ICollection<UserDriver> UserDrivers { get; set; } = new HashSet<UserDriver>();

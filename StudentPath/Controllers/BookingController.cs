@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using StudentPath.BLL.Dtoes.Bookings;
@@ -23,11 +24,15 @@ namespace StudentPath.API.Controllers
         {
 
             var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var user = await context.Users.FirstOrDefaultAsync(u => u.Id == currentUserId);
 
             if (currentUserId == null)
             {
                 return Unauthorized("You must be user to be logged in to book a trip.");
             }
+            if (user.UserType != UserTypeEnum.User)
+                return Forbid("Only Users are allowed to book trips.");
+
             var trip = await context.Trips
         .FirstOrDefaultAsync(t => t.TripId == request.TripId);
 
@@ -45,62 +50,36 @@ namespace StudentPath.API.Controllers
                 return BadRequest(new { error = "Bookings must be made at least 1 hour before the trip starts." });
             }
 
-            // 3. Calculate requested seats
-            var seatsToBook = request.NumberOfSeats;
-
-            // 4. Look for an existing booking by this user on this trip
-            var booking = await context.Bookings
-                .FirstOrDefaultAsync(b => b.TripId == request.TripId
-                                       && b.UserId == currentUserId);
-
-            decimal extraCost = 0;
-
-            if (booking != null)
+                var seatsToBook = request.NumberOfSeats;
+            if (seatsToBook <= 0)
             {
-                // 5a. Already booked some seats—compute new total and delta
-                var newSeatTotal = booking.NumberOfSeats + seatsToBook;
-                var delta = seatsToBook;
-
-
-                // 5b. Check availability for the extra seats
-                if (delta > trip.AvailableSeats)
-                {
-                    return BadRequest(new
-                    {
-                        error = $"Only {trip.AvailableSeats} additional seats available. You requested {delta} more."
-                    });
-                }
-                extraCost = delta * trip.PricePerSeat;
-
-
-                // 5c. Update the existing booking
-
-                booking.NumberOfSeats += newSeatTotal;
-                booking.TotalPrice += extraCost;
-                booking.BookingDate = DateTime.UtcNow;
-
-                booking.Note = request.Note ?? booking.Note;
-                booking.MeetingPoint = request.MeetingPoint ?? booking.MeetingPoint;
-                // (leave other fields unchanged)
-                booking.PaymentStatus = PaymentStatus.Pending;
-                booking.BookingStatus = BookingStatus.Pending;
-
-                // 5d. Deduct from available seats
-                trip.AvailableSeats -= delta;
-
+                return BadRequest(new { error = "You must book at least one seat." });
             }
-            else
-            {
-                // 6. No existing booking—create a new one
-                if (seatsToBook > trip.AvailableSeats)
+
+           
+
+
+            if (seatsToBook > trip.AvailableSeats)
                 {
                     return BadRequest(new
                     {
                         error = $"Only {trip.AvailableSeats} seats available. You requested {seatsToBook}."
                     });
                 }
-                decimal totalCost = seatsToBook * trip.PricePerSeat;
-                booking = new Booking
+
+            if (trip.PricePerSeat <= 0)
+            {
+                return BadRequest(new { error = "Invalid trip price per seat. Cannot proceed with booking." });
+            }
+
+            decimal totalCost = seatsToBook * trip.PricePerSeat;
+
+            if (totalCost <= 0)
+            {
+                return BadRequest(new { error = "Invalid total cost. Cannot proceed with booking." });
+            }
+
+            var booking = new Booking
                 {
                     UserId = currentUserId,
                     TripId = request.TripId,
@@ -117,7 +96,7 @@ namespace StudentPath.API.Controllers
 
                 // Deduct all requested seats
                 trip.AvailableSeats -= seatsToBook;
-            }
+            
 
             // 7. Persist changes
             await context.SaveChangesAsync();
@@ -131,7 +110,6 @@ namespace StudentPath.API.Controllers
                 totalSeats = booking.NumberOfSeats,
                 availableSeats = trip.AvailableSeats,
                 totalPrice = booking.TotalPrice,
-                extraCost = extraCost
             });
         }
     }

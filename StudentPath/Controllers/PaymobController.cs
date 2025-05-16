@@ -7,6 +7,7 @@ using StudentPath.BLL.Dtoes.Users;
 using StudentPath.BLL.Services.PaymobService;
 using StudentPath.DAL.Data.DBHelpers;
 using StudentPath.DAL.Data.Models;
+using System.Security.Claims;
 
 namespace StudentPath.API.Controllers
 {
@@ -26,27 +27,49 @@ namespace StudentPath.API.Controllers
         [HttpPost("Wallet")]
         public async Task<IActionResult> Wallet([FromBody] WalletPaymentRequest request)
         {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized("User not authenticated");
+
             var result = await _walletService.InitiateWalletPaymentAsync(request);
             return Ok(result);
         }
         [HttpPost("paymob/webhook")]
         public async Task<IActionResult> PaymobWebhook([FromBody] PaymobWebhookRequest request)
         {
-            // Step 1: Retrieve the payment record based on the Paymob TransactionId
-            var payment = await context.Payments
-                .FirstOrDefaultAsync(p => p.TransactionId == request.Obj.Id.ToString());
-
-            if (payment == null)
-                return NotFound(new { status = "failed", error = $"No payment found with TransactionId = {request.Obj.Id}" });
-            if (string.IsNullOrWhiteSpace(request.Type))
-                return BadRequest(new { status = "failed", error = "Missing 'type' field in payload." });
             if (request.Obj == null)
                 return BadRequest(new { status = "failed", error = "Missing 'obj' field in payload." });
 
+            if (string.IsNullOrWhiteSpace(request.Type))
+                return BadRequest(new { status = "failed", error = "Missing 'type' field in payload." });
+
+            var transactionId = request.Obj.Id.ToString();
+
+           
+
+            // Step 2: Get existing payment
+            var payment = await context.Payments
+                .FirstOrDefaultAsync(p => p.TransactionId == transactionId);
+
+            if (payment == null)
+                return NotFound(new { status = "failed", error = $"No payment found with TransactionId = {transactionId}" });
+            
+
             if (payment.PaymentStatus == PaymentStatus.Paid)
-            {
-                return BadRequest("This payment has already been confirmed as paid. Please try a different transaction.");
-            }
+                return BadRequest(new { status = "duplicate", error = "This payment has already been confirmed as paid." });
+
+            if (payment.PaymentStatus == PaymentStatus.Cancelled)
+                return BadRequest(new { status = "cancelled", error = "This payment has already been marked as cancelled." });
+
+            if (request.Type != "TRANSACTION")
+                return BadRequest(new { status = "failed", error = $"Unsupported webhook type: {request.Type}" });
+
+            var booking = await context.Bookings.FirstOrDefaultAsync(b => b.BookingId == payment.BookingId);
+            if (booking == null)
+                return NotFound(new { status = "failed", error = $"Booking not found for payment #{payment.PaymentId}" });
+
+
+         
             // Step 2: Handle payment status based on the webhook response
 
             if (request.Obj.Success && request.Type == "TRANSACTION") // Successful payment
@@ -54,7 +77,6 @@ namespace StudentPath.API.Controllers
                 // Step 2a: Mark the payment as successful
                 payment.PaymentStatus = PaymentStatus.Paid;
                 payment.PaymentDate = DateTime.UtcNow;
-                var booking = await context.Bookings.FirstOrDefaultAsync(b => b.BookingId == payment.BookingId);
                 if (booking != null)
                 {
                     booking.PaymentStatus = PaymentStatus.Paid;
@@ -82,16 +104,22 @@ namespace StudentPath.API.Controllers
                     wallet.Balance += payment.Amount;
                     wallet.LastTransactionId = payment.TransactionId;
                 }
-                var walletTransaction = new WalletTransaction
+                var existingWalletTransaction = await context.WalletsTransactions
+           .FirstOrDefaultAsync(t => t.PaymobTransactionId == payment.TransactionId);
+
+                if (existingWalletTransaction == null)
+                {
+                    var walletTransaction = new WalletTransaction
                     {
                         WalletId = wallet.WalletId,
                         Amount = payment.Amount,
                         TransactionDate = DateTime.UtcNow,
                         PaymobTransactionId = payment.TransactionId,
-                        PaymentId= payment.PaymentId
-                };
+                        PaymentId = payment.PaymentId
+                    };
 
                     context.WalletsTransactions.Add(walletTransaction);
+                }
                 
 
                 // Commit all changes to the database
@@ -102,7 +130,6 @@ namespace StudentPath.API.Controllers
                 // Step 3: Mark the payment as failed
                 payment.PaymentStatus = PaymentStatus.Cancelled;
                 payment.PaymentDate = DateTime.UtcNow;
-                var booking = await context.Bookings.FirstOrDefaultAsync(b => b.BookingId == payment.BookingId);
                 if (booking != null)
                 {
                     booking.PaymentStatus = PaymentStatus.Cancelled;
@@ -121,7 +148,6 @@ namespace StudentPath.API.Controllers
                 if (DateTime.UtcNow - payment.PaymentDate > TimeSpan.FromHours(24))
                 {
                     payment.PaymentStatus = PaymentStatus.Pending;// Timeout exceeded, mark as failed
-                    var booking = await context.Bookings.FirstOrDefaultAsync(b => b.BookingId == payment.BookingId);
                     if (booking != null)
                     {
                         booking.PaymentStatus = PaymentStatus.Cancelled;
