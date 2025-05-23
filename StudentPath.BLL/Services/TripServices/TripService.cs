@@ -724,36 +724,90 @@ namespace StudentPath.BLL.Services.TripServices
             }
         }
 
-        public async Task<ApiResponse<DriverTripDetailsDto>> GetDriverTripDetailsAsync(string driverId)
+        public async Task<ApiResponse<TripResponseDto>> GetDriverTripDetailsAsync(string driverId)
         {
-            // Check for an active trip (works now because Trips is ITripRepository)
-            var trip = await _unitOfWork.Trips.GetActiveTripByDriverIdAsync(driverId);
-            if (trip == null)
+            try
             {
-                return ApiResponse<DriverTripDetailsDto>.ErrorResponse("No active trip found", 404);
+                // Fetch the active trip with related data
+                var trip = await _unitOfWork.Trips.GetActiveTripByDriverIdAsync(driverId);
+                if (trip == null)
+                {
+                    return ApiResponse<TripResponseDto>.ErrorResponse("No active trip found", 404);
+                }
+
+                // Calculate remaining seats
+                var confirmedBookings = await _unitOfWork.Bookings
+                    .GetAsync(b => b.TripId == trip.TripId && b.BookingStatus == BookingStatus.Confirmed);
+
+                var reservedSeats = confirmedBookings.Sum(b => b.NumberOfSeats);
+                var remainingSeats = trip.AvailableSeats - reservedSeats;
+                if (remainingSeats < 0) remainingSeats = 0;
+
+                // Map to TripResponseDto
+                var additionalInfo = new AdditionalInfoDTO
+                {
+                    StartingPoint = trip.FromLocation.DisplayName,
+                    Notes = trip.DriverNotes,
+                    HasWiFi = trip.HasWiFi,
+                    HasMusic = trip.HasMusic,
+                    HasPhoneCharger = trip.HasPhoneCharger,
+                    HasAirConditioning = trip.HasAirConditioning,
+                    HasFreeWater = trip.HasFreeWater
+                };
+                additionalInfo.PopulateAmenities();
+
+                var result = new TripResponseDto
+                {
+                    Id = trip.TripId,
+                    FromLocation = new TripLocationDto
+                    {
+                        Latitude = trip.FromLocation.Latitude,
+                        Longitude = trip.FromLocation.Longitude,
+                        DisplayName = trip.FromLocation.DisplayName,
+                        FullAddress = trip.FromLocation.FullAddress,
+                        AdditionalNotes = trip.FromLocation.AdditionalNotes
+                    },
+                    ToLocation = new TripLocationDto
+                    {
+                        Latitude = trip.ToLocation.Latitude,
+                        Longitude = trip.ToLocation.Longitude,
+                        DisplayName = trip.ToLocation.DisplayName,
+                        FullAddress = trip.ToLocation.FullAddress,
+                        AdditionalNotes = trip.ToLocation.AdditionalNotes
+                    },
+                    BasicInfo = new BasicInfoDTO
+                    {
+                        DepartureTime = trip.DepartureTime,
+                        EstimatedDistance = trip.EstimatedDistance,
+                        EstimatedDuration = trip.EstimatedDuration,
+                        AvailableSeats = remainingSeats // Use real-time remaining seats
+                    },
+                    DriverInfo = new DriverInfoDto
+                    {
+                        DriverId = trip.DriverId,
+                        DriverName = trip.Driver?.UserName,
+                        DriverPhone = trip.Driver?.PhoneNumber,
+                        VehicleInfo = (trip.Driver as Driver)?.VehicleInfo?
+                            .Where(v => v.DriverId == trip.DriverId)
+                            .Select(v => new VehicleInfoDto
+                            {
+                                VehicleModel = v.VehicleModel,
+                                SeatingCapacity = v.SeatingCapacity,
+                                PlateNumber = v.PlateNumber
+                            })
+                            .FirstOrDefault()
+                    },
+                    AdditionalInfo = additionalInfo,
+                    PricePerSeat = trip.PricePerSeat,
+                    CreatedAt = trip.CreatedAt
+                };
+
+                return ApiResponse<TripResponseDto>.SuccessResponse("Trip details retrieved successfully", 200, result);
             }
-
-            // Calculate remaining seats using _unitOfWork.Bookings
-            var confirmedBookings = await _unitOfWork.Bookings
-                .GetAsync(b => b.TripId == trip.TripId && b.BookingStatus == BookingStatus.Confirmed);
-
-            var reservedSeats = confirmedBookings.Sum(b => b.NumberOfSeats);
-            var remainingSeats = trip.AvailableSeats - reservedSeats;
-            if (remainingSeats < 0) remainingSeats = 0; // Ensure no negative values
-
-            // Build the response DTO
-            var dto = new DriverTripDetailsDto
+            catch (Exception ex)
             {
-                Id = trip.TripId,
-                DriverId = trip.DriverId,
-                DepartureTime = trip.DepartureTime,
-                TotalSeats = trip.AvailableSeats,
-                RemainingSeats = remainingSeats,
-                FromLocationDisplayName = trip.FromLocation.DisplayName,
-                ToLocationDisplayName = trip.ToLocation.DisplayName
-            };
-
-            return ApiResponse<DriverTripDetailsDto>.SuccessResponse("Trip details retrieved successfully", 200, dto);
+                return ApiResponse<TripResponseDto>.ErrorResponse($"An error occurred: {ex.Message}", 500);
+            }
         }
     }
 }

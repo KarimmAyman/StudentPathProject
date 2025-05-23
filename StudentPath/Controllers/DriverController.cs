@@ -73,6 +73,13 @@ namespace StudentPath.API.Controllers
             }
         }
 
+        [HttpGet("{driverId}/trip")]
+        public async Task<IActionResult> GetDriverTrip(string driverId)
+        {
+            var response = await _tripService.GetDriverTripDetailsAsync(driverId);
+            return StatusCode(response.StatusCode, response);
+        }
+
         [HttpPost("AddDriver")]
         public async Task<ActionResult<ApiResponse<DriverReadDTO>>> AddDriver(
             [FromForm] DriverAddDTO driverDto,
@@ -185,12 +192,6 @@ namespace StudentPath.API.Controllers
             }
         }
 
-        [HttpGet("{driverId}/trip")]
-        public async Task<IActionResult> GetDriverTrip(string driverId)
-        {
-            var response = await _tripService.GetDriverTripDetailsAsync(driverId);
-            return StatusCode(response.StatusCode, response);
-        }
 
         [HttpDelete("DeleteDriver/{id}")]
         public async Task<ActionResult<ApiResponse<string>>> DeleteDriver(string id)
