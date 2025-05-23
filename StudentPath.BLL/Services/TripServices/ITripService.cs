@@ -14,5 +14,6 @@ namespace StudentPath.BLL.Services.TripServices
         Task<ApiResponse<IEnumerable<TripResponseDto>>> GetAllTripsAsync(bool includePast);
         Task<ApiResponse<IEnumerable<TripResponseDto>>> GetDriverTripsAsync(string driverId);
         Task<ApiResponse<IEnumerable<TripResponseDto>>> SearchTripsAsync(string fromAddress, string toAddress);
+        Task<ApiResponse<DriverTripDetailsDto>> GetDriverTripDetailsAsync(string driverId);
     }
 }
