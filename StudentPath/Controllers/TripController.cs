@@ -402,12 +402,5 @@ namespace StudentPath.Controllers
                 statusCode = 200
             });
         }
-
-
-
-       
-
-
-
     }
 }

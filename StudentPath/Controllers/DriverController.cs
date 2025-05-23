@@ -6,6 +6,7 @@ using StudentPath.BLL.Dtoes;
 using StudentPath.BLL.Dtoes.Accounts;
 using StudentPath.BLL.Dtoes.Drivers;
 using StudentPath.BLL.Services.DriverServices;
+using StudentPath.BLL.Services.TripServices;
 using StudentPath.DAL.Data.DBHelpers;
 using System.Collections.Generic;
 using System.Text.Json;
@@ -19,11 +20,13 @@ namespace StudentPath.API.Controllers
     {
         private readonly IDriverService _driverService;
         private readonly StudentPathContext context;
+        private readonly ITripService _tripService;
 
-        public DriverController(IDriverService driverService,StudentPathContext context)
+        public DriverController(IDriverService driverService,StudentPathContext context, ITripService tripService)
         {
             _driverService = driverService;
             this.context = context;
+            _tripService = tripService;
         }
 
         [HttpGet("GetAllDrivers")]
@@ -180,6 +183,13 @@ namespace StudentPath.API.Controllers
                     "An error occurred while updating vehicles",
                     500);
             }
+        }
+
+        [HttpGet("{driverId}/trip")]
+        public async Task<IActionResult> GetDriverTrip(string driverId)
+        {
+            var response = await _tripService.GetDriverTripDetailsAsync(driverId);
+            return StatusCode(response.StatusCode, response);
         }
 
         [HttpDelete("DeleteDriver/{id}")]

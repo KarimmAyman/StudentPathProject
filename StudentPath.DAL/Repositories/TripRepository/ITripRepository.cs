@@ -9,5 +9,6 @@ namespace StudentPath.DAL.Repositories.TripRepository
         Task<IEnumerable<Trip>> GetUpcomingTripsAsync();
         Task<IEnumerable<Trip>> SearchTripsAsync(Expression<Func<Trip, bool>> predicate);
         Task<IEnumerable<Trip>> GetDriverTripsAsync(string driverId);
+        Task<Trip> GetActiveTripByDriverIdAsync(string driverId);
     }
 }

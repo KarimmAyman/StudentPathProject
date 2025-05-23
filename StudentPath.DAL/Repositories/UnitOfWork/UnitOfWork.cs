@@ -4,6 +4,7 @@ using StudentPath.DAL.Data.Models;
 using StudentPath.DAL.Repositories.DriverRepository;
 using StudentPath.DAL.Repositories.GenericRepository;
 using StudentPath.DAL.Repositories.UserRepository;
+using StudentPath.DAL.Repositories.TripRepository;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,8 +21,9 @@ namespace StudentPath.DAL.Repositories.UnitOfWork
 
         public IGenericRepo<VehicleInfo> VehicleInfo { get; private set; }  // Add Driver repository
         public IGenericRepo<Location> Locations { get; private set; }  // Add Driver repository
-        public IGenericRepo<Trip> Trips { get; private set; }  // Add Trips repository
         public IGenericRepo<TripLocation> TripLocations { get; private set; }  // Add TripLocations repository
+        public ITripRepository Trips { get; private set; } // Changed from IGenericRepo<Trip> to ITripRepository
+        public IGenericRepo<Booking> Bookings { get; private set; } // Added for Booking entity
 
 
         public UnitOfWork(StudentPathContext _db)
@@ -32,8 +34,9 @@ namespace StudentPath.DAL.Repositories.UnitOfWork
             Driver = new DriverRepo(db);  // Add Driver repository
             VehicleInfo = new GenericRepo<VehicleInfo>(db);  // Add this
             Locations = new GenericRepo<Location>(db);       // Add this
-            Trips = new GenericRepo<Trip>(db);       // Add this
+            Trips = new TripRepository.TripRepository(db);
             TripLocations = new GenericRepo<TripLocation>(db);       // Add this
+            Bookings = new GenericRepo<Booking>(db);
 
         }
 

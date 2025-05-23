@@ -44,5 +44,16 @@ namespace StudentPath.DAL.Repositories.TripRepository
                 .Include(t => t.ToLocation)
                 .ToListAsync();
         }
+        public async Task<Trip> GetActiveTripByDriverIdAsync(string driverId)
+        {
+            var now = DateTime.UtcNow;
+            return await _context.Trips
+                .Where(t => t.DriverId == driverId && t.DepartureTime > now)
+                .OrderBy(t => t.DepartureTime) // Ensures the earliest upcoming trip is returned
+                .Include(t => t.FromLocation)  // Include related data for display
+                .Include(t => t.ToLocation)
+                .Include(t => t.Driver)
+                .FirstOrDefaultAsync();
+        }
     }
 }
