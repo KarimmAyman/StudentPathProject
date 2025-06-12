@@ -1,4 +1,5 @@
 ﻿using StudentPath.BLL.Dtoes.Accounts;
+using StudentPath.DAL.Data.Models;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
 
@@ -18,6 +19,7 @@ namespace StudentPath.BLL.Dtoes.Trips
         public decimal PricePerSeat { get; set; }
         public DateTime CreatedAt { get; set; }
 
+        public TripStatus Status { get; set; }
 
 
 

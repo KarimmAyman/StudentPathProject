@@ -24,6 +24,7 @@ namespace StudentPath.DAL.Repositories.UnitOfWork
         public IGenericRepo<TripLocation> TripLocations { get; private set; }  // Add TripLocations repository
         public ITripRepository Trips { get; private set; } // Changed from IGenericRepo<Trip> to ITripRepository
         public IGenericRepo<Booking> Bookings { get; private set; } // Added for Booking entity
+        
 
 
         public UnitOfWork(StudentPathContext _db)

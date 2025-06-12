@@ -46,14 +46,34 @@ namespace StudentPath.DAL.Repositories.TripRepository
         }
         public async Task<Trip> GetActiveTripByDriverIdAsync(string driverId)
         {
-            var now = DateTime.UtcNow;
             return await _context.Trips
-                .Where(t => t.DriverId == driverId && t.DepartureTime > now)
-                .OrderBy(t => t.DepartureTime) // Ensures the earliest upcoming trip is returned
-                .Include(t => t.FromLocation)  // Include related data for display
+                .Where(t => t.DriverId == driverId &&
+                           (t.Status == TripStatus.Planned || t.Status == TripStatus.Active) &&
+                           t.DepartureTime > DateTime.UtcNow)
+                .OrderBy(t => t.DepartureTime)
+                .Include(t => t.FromLocation)
                 .Include(t => t.ToLocation)
                 .Include(t => t.Driver)
                 .FirstOrDefaultAsync();
+        }
+
+        public async Task<IEnumerable<Trip>> GetTripsByStatusAsync(TripStatus status)
+        {
+            return await _context.Trips
+                .Where(t => t.Status == status)
+                .Include(t => t.FromLocation)
+                .Include(t => t.ToLocation)
+                .Include(t => t.Driver)
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<Trip>> GetDriverTripsByStatusAsync(string driverId, TripStatus status)
+        {
+            return await _context.Trips
+                .Where(t => t.DriverId == driverId && t.Status == status)
+                .Include(t => t.FromLocation)
+                .Include(t => t.ToLocation)
+                .ToListAsync();
         }
     }
 }

@@ -118,7 +118,7 @@ namespace StudentPath.BLL.Services.AccountService
                     UserName = registerDto.FullName,
                     Email = registerDto.Email,
                     PhoneNumber = registerDto.PhoneNumber,
-                    DateOfBirth = DateTime.UtcNow.AddYears(-registerDto.Age),
+                    Age = registerDto.Age,
                     Gender = registerDto.Gender,
                     IdNumber = registerDto.IdNumber,
                     LicenseNumber = registerDto.DrivingLicense,

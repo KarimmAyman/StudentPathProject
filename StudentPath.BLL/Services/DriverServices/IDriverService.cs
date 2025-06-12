@@ -12,6 +12,7 @@ namespace StudentPath.BLL.Services.DriverServices
         Task<DriverReadDTO> CreateDriverAsync(DriverAddDTO driverDto);
         Task<bool> UpdateDriverProfileAsync(string id, DriverUpdateDTO driverDto);
         Task<bool> UpdateDriverVehiclesAsync(string id, DriverVehicleUpdateDTO vehicleDto);
+        Task<DashboardDto> GetDriverDashboardAsync(string driverId);
         Task<bool> SoftDeleteDriverAsync(string id);
     }
 }

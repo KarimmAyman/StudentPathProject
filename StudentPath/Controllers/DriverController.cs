@@ -9,6 +9,7 @@ using StudentPath.BLL.Services.DriverServices;
 using StudentPath.BLL.Services.TripServices;
 using StudentPath.DAL.Data.DBHelpers;
 using System.Collections.Generic;
+using System.Security.Claims;
 using System.Text.Json;
 using System.Threading.Tasks;
 
@@ -192,6 +193,17 @@ namespace StudentPath.API.Controllers
             }
         }
 
+        [HttpGet("dashboard")]
+        public async Task<IActionResult> GetDriverDashboard()
+        {
+            var driverId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(driverId))
+                return Unauthorized("User not authenticated");
+
+            var dashboard = await _driverService.GetDriverDashboardAsync(driverId);
+            return Ok(dashboard);
+
+        }
 
         [HttpDelete("DeleteDriver/{id}")]
         public async Task<ActionResult<ApiResponse<string>>> DeleteDriver(string id)
