@@ -104,12 +104,17 @@ namespace StudentPath.API.Controllers
             // 8. Return the updated booking summary
             return Ok(new
             {
+                data = new
+                {
+                    bookingStatus = booking.BookingStatus.ToString(),
+                    bookingId = booking.BookingId,
+                    totalSeats = booking.NumberOfSeats,
+                    availableSeats = trip.AvailableSeats,
+                    totalPrice = booking.TotalPrice
+                },
                 message = "Booking processed successfully.",
-                bookingStatus = booking.BookingStatus.ToString(), // include status
-                bookingId = booking.BookingId,
-                totalSeats = booking.NumberOfSeats,
-                availableSeats = trip.AvailableSeats,
-                totalPrice = booking.TotalPrice,
+                success = true,
+                statusCode = 200
             });
         }
     }
