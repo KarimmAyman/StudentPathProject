@@ -267,11 +267,10 @@ public class Program
         //}
             app.UseSwagger();
             app.UseSwaggerUI();
-        app.UseStaticFiles();
+            app.UseStaticFiles();
             app.UseHttpsRedirection();
-        app.UseCors("AllowFrontend");
-
-        app.UseAuthentication();
+            app.UseCors("AllowFrontend");
+            app.UseAuthentication();
             app.UseAuthorization();
             app.MapControllers();
             app.Run();
