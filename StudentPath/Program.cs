@@ -176,7 +176,7 @@ public class Program
         builder.Services.AddScoped<IAdminService, AdminService>();
         builder.Services.AddScoped<ITripService, TripService>();
         builder.Services.AddScoped<StudentPath.BLL.Services.FileServices.IFileService, StudentPath.BLL.Services.FileServices.FileService>();
-
+        builder.Services.AddHostedService<TripStatusBackgroundService>();
 
 
 

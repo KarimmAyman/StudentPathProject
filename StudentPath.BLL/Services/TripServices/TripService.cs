@@ -25,10 +25,102 @@ namespace StudentPath.BLL.Services.TripServices
         {
             try
             {
+                // Check for existing active trip
+                var activeTrip = await _unitOfWork.Trips.GetFirstOrDefaultAsync(
+                    t => t.DriverId == driverId &&
+                         (t.Status == TripStatus.Planned || t.Status == TripStatus.Active) &&
+                         t.DepartureTime > DateTime.UtcNow);
+                if (activeTrip != null)
+                {
+                    // Calculate remaining seats
+                    var confirmedBookings = await _unitOfWork.Bookings
+                        .GetAsync(b => b.TripId == activeTrip.TripId && b.BookingStatus == BookingStatus.Confirmed);
+
+                    var reservedSeats = confirmedBookings.Sum(b => b.NumberOfSeats);
+                    var remainingSeats = activeTrip.AvailableSeats - reservedSeats;
+                    if (remainingSeats < 0) remainingSeats = 0;
+
+                    // Map to TripResponseDto
+                    new AdditionalInfoDTO
+                    {
+                        StartingPoint = activeTrip.FromLocation.DisplayName,
+                        Notes = activeTrip.DriverNotes,
+                        HasWiFi = activeTrip.HasWiFi,
+                        HasMusic = activeTrip.HasMusic,
+                        HasPhoneCharger = activeTrip.HasPhoneCharger,
+                        HasAirConditioning = activeTrip.HasAirConditioning,
+                        HasFreeWater = activeTrip.HasFreeWater
+                    }.PopulateAmenities();
+
+                    var tripResponse = new TripResponseDto
+                    {
+                        Id = activeTrip.TripId,
+                        FromLocation = new TripLocationDto
+                        {
+                            Latitude = activeTrip.FromLocation.Latitude,
+                            Longitude = activeTrip.FromLocation.Longitude,
+                            DisplayName = activeTrip.FromLocation.DisplayName,
+                            FullAddress = activeTrip.FromLocation.FullAddress,
+                            AdditionalNotes = activeTrip.FromLocation.AdditionalNotes
+                        },
+                        ToLocation = new TripLocationDto
+                        {
+                            Latitude = activeTrip.ToLocation.Latitude,
+                            Longitude = activeTrip.ToLocation.Longitude,
+                            DisplayName = activeTrip.ToLocation.DisplayName,
+                            FullAddress = activeTrip.ToLocation.FullAddress,
+                            AdditionalNotes = activeTrip.ToLocation.AdditionalNotes
+                        },
+                        BasicInfo = new BasicInfoDTO
+                        {
+                            DepartureTime = activeTrip.DepartureTime,
+                            EstimatedDistance = activeTrip.EstimatedDistance,
+                            EstimatedDuration = activeTrip.EstimatedDuration,
+                            AvailableSeats = remainingSeats // Use real-time remaining seats
+                        },
+                        DriverInfo = new DriverInfoDto
+                        {
+                            DriverId = activeTrip.DriverId,
+                            DriverName = activeTrip.Driver?.UserName,
+                            DriverPhone = activeTrip.Driver?.PhoneNumber,
+                            VehicleInfo = (activeTrip.Driver as Driver)?.VehicleInfo?
+                                .Where(v => v.DriverId == activeTrip.DriverId)
+                                .Select(v => new VehicleInfoDto
+                                {
+                                    VehicleModel = v.VehicleModel,
+                                    SeatingCapacity = v.SeatingCapacity,
+                                    PlateNumber = v.PlateNumber
+                                })
+                                .FirstOrDefault()
+                        },
+                        AdditionalInfo = new AdditionalInfoDTO
+                        {
+                            StartingPoint = activeTrip.FromLocation.DisplayName,
+                            Notes = activeTrip.DriverNotes,
+                        },
+
+                        PricePerSeat = activeTrip.PricePerSeat,
+                        Status = activeTrip.Status,
+                        CreatedAt = activeTrip.CreatedAt
+                    };
+
+                    return ApiResponse<TripResponseDto>.SuccessResponse(
+                        "Driver can only have one active or planned trip at a time",
+                        200,
+                        tripResponse);
+                }
                 // Validate driver exists
                 var driver = await _unitOfWork.Driver.GetFirstOrDefaultAsync(u => u.Id == driverId);
                 if (driver == null)
                     return ApiResponse<TripResponseDto>.ErrorResponse("Driver not found", 404);
+
+                // Validate departure time
+                if (dto.DepartureTime <= DateTime.UtcNow)
+                    return ApiResponse<TripResponseDto>.ErrorResponse("Departure time must be in the future", 400);
+
+                // Validate price
+                if (dto.PricePerSeat <= 0)
+                    return ApiResponse<TripResponseDto>.ErrorResponse("Price per seat must be positive", 400);
 
                 // Create locations
                 var fromLocation = new TripLocation
@@ -71,6 +163,7 @@ namespace StudentPath.BLL.Services.TripServices
                     HasFreeWater = dto.HasFreeWater,
                     HasMusic = dto.HasMusic,
                     DriverId = driverId,
+                    Status = TripStatus.Planned, 
                     CreatedAt = DateTime.UtcNow
                 };
 
@@ -117,7 +210,8 @@ namespace StudentPath.BLL.Services.TripServices
                         DepartureTime = trip.DepartureTime,
                         EstimatedDistance = trip.EstimatedDistance,
                         EstimatedDuration = trip.EstimatedDuration,
-                        AvailableSeats = trip.AvailableSeats
+                        AvailableSeats = trip.AvailableSeats,
+
                     },
                     DriverInfo = new DriverInfoDto
                     {
@@ -137,6 +231,7 @@ namespace StudentPath.BLL.Services.TripServices
                     },
                     AdditionalInfo=additionalInfo,
                    
+                  Status = trip.Status,
                   PricePerSeat = trip.PricePerSeat,
 
                     CreatedAt = trip.CreatedAt
@@ -250,7 +345,7 @@ namespace StudentPath.BLL.Services.TripServices
                     t => t.TripId == tripId,
                     includeProperties: [
                         t => t.FromLocation,
-                        t => t.ToLocation
+                t => t.ToLocation
                     ]);
 
                 if (trip == null)
@@ -259,10 +354,12 @@ namespace StudentPath.BLL.Services.TripServices
                 if (trip.DriverId != driverId)
                     return ApiResponse.ErrorResponse("Unauthorized to delete this trip", 403);
 
-                await _unitOfWork.Trips.DeleteAsync(trip);
+                // Instead of deleting, you might want to mark as canceled
+                trip.Status = TripStatus.Canceled;
+                await _unitOfWork.Trips.CreateOrUpdateAsync(trip);
                 await _unitOfWork.Save();
 
-                return ApiResponse.SuccessResponse("Trip deleted successfully");
+                return ApiResponse.SuccessResponse("Trip canceled successfully");
             }
             catch (Exception ex)
             {
@@ -348,7 +445,8 @@ namespace StudentPath.BLL.Services.TripServices
 
 
                     PricePerSeat = trip.PricePerSeat,
-                   
+                    Status = trip.Status,
+
                     CreatedAt = trip.CreatedAt
                 };
 
@@ -366,9 +464,10 @@ namespace StudentPath.BLL.Services.TripServices
             try
             {
                 // Fixed filter logic
-                Expression<Func<Trip, bool>>? filter = includePast
-                    ? null
-                    : t => t.DepartureTime > DateTime.UtcNow; // Changed to >
+            Expression<Func<Trip, bool>>? filter = includePast
+                ? t => t.Status != TripStatus.Canceled // Exclude canceled trips
+                : t => t.DepartureTime > DateTime.UtcNow && 
+                     (t.Status == TripStatus.Planned || t.Status == TripStatus.Active);
 
                 var trips = await _unitOfWork.Trips.GetAsync(
                     filter: filter,
@@ -447,7 +546,7 @@ namespace StudentPath.BLL.Services.TripServices
 
                         AdditionalInfo = additionalInfo,
                         PricePerSeat = trip.PricePerSeat,
-
+                        Status = trip.Status,
                         CreatedAt = trip.CreatedAt
                     };
                 });
@@ -536,6 +635,7 @@ namespace StudentPath.BLL.Services.TripServices
                         },
                         AdditionalInfo = additionalInfo,
                         PricePerSeat = trip.PricePerSeat,
+                        Status = trip.Status,
                         CreatedAt = trip.CreatedAt
                     };
                 });
@@ -632,6 +732,7 @@ namespace StudentPath.BLL.Services.TripServices
                         },
                         AdditionalInfo = additionalInfo,
                         PricePerSeat = trip.PricePerSeat,
+                        Status = trip.Status,
                         CreatedAt = trip.CreatedAt
                     };
                 });
@@ -644,83 +745,274 @@ namespace StudentPath.BLL.Services.TripServices
             }
         }
 
-        //    public async Task<ApiResponse<IEnumerable<TripResponseDto>>> GetTripsByAmenitiesAsync(TripAmenitiesDto amenities)
-        //    {
-        //        try
-        //        {
-        //            Expression<Func<Trip, bool>> filter = t =>
-        //                t.DepartureTime > DateTime.UtcNow;
+        public async Task<ApiResponse<TripResponseDto>> GetDriverTripDetailsAsync(string driverId)
+        {
+            try
+            {
+                // Fetch the active trip with related data
+                var trip = await _unitOfWork.Trips.GetActiveTripByDriverIdAsync(driverId);
+                if (trip == null)
+                {
+                    return ApiResponse<TripResponseDto>.ErrorResponse("No active trip found", 404);
+                }
 
-        //            // Apply amenity filters if specified
-        //            if (amenities.HasWiFi.HasValue)
-        //                filter = filter.And(t => t.HasWiFi == amenities.HasWiFi);
-        //            if (amenities.HasPhoneCharger.HasValue)
-        //                filter = filter.And(t => t.HasPhoneCharger == amenities.HasPhoneCharger);
-        //            if (amenities.HasAirConditioning.HasValue)
-        //                filter = filter.And(t => t.HasAirConditioning == amenities.HasAirConditioning);
-        //            if (amenities.HasFreeWater.HasValue)
-        //                filter = filter.And(t => t.HasFreeWater == amenities.HasFreeWater);
-        //            if (amenities.HasMusic.HasValue)
-        //                filter = filter.And(t => t.HasMusic == amenities.HasMusic);
+                // Calculate remaining seats
+                var confirmedBookings = await _unitOfWork.Bookings
+                    .GetAsync(b => b.TripId == trip.TripId && b.BookingStatus == BookingStatus.Confirmed);
 
-        //            var trips = await _unitOfWork.Trips.GetAsync(
-        //                filter,
-        //                includeProperties: new Expression<Func<Trip, object>>[] {
-        //                    t => t.FromLocation,
-        //                    t => t.ToLocation,
-        //                    t => t.Driver
-        //                });
+                var reservedSeats = confirmedBookings.Sum(b => b.NumberOfSeats);
+                var remainingSeats = trip.AvailableSeats - reservedSeats;
+                if (remainingSeats < 0) remainingSeats = 0;
 
-        //            // Manual mapping
-        //            var result = trips.Select(trip => new TripResponseDto
-        //            {
-        //                Id = trip.TripId,
-        //                FromLocation = new TripLocationDto
-        //                {
-        //                    Latitude = trip.FromLocation.Latitude,
-        //                    Longitude = trip.FromLocation.Longitude,
-        //                    DisplayName = trip.FromLocation.DisplayName,
-        //                    FullAddress = trip.FromLocation.FullAddress,
-        //                    AdditionalNotes = trip.FromLocation.AdditionalNotes
-        //                },
-        //                ToLocation = new TripLocationDto
-        //                {
-        //                    Latitude = trip.ToLocation.Latitude,
-        //                    Longitude = trip.ToLocation.Longitude,
-        //                    DisplayName = trip.ToLocation.DisplayName,
-        //                    FullAddress = trip.ToLocation.FullAddress,
-        //                    AdditionalNotes = trip.ToLocation.AdditionalNotes
-        //                },
-        //                DriverName = trip.Driver?.UserName,
-        //                DriverPhone = trip.Driver?.PhoneNumber,
-        //                StartingPoint = trip.FromLocation.DisplayName,
-        //                Destination = trip.ToLocation.DisplayName,
-        //                DepartureTime = trip.DepartureTime,
-        //                AvailableSeats = trip.AvailableSeats,
-        //                PricePerSeat = trip.PricePerSeat,
-        //                Notes = trip.DriverNotes,
-        //                CreatedAt = trip.CreatedAt
-        //            });
+                // Map to TripResponseDto
+                var additionalInfo = new AdditionalInfoDTO
+                {
+                    StartingPoint = trip.FromLocation.DisplayName,
+                    Notes = trip.DriverNotes,
+                    HasWiFi = trip.HasWiFi,
+                    HasMusic = trip.HasMusic,
+                    HasPhoneCharger = trip.HasPhoneCharger,
+                    HasAirConditioning = trip.HasAirConditioning,
+                    HasFreeWater = trip.HasFreeWater
+                };
+                additionalInfo.PopulateAmenities();
 
-        //            return ApiResponse<IEnumerable<TripResponseDto>>.SuccessResponse("Trips retrieved successfully", data: result);
-        //        }
-        //        catch (Exception ex)
-        //        {
-        //            return ApiResponse<IEnumerable<TripResponseDto>>.ErrorResponse($"An error occurred: {ex.Message}", 500);
-        //        }
-        //    }
-        //}
+                var result = new TripResponseDto
+                {
+                    Id = trip.TripId,
+                    FromLocation = new TripLocationDto
+                    {
+                        Latitude = trip.FromLocation.Latitude,
+                        Longitude = trip.FromLocation.Longitude,
+                        DisplayName = trip.FromLocation.DisplayName,
+                        FullAddress = trip.FromLocation.FullAddress,
+                        AdditionalNotes = trip.FromLocation.AdditionalNotes
+                    },
+                    ToLocation = new TripLocationDto
+                    {
+                        Latitude = trip.ToLocation.Latitude,
+                        Longitude = trip.ToLocation.Longitude,
+                        DisplayName = trip.ToLocation.DisplayName,
+                        FullAddress = trip.ToLocation.FullAddress,
+                        AdditionalNotes = trip.ToLocation.AdditionalNotes
+                    },
+                    BasicInfo = new BasicInfoDTO
+                    {
+                        DepartureTime = trip.DepartureTime,
+                        EstimatedDistance = trip.EstimatedDistance,
+                        EstimatedDuration = trip.EstimatedDuration,
+                        AvailableSeats = remainingSeats // Use real-time remaining seats
+                    },
+                    DriverInfo = new DriverInfoDto
+                    {
+                        DriverId = trip.DriverId,
+                        DriverName = trip.Driver?.UserName,
+                        DriverPhone = trip.Driver?.PhoneNumber,
+                        VehicleInfo = (trip.Driver as Driver)?.VehicleInfo?
+                            .Where(v => v.DriverId == trip.DriverId)
+                            .Select(v => new VehicleInfoDto
+                            {
+                                VehicleModel = v.VehicleModel,
+                                SeatingCapacity = v.SeatingCapacity,
+                                PlateNumber = v.PlateNumber
+                            })
+                            .FirstOrDefault()
+                    },
+                    AdditionalInfo = additionalInfo,
+                    Status = trip.Status,
+                    PricePerSeat = trip.PricePerSeat,
+                    CreatedAt = trip.CreatedAt
+                };
 
-        //public static class ExpressionExtensions
-        //{
-        //    public static Expression<Func<T, bool>> And<T>(this Expression<Func<T, bool>> expr1, Expression<Func<T, bool>> expr2)
-        //    {
-        //        var parameter = Expression.Parameter(typeof(T));
-        //        var body = Expression.AndAlso(
-        //            Expression.Invoke(expr1, parameter),
-        //            Expression.Invoke(expr2, parameter));
-        //        return Expression.Lambda<Func<T, bool>>(body, parameter);
-        //    }
-        //}
+                return ApiResponse<TripResponseDto>.SuccessResponse("Trip details retrieved successfully", 200, result);
+            }
+            catch (Exception ex)
+            {
+                return ApiResponse<TripResponseDto>.ErrorResponse($"An error occurred: {ex.Message}", 500);
+            }
+        }
+
+        public async Task<ApiResponse<TripResponseDto>> UpdateTripStatusAsync(int tripId, TripStatus newStatus, string driverId)
+        {
+            try
+            {
+                var trip = await _unitOfWork.Trips.GetFirstOrDefaultAsync(
+                    t => t.TripId == tripId &&
+                                                t.Status != TripStatus.Canceled, // Exclude canceled trips
+                    includeProperties: [
+                        t => t.FromLocation,
+                        t => t.ToLocation,
+                        t => t.Driver
+                    ]);
+
+                if (trip == null)
+                    return ApiResponse<TripResponseDto>.ErrorResponse("Trip not found", 404);
+
+                if (trip.DriverId != driverId)
+                    return ApiResponse<TripResponseDto>.ErrorResponse("Unauthorized to update this trip", 403);
+
+                // Validate status transitions
+                if (trip.Status == TripStatus.Completed && newStatus != TripStatus.Completed)
+                    return ApiResponse<TripResponseDto>.ErrorResponse("Completed trips cannot be modified", 400);
+
+                trip.Status = newStatus;
+                await _unitOfWork.Trips.CreateOrUpdateAsync(trip);
+                await _unitOfWork.Save();
+
+                var additionalInfo = new AdditionalInfoDTO
+                {
+                    StartingPoint = trip.FromLocation.DisplayName,
+                    Notes = trip.DriverNotes,
+                    HasWiFi = trip.HasWiFi,
+                    HasMusic = trip.HasMusic,
+                    HasPhoneCharger = trip.HasPhoneCharger,
+                    HasAirConditioning = trip.HasAirConditioning,
+                    HasFreeWater = trip.HasFreeWater
+                };
+                additionalInfo.PopulateAmenities();
+
+                var result = new TripResponseDto
+                {
+                    Id = trip.TripId,
+                    FromLocation = new TripLocationDto
+                    {
+                        Latitude = trip.FromLocation.Latitude,
+                        Longitude = trip.FromLocation.Longitude,
+                        DisplayName = trip.FromLocation.DisplayName,
+                        FullAddress = trip.FromLocation.FullAddress,
+                        AdditionalNotes = trip.FromLocation.AdditionalNotes
+                    },
+                    ToLocation = new TripLocationDto
+                    {
+                        Latitude = trip.ToLocation.Latitude,
+                        Longitude = trip.ToLocation.Longitude,
+                        DisplayName = trip.ToLocation.DisplayName,
+                        FullAddress = trip.ToLocation.FullAddress,
+                        AdditionalNotes = trip.ToLocation.AdditionalNotes
+                    },
+                    BasicInfo = new BasicInfoDTO
+                    {
+                        DepartureTime = trip.DepartureTime,
+                        EstimatedDistance = trip.EstimatedDistance,
+                        EstimatedDuration = trip.EstimatedDuration,
+                        AvailableSeats = trip.AvailableSeats
+                    },
+                    DriverInfo = new DriverInfoDto
+                    {
+                        DriverId = trip.DriverId,
+                        DriverName = trip.Driver?.UserName,
+                        DriverPhone = trip.Driver?.PhoneNumber,
+                        VehicleInfo = (trip.Driver as Driver)?.VehicleInfo?
+                            .Where(v => v.DriverId == trip.DriverId)
+                            .Select(v => new VehicleInfoDto
+                            {
+                                VehicleModel = v.VehicleModel,
+                                SeatingCapacity = v.SeatingCapacity,
+                                PlateNumber = v.PlateNumber
+                            })
+                            .FirstOrDefault()
+                    },
+                    AdditionalInfo = additionalInfo,
+                    Status = trip.Status,
+                    PricePerSeat = trip.PricePerSeat,
+                    CreatedAt = trip.CreatedAt
+                };
+
+                return ApiResponse<TripResponseDto>.SuccessResponse(
+                    "Trip status updated successfully",
+                    data: result);
+            }
+            catch (Exception ex)
+            {
+                return ApiResponse<TripResponseDto>.ErrorResponse($"An error occurred: {ex.Message}", 500);
+            }
+        }
+
+        public async Task<ApiResponse<IEnumerable<TripResponseDto>>> GetTripsByStatusAsync(TripStatus status)
+        {
+            try
+            {
+                var trips = await _unitOfWork.Trips.GetAsync(
+                    t => t.Status == status,
+                    includeProperties: [
+                        t => t.FromLocation,
+                        t => t.ToLocation,
+                        t => t.Driver
+                    ]);
+
+                var result = trips.Select(trip => 
+                {
+                    var additionalInfo = new AdditionalInfoDTO
+                    {
+                        StartingPoint = trip.FromLocation.DisplayName,
+                        Notes = trip.DriverNotes,
+                        HasWiFi = trip.HasWiFi,
+                        HasMusic = trip.HasMusic,
+                        HasPhoneCharger = trip.HasPhoneCharger,
+                        HasAirConditioning = trip.HasAirConditioning,
+                        HasFreeWater = trip.HasFreeWater
+                    };
+                    additionalInfo.PopulateAmenities();
+
+                    return new TripResponseDto
+                    {
+                        Id = trip.TripId,
+                        FromLocation = new TripLocationDto
+                        {
+                            Latitude = trip.FromLocation.Latitude,
+                            Longitude = trip.FromLocation.Longitude,
+                            DisplayName = trip.FromLocation.DisplayName,
+                            FullAddress = trip.FromLocation.FullAddress,
+                            AdditionalNotes = trip.FromLocation.AdditionalNotes
+                        },
+                        ToLocation = new TripLocationDto
+                        {
+                            Latitude = trip.ToLocation.Latitude,
+                            Longitude = trip.ToLocation.Longitude,
+                            DisplayName = trip.ToLocation.DisplayName,
+                            FullAddress = trip.ToLocation.FullAddress,
+                            AdditionalNotes = trip.ToLocation.AdditionalNotes
+                        },
+                        BasicInfo = new BasicInfoDTO
+                        {
+                            DepartureTime = trip.DepartureTime,
+                            EstimatedDistance = trip.EstimatedDistance,
+                            EstimatedDuration = trip.EstimatedDuration,
+                            AvailableSeats = trip.AvailableSeats
+                        },
+                        DriverInfo = new DriverInfoDto
+                        {
+                            DriverId = trip.DriverId,
+                            DriverName = trip.Driver?.UserName,
+                            DriverPhone = trip.Driver?.PhoneNumber,
+                            VehicleInfo = (trip.Driver as Driver)?.VehicleInfo?
+                                .Where(v => v.DriverId == trip.DriverId)
+                                .Select(v => new VehicleInfoDto
+                                {
+                                    VehicleModel = v.VehicleModel,
+                                    SeatingCapacity = v.SeatingCapacity,
+                                    PlateNumber = v.PlateNumber
+                                })
+                                .FirstOrDefault()
+                        },
+                        AdditionalInfo = additionalInfo,
+                        Status = trip.Status,
+                        PricePerSeat = trip.PricePerSeat,
+                        CreatedAt = trip.CreatedAt
+                    };
+                });
+
+                return ApiResponse<IEnumerable<TripResponseDto>>.SuccessResponse(
+                    "Trips retrieved successfully",
+                    200,
+                    data: result);
+            }
+            catch (Exception ex)
+            {
+                return ApiResponse<IEnumerable<TripResponseDto>>.ErrorResponse(
+                    $"An error occurred: {ex.Message}",
+                    500);
+            }
+        }
     }
 }

@@ -86,7 +86,7 @@ namespace StudentPath.DAL.Data.Models
     // Driver subclass
     public class Driver : User
     {
-        public DateTime DateOfBirth { get; set; }
+        public int Age { get; set; }
         public string IdNumber { get; set; }
         public string IdFrontPath { get; set; }
         public string IdBackPath { get; set; }

@@ -38,7 +38,8 @@ namespace StudentPath.DAL.Data.Models
         public double? EstimatedDistance { get; set; } // in kilometers
         public TimeSpan? EstimatedDuration { get; set; }
         public DateTime? EstimatedArrivalTime { get; set; }
-
+        [Required]
+        public TripStatus Status { get; set; } = TripStatus.Planned;
         // Amenities
         public bool HasWiFi { get; set; }
         public bool HasPhoneCharger { get; set; }
@@ -53,5 +54,13 @@ namespace StudentPath.DAL.Data.Models
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public virtual ICollection<Booking> Bookings { get; set; } = new HashSet<Booking>();
     }
+    public enum TripStatus
+    {
+        Planned,    // Trip is created but not yet active (0)
+        Active,     // Trip is currently in progress (1)
+        Completed,  // Trip has finished successfully (2)
+        Canceled    // Trip was canceled (3)
+    }
+
 
 }

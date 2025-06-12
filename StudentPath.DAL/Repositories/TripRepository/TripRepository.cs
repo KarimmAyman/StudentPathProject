@@ -44,5 +44,36 @@ namespace StudentPath.DAL.Repositories.TripRepository
                 .Include(t => t.ToLocation)
                 .ToListAsync();
         }
+        public async Task<Trip> GetActiveTripByDriverIdAsync(string driverId)
+        {
+            return await _context.Trips
+                .Where(t => t.DriverId == driverId &&
+                           (t.Status == TripStatus.Planned || t.Status == TripStatus.Active) &&
+                           t.DepartureTime > DateTime.UtcNow)
+                .OrderBy(t => t.DepartureTime)
+                .Include(t => t.FromLocation)
+                .Include(t => t.ToLocation)
+                .Include(t => t.Driver)
+                .FirstOrDefaultAsync();
+        }
+
+        public async Task<IEnumerable<Trip>> GetTripsByStatusAsync(TripStatus status)
+        {
+            return await _context.Trips
+                .Where(t => t.Status == status)
+                .Include(t => t.FromLocation)
+                .Include(t => t.ToLocation)
+                .Include(t => t.Driver)
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<Trip>> GetDriverTripsByStatusAsync(string driverId, TripStatus status)
+        {
+            return await _context.Trips
+                .Where(t => t.DriverId == driverId && t.Status == status)
+                .Include(t => t.FromLocation)
+                .Include(t => t.ToLocation)
+                .ToListAsync();
+        }
     }
 }

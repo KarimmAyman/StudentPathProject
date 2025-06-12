@@ -6,8 +6,10 @@ using StudentPath.BLL.Dtoes;
 using StudentPath.BLL.Dtoes.Accounts;
 using StudentPath.BLL.Dtoes.Drivers;
 using StudentPath.BLL.Services.DriverServices;
+using StudentPath.BLL.Services.TripServices;
 using StudentPath.DAL.Data.DBHelpers;
 using System.Collections.Generic;
+using System.Security.Claims;
 using System.Text.Json;
 using System.Threading.Tasks;
 
@@ -19,11 +21,13 @@ namespace StudentPath.API.Controllers
     {
         private readonly IDriverService _driverService;
         private readonly StudentPathContext context;
+        private readonly ITripService _tripService;
 
-        public DriverController(IDriverService driverService,StudentPathContext context)
+        public DriverController(IDriverService driverService,StudentPathContext context, ITripService tripService)
         {
             _driverService = driverService;
             this.context = context;
+            _tripService = tripService;
         }
 
         [HttpGet("GetAllDrivers")]
@@ -68,6 +72,13 @@ namespace StudentPath.API.Controllers
                     "An error occurred while retrieving the driver",
                     500);
             }
+        }
+
+        [HttpGet("{driverId}/trip")]
+        public async Task<IActionResult> GetDriverTrip(string driverId)
+        {
+            var response = await _tripService.GetDriverTripDetailsAsync(driverId);
+            return StatusCode(response.StatusCode, response);
         }
 
         [HttpPost("AddDriver")]
@@ -180,6 +191,18 @@ namespace StudentPath.API.Controllers
                     "An error occurred while updating vehicles",
                     500);
             }
+        }
+
+        [HttpGet("dashboard")]
+        public async Task<IActionResult> GetDriverDashboard()
+        {
+            var driverId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(driverId))
+                return Unauthorized("User not authenticated");
+
+            var dashboard = await _driverService.GetDriverDashboardAsync(driverId);
+            return Ok(dashboard);
+
         }
 
         [HttpDelete("DeleteDriver/{id}")]
