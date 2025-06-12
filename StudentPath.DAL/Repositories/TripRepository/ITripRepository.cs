@@ -10,5 +10,7 @@ namespace StudentPath.DAL.Repositories.TripRepository
         Task<IEnumerable<Trip>> SearchTripsAsync(Expression<Func<Trip, bool>> predicate);
         Task<IEnumerable<Trip>> GetDriverTripsAsync(string driverId);
         Task<Trip> GetActiveTripByDriverIdAsync(string driverId);
+        Task<IEnumerable<Trip>> GetTripsByStatusAsync(TripStatus status);
+        Task<IEnumerable<Trip>> GetDriverTripsByStatusAsync(string driverId, TripStatus status);
     }
 }

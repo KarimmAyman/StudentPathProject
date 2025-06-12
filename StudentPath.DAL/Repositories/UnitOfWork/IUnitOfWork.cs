@@ -23,6 +23,7 @@ namespace StudentPath.DAL.Repositories.UnitOfWork
         public IGenericRepo<TripLocation> TripLocations { get; }  // Add TripLocations repository
         public IGenericRepo<Booking> Bookings { get; } // Added for Booking entity
 
+
         public Task Save();
 
     }

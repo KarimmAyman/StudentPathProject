@@ -255,7 +255,8 @@ namespace StudentPath.Controllers
                         },
                         AdditionalInfo = additionalInfo,
                         PricePerSeat = t.PricePerSeat,
-                        CreatedAt = t.CreatedAt
+                        Status = t.Status,
+                       CreatedAt = t.CreatedAt
                     };
                 });
 
@@ -401,6 +402,23 @@ namespace StudentPath.Controllers
                 success = true,
                 statusCode = 200
             });
+        }
+        [HttpPatch("{tripId}/status")]
+        public async Task<IActionResult> UpdateTripStatus(int tripId, [FromBody] UpdateTripStatusDto dto)
+        {
+            var driverId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(driverId))
+                return Unauthorized("User not authenticated");
+
+            var result = await _tripService.UpdateTripStatusAsync(tripId, dto.NewStatus, driverId);
+            return StatusCode(result.StatusCode, result);
+        }
+
+        [HttpGet("status/{status}")]
+        public async Task<IActionResult> GetTripsByStatus(TripStatus status)
+        {
+            var result = await _tripService.GetTripsByStatusAsync(status);
+            return StatusCode(result.StatusCode, result);
         }
     }
 }

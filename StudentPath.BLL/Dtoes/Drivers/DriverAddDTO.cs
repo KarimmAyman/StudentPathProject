@@ -12,7 +12,7 @@ namespace StudentPath.BLL.Dtoes
         // Personal Info
         public string UserName { get; set; }
         public string Email { get; set; }
-        public DateTime DateOfBirth { get; set; }
+        public int Age { get; set; }
         public string PhoneNumber { get; set; }
         public GenderType Gender { get; set; }
 

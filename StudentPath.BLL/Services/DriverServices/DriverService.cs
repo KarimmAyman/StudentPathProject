@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Net.NetworkInformation;
 using System.Threading.Tasks;
 
 namespace StudentPath.BLL.Services.DriverServices
@@ -62,7 +63,7 @@ namespace StudentPath.BLL.Services.DriverServices
             }
 
             // Update driver properties
-            driver.DateOfBirth = driverDto.DateOfBirth;
+            driver.Age = driverDto.Age;
             driver.Gender = driverDto.Gender;
             driver.IdNumber = driverDto.IdNumber;
             driver.LicenseNumber = driverDto.LicenseNumber;
@@ -144,7 +145,7 @@ namespace StudentPath.BLL.Services.DriverServices
                 { nameof(driverDto.UserName), () => driver.UserName = driverDto.UserName ?? driver.UserName },
                 { nameof(driverDto.Email), () => driver.Email = driverDto.Email ?? driver.Email },
                 { nameof(driverDto.PhoneNumber), () => driver.PhoneNumber = driverDto.PhoneNumber ?? driver.PhoneNumber },
-                { nameof(driverDto.DateOfBirth), () => driver.DateOfBirth = driverDto.DateOfBirth ?? driver.DateOfBirth },
+                { nameof(driverDto.Age), () => driver.Age = driverDto.Age != 0 ? driverDto.Age : driver.Age }, // Fixed here
                 { nameof(driverDto.IdNumber), () => driver.IdNumber = driverDto.IdNumber ?? driver.IdNumber },
                 { nameof(driverDto.LicenseNumber), () => driver.LicenseNumber = driverDto.LicenseNumber ?? driver.LicenseNumber },
                 { nameof(driverDto.LicenseExpiryDate), () => driver.LicenseExpiryDate = driverDto.LicenseExpiryDate ?? driver.LicenseExpiryDate }
@@ -252,6 +253,64 @@ namespace StudentPath.BLL.Services.DriverServices
             return true;
         }
 
+        public async Task<DashboardDto> GetDriverDashboardAsync(string driverId)
+        {
+            var dashboard = new DashboardDto();
+
+            //// Get driver's wallet balance
+            //var wallet = await _unitOfWork.Wallets.GetFirstOrDefaultAsync(w => w.DriverId == driverId);
+            //dashboard.Balance = wallet?.Balance ?? 0;
+
+            //// Calculate earnings summary (total earnings)
+            //var payments = await _unitOfWork.Payments.GetAsync(
+            //    p => p.Trip.DriverId == driverId && p.Status == PaymentStatus.Completed);
+            //dashboard.EarningsSummary = payments.Sum(p => p.Amount);
+
+            // Get driver entity to access Balance
+            var driver = await _unitOfWork.Driver.GetFirstOrDefaultAsync(d => d.Id == driverId);
+            dashboard.Balance = driver?.Balance ?? 0;
+
+            // static earnings summary (gemy will replace with actual calculation from his work later)
+            dashboard.EarningsSummary = 1234.56m;
+
+            // Get completed trips count
+            var completedTrips = await _unitOfWork.Trips.GetAsync(
+                t => t.DriverId == driverId && t.Status == TripStatus.Completed);
+            dashboard.CompletedTripsCount = completedTrips.Count();
+
+            // Get weekly stats
+            var startDate = DateTime.Today.AddDays(-(int)DateTime.Today.DayOfWeek);
+            var endDate = startDate.AddDays(7);
+
+            var weeklyTrips = await _unitOfWork.Trips.GetAsync(
+                t => t.DriverId == driverId &&
+                     t.Status == TripStatus.Completed &&
+                     t.DepartureTime >= startDate &&
+                     t.DepartureTime < endDate);
+
+            dashboard.WeeklyStats = new WeeklyTripStatsDto
+            {
+                Sunday = weeklyTrips.Count(t => t.DepartureTime.DayOfWeek == DayOfWeek.Sunday),
+                Monday = weeklyTrips.Count(t => t.DepartureTime.DayOfWeek == DayOfWeek.Monday),
+                Tuesday = weeklyTrips.Count(t => t.DepartureTime.DayOfWeek == DayOfWeek.Tuesday),
+                Wednesday = weeklyTrips.Count(t => t.DepartureTime.DayOfWeek == DayOfWeek.Wednesday),
+                Thursday = weeklyTrips.Count(t => t.DepartureTime.DayOfWeek == DayOfWeek.Thursday),
+                Friday = weeklyTrips.Count(t => t.DepartureTime.DayOfWeek == DayOfWeek.Friday),
+                Saturday = weeklyTrips.Count(t => t.DepartureTime.DayOfWeek == DayOfWeek.Saturday)
+            };
+
+            return dashboard;
+        }
+
+        public async Task<bool> SoftDeleteDriverAsync(string id)
+        {
+            var driver = await _unitOfWork.Driver.GetFirstOrDefaultAsync(d => d.Id == id);
+            if (driver == null || driver.IsDeleted) return false;
+
+            await _unitOfWork.Driver.SoftDeleteAsync(driver);
+            await _unitOfWork.Save();
+            return true;
+        }
         private async Task UpdateDriverLocations(Driver driver, List<LocationDto> locationDtos)
         {
             var existingLocations = driver.Locations.ToList();
@@ -283,15 +342,6 @@ namespace StudentPath.BLL.Services.DriverServices
                 driver.Locations.Remove(location); // Use ICollection.Remove instead of RemoveAll
             }
         }
-        public async Task<bool> SoftDeleteDriverAsync(string id)
-        {
-            var driver = await _unitOfWork.Driver.GetFirstOrDefaultAsync(d => d.Id == id);
-            if (driver == null || driver.IsDeleted) return false;
-
-            await _unitOfWork.Driver.SoftDeleteAsync(driver);
-            await _unitOfWork.Save();
-            return true;
-        }
         
         private DriverReadDTO MapToDriverReadDTO(Driver driver)
         {
@@ -301,7 +351,7 @@ namespace StudentPath.BLL.Services.DriverServices
                 UserName = driver.UserName,
                 Email = driver.Email,
                 PhoneNumber = driver.PhoneNumber,
-                Age = CalculateAge(driver.DateOfBirth),
+                Age = driver.Age,
                 Gender = driver.Gender,
                 ImgUrl = driver.ImgUrl,
                 UserType = driver.UserType,
@@ -369,14 +419,6 @@ namespace StudentPath.BLL.Services.DriverServices
                 VehicleInfo = baseDto.VehicleInfo,
                 Locations = baseDto.Locations,
             };
-        }
-
-        private int CalculateAge(DateTime dateOfBirth)
-        {
-            var today = DateTime.Today;
-            var age = today.Year - dateOfBirth.Year;
-            if (dateOfBirth.Date > today.AddYears(-age)) age--;
-            return age;
         }
     }
 }
