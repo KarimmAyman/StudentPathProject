@@ -10,6 +10,7 @@ namespace StudentPath.BLL.Dtoes
     public class DriverAddDTO
     {
         // Personal Info
+        public IFormFile? PersonalPhoto { get; set; }
         public string UserName { get; set; }
         public string Email { get; set; }
         public int Age { get; set; }
