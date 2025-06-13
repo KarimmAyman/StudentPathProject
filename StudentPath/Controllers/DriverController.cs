@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Azure;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Stripe;
 using Stripe.Identity;
@@ -8,10 +9,12 @@ using StudentPath.BLL.Dtoes.Drivers;
 using StudentPath.BLL.Services.DriverServices;
 using StudentPath.BLL.Services.TripServices;
 using StudentPath.DAL.Data.DBHelpers;
+using StudentPath.DAL.Data.Models;
 using System.Collections.Generic;
 using System.Security.Claims;
 using System.Text.Json;
 using System.Threading.Tasks;
+using static StudentPath.DAL.Data.Models.DriverWalletTransaction;
 
 namespace StudentPath.API.Controllers
 {
@@ -231,8 +234,107 @@ namespace StudentPath.API.Controllers
         }
 
 
+        [HttpPost("withdraw-from-wallet")]
+        public async Task<IActionResult> WithdrawDriverWalletTransaction(WithdrawWalletDto withdrawWalletDto)
+        {
+            var driverId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (string.IsNullOrEmpty(driverId))
+                return Unauthorized("Driver ID not found in token.");
+
+            using var transactionScope = await context.Database.BeginTransactionAsync();
+
+            try { 
+            var driver = await context.Drivers.FindAsync(driverId);
+            if (driver == null) return NotFound("Driver not found.");
+
+            
+                decimal currentBalance = driver.Balance ?? 0;
+                if (currentBalance < withdrawWalletDto.Amount)
+                    return BadRequest("Insufficient balance for withdrawal.");
+
+                // Deduct amount
+                decimal newBalance = currentBalance - withdrawWalletDto.Amount;
 
 
-       
+            // Create the transaction with the new balance
+            var transaction = new DriverWalletTransaction
+            {
+                DriverId = driverId,
+                Amount = withdrawWalletDto.Amount,
+                TransactionDate = DateTime.UtcNow,
+                Operation = WalletTransactionOperation.Withdrawal,
+                BalanceAfterTransaction = newBalance // sets the balance after this transaction
+            };
+
+            // Update the driver's balance in AspNetUsers table
+            driver.Balance = newBalance;
+
+            // Save the transaction and balance update
+            context.DriverWalletsTransactions.Add(transaction);
+            context.Drivers.Update(driver); // EF will track this automatically, but safe to mark explicitly
+
+             await context.SaveChangesAsync(); // Save everything atomically
+              await transactionScope.CommitAsync();
+
+            return Ok(new
+            {
+                message = "Withdrawal processed successfully.",
+                success = true,
+                statusCode = 200,
+                data = new
+                {
+                    balance = driver.Balance
+                },
+               
+
+            });
+        }
+            catch (Exception ex)
+            {
+                await transactionScope.RollbackAsync();
+                return StatusCode(500, new { message = ex.Message, errorCode = 500 });
+            }
+        }
+
+
+
+        [HttpGet("wallet-transactions")]
+        public async Task<IActionResult> GetDriverWalletTransactions()
+        {
+            var driverId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (string.IsNullOrEmpty(driverId))
+                return Unauthorized("Driver ID not found in token.");
+
+            var driver = await context.Drivers.FindAsync(driverId);
+            if (driver == null) return NotFound("Driver not found.");
+
+
+            var transactions = await context.DriverWalletsTransactions
+                .Where(t => t.DriverId == driverId)
+                .OrderByDescending(t => t.TransactionDate) // recent first
+                .Select(t => new DriverWalletTransactionsDTO
+                {
+                    Amount = t.Amount,
+                    TransactionDate = t.TransactionDate,
+                    Operation = t.Operation.ToString()
+                })
+                .ToListAsync();
+
+            return Ok(new
+            {
+                data = transactions,
+                currentBalance = driver.Balance ?? 0,
+                message = "Driver wallet transactions retrieved successfully.",
+                success = true,
+                statusCode = 200
+            });
+        }
+
+
+
+
+
     }
 }

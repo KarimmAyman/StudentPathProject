@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using StudentPath.DAL.Data.DBHelpers;
 
@@ -11,9 +12,11 @@ using StudentPath.DAL.Data.DBHelpers;
 namespace StudentPath.DAL.Migrations
 {
     [DbContext(typeof(StudentPathContext))]
-    partial class StudentPathContextModelSnapshot : ModelSnapshot
+    [Migration("20250612220617_createdriverwallets")]
+    partial class createdriverwallets
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -273,6 +276,10 @@ namespace StudentPath.DAL.Migrations
 
                     b.Property<bool>("IsCancelled")
                         .HasColumnType("bit");
+
+                    b.Property<string>("MeetingPoint")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("Note")
                         .HasMaxLength(500)
@@ -1505,29 +1512,7 @@ namespace StudentPath.DAL.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.OwnsOne("StudentPath.DAL.Data.Models.Coordinate", "MeetingPoint", b1 =>
-                        {
-                            b1.Property<int>("BookingId")
-                                .HasColumnType("int");
-
-                            b1.Property<double>("Latitude")
-                                .HasColumnType("float");
-
-                            b1.Property<double>("Longitude")
-                                .HasColumnType("float");
-
-                            b1.HasKey("BookingId");
-
-                            b1.ToTable("Bookings");
-
-                            b1.WithOwner()
-                                .HasForeignKey("BookingId");
-                        });
-
                     b.Navigation("EscrowAccount");
-
-                    b.Navigation("MeetingPoint")
-                        .IsRequired();
 
                     b.Navigation("Trip");
 
