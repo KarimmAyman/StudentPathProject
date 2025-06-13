@@ -165,7 +165,8 @@ namespace StudentPath.BLL.Services.DriverServices
                 { nameof(driverDto.CriminalRecord), () => _fileService.SaveFileAsync(driverDto.CriminalRecord, "Drivers") },
                 { nameof(driverDto.LicenseFront), () => _fileService.SaveFileAsync(driverDto.LicenseFront, "Drivers") },
                 { nameof(driverDto.LicenseBack), () => _fileService.SaveFileAsync(driverDto.LicenseBack, "Drivers") },
-                { nameof(driverDto.LicenseSelfie), () => _fileService.SaveFileAsync(driverDto.LicenseSelfie, "Drivers") }
+                { nameof(driverDto.LicenseSelfie), () => _fileService.SaveFileAsync(driverDto.LicenseSelfie, "Drivers") },
+                { nameof(driverDto.PersonalPhoto), () => _fileService.SaveFileAsync(driverDto.PersonalPhoto, "Drivers/ProfilePhotos") },
             };
 
             foreach (var doc in documentUpdates)
