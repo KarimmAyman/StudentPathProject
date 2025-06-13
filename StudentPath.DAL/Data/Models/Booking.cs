@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -35,8 +36,7 @@ namespace StudentPath.DAL.Data.Models
         [Required]
         public int NumberOfSeats { get; set; }
 
-        [MaxLength(200)]
-        public string? MeetingPoint { get; set; }
+        public Coordinate MeetingPoint { get; set; }  // Replaced string with Location object
 
         [MaxLength(500)]
         public string? Note { get; set; }
@@ -53,6 +53,16 @@ namespace StudentPath.DAL.Data.Models
         // Relationship to EscrowAccount (optional)
         public int? EscrowAccountId { get; set; }  // Foreign Key to EscrowAccount
         public virtual EscrowAccount EscrowAccount { get; set; }  // Navigation property to EscrowAccount
+    }
+
+    [Owned] // EF Core Owned Entity Type
+    public class Coordinate
+    {
+        [Range(-90, 90, ErrorMessage = "Latitude must be between -90 and 90.")]
+        public double Latitude { get; set; }
+
+        [Range(-180, 180, ErrorMessage = "Longitude must be between -180 and 180.")]
+        public double Longitude { get; set; }
     }
 
     public enum PaymentStatus

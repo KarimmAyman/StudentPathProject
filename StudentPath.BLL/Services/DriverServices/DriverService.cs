@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using StudentPath.BLL.Dtoes;
 using StudentPath.BLL.Dtoes.Accounts;
 using StudentPath.BLL.Dtoes.Drivers;
+using StudentPath.DAL.Data.DBHelpers;
 using StudentPath.DAL.Data.Models;
 using StudentPath.DAL.Repositories.UnitOfWork;
 using System;
@@ -12,6 +14,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Net.NetworkInformation;
 using System.Threading.Tasks;
+using static StudentPath.DAL.Data.Models.DriverWalletTransaction;
 
 namespace StudentPath.BLL.Services.DriverServices
 {
@@ -19,11 +22,13 @@ namespace StudentPath.BLL.Services.DriverServices
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IFileService _fileService;
+        private readonly StudentPathContext _context;
 
-        public DriverService(IUnitOfWork unitOfWork, IFileService fileService)
+        public DriverService(IUnitOfWork unitOfWork, IFileService fileService,StudentPathContext context)
         {
             _unitOfWork = unitOfWork;
             _fileService = fileService;
+            _context = context;
         }
 
 
@@ -271,8 +276,12 @@ namespace StudentPath.BLL.Services.DriverServices
             var driver = await _unitOfWork.Driver.GetFirstOrDefaultAsync(d => d.Id == driverId);
             dashboard.Balance = driver?.Balance ?? 0;
 
+            var totalTripEarnings = await _context.DriverWalletsTransactions
+          .Where(t => t.DriverId == driverId && t.Operation == WalletTransactionOperation.TripEarnings)
+           .SumAsync(t => (decimal?)t.Amount) ?? 0;
+
             // static earnings summary (gemy will replace with actual calculation from his work later)
-            dashboard.EarningsSummary = 1234.56m;
+            dashboard.EarningsSummary = totalTripEarnings;
 
             // Get completed trips count
             var completedTrips = await _unitOfWork.Trips.GetAsync(

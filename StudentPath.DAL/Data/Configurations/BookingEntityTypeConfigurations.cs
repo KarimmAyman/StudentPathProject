@@ -17,6 +17,8 @@ namespace StudentPath.DAL.Data.Configurations
         .HasOne(b => b.User)  // Navigating to the User (Student/Driver/Admin)
         .WithMany()  // The User can have many Bookings
         .HasForeignKey(b => b.UserId)
-        .OnDelete(DeleteBehavior.Restrict); // Avoid cascade delete, restrict it
+        .OnDelete(DeleteBehavior.Restrict);  // Avoid cascade delete, restrict it
+            builder.OwnsOne(b => b.MeetingPoint);
+
         } }
 }

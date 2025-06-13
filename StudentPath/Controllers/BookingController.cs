@@ -85,8 +85,12 @@ namespace StudentPath.API.Controllers
                     TripId = request.TripId,
                     BookingDate = DateTime.UtcNow,
                     NumberOfSeats = seatsToBook,
-                    MeetingPoint = request.MeetingPoint,
-                    Note = request.Note,
+                MeetingPoint = new Coordinate
+                {
+                    Latitude = request.MeetingPoint.Latitude,
+                    Longitude = request.MeetingPoint.Longitude
+                },
+                Note = request.Note,
                     TotalPrice = totalCost,
                     IsCancelled = false,
                     PaymentStatus = PaymentStatus.Pending,

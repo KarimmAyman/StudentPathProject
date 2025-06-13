@@ -137,6 +137,8 @@ namespace StudentPath.DAL.Data.DBHelpers
         public virtual DbSet<CustomRole> CustomRoles { get; set; }
         public virtual DbSet<Wallet> Wallets { get; set; } // Add Wallet table
         public virtual DbSet<WalletTransaction> WalletsTransactions { get; set; }
+        public virtual DbSet<DriverWalletTransaction> DriverWalletsTransactions { get; set; }
+
         public virtual DbSet<TripLocation> TripLocations { get; set; }
         public virtual DbSet<TripRequest> TripRequests { get; set; }
 
