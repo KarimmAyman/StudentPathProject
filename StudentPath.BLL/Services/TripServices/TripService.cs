@@ -9,6 +9,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using static StudentPath.BLL.Dtoes.Trips.TripResponseDto;
+using static StudentPath.BLL.Dtoes.Trips.TripWithBookingsResponseDto;
 
 namespace StudentPath.BLL.Services.TripServices
 {
@@ -745,39 +746,38 @@ namespace StudentPath.BLL.Services.TripServices
             }
         }
 
-        public async Task<ApiResponse<TripResponseDto>> GetDriverTripDetailsAsync(string driverId)
+        public async Task<ApiResponse<TripWithBookingsResponseDto>> GetDriverTripDetailsAsync(string driverId)
         {
             try
             {
-                // Fetch the active trip with related data
-                var trip = await _unitOfWork.Trips.GetActiveTripByDriverIdAsync(driverId);
+                // First get the trip with basic includes
+                var trip = await _unitOfWork.Trips.GetFirstOrDefaultAsync(
+                    t => t.DriverId == driverId &&
+                        (t.Status == TripStatus.Planned || t.Status == TripStatus.Active),
+                    includeProperties: [
+                        t => t.FromLocation,
+                        t => t.ToLocation,
+                        t => t.Driver,
+                    ]);
+
                 if (trip == null)
                 {
-                    return ApiResponse<TripResponseDto>.ErrorResponse("No active trip found", 404);
+                    return ApiResponse<TripWithBookingsResponseDto>.ErrorResponse("No active trip found", 404);
                 }
 
-                // Calculate remaining seats
-                var confirmedBookings = await _unitOfWork.Bookings
-                    .GetAsync(b => b.TripId == trip.TripId && b.BookingStatus == BookingStatus.Confirmed);
+                // Then get bookings separately with their related data
+                var bookings = await _unitOfWork.Bookings.GetAsync(
+                    b => b.TripId == trip.TripId && b.BookingStatus == BookingStatus.Confirmed,
+                    includeProperties: [
+                        b => b.User,
+                b => b.Payments
+                    ]);
 
-                var reservedSeats = confirmedBookings.Sum(b => b.NumberOfSeats);
-                var remainingSeats = trip.AvailableSeats - reservedSeats;
-                if (remainingSeats < 0) remainingSeats = 0;
+                var reservedSeats = bookings.Sum(b => b.NumberOfSeats);
+                var remainingSeats = Math.Max(trip.AvailableSeats - reservedSeats, 0);
 
-                // Map to TripResponseDto
-                var additionalInfo = new AdditionalInfoDTO
-                {
-                    StartingPoint = trip.FromLocation.DisplayName,
-                    Notes = trip.DriverNotes,
-                    HasWiFi = trip.HasWiFi,
-                    HasMusic = trip.HasMusic,
-                    HasPhoneCharger = trip.HasPhoneCharger,
-                    HasAirConditioning = trip.HasAirConditioning,
-                    HasFreeWater = trip.HasFreeWater
-                };
-                additionalInfo.PopulateAmenities();
-
-                var result = new TripResponseDto
+                // Map to DTO
+                var result = new TripWithBookingsResponseDto
                 {
                     Id = trip.TripId,
                     FromLocation = new TripLocationDto
@@ -801,7 +801,7 @@ namespace StudentPath.BLL.Services.TripServices
                         DepartureTime = trip.DepartureTime,
                         EstimatedDistance = trip.EstimatedDistance,
                         EstimatedDuration = trip.EstimatedDuration,
-                        AvailableSeats = remainingSeats // Use real-time remaining seats
+                        AvailableSeats = remainingSeats
                     },
                     DriverInfo = new DriverInfoDto
                     {
@@ -818,20 +818,62 @@ namespace StudentPath.BLL.Services.TripServices
                             })
                             .FirstOrDefault()
                     },
-                    AdditionalInfo = additionalInfo,
-                    Status = trip.Status,
+                    AdditionalInfo = new AdditionalInfoDTO
+                    {
+                        StartingPoint = trip.FromLocation.DisplayName,
+                        Notes = trip.DriverNotes,
+                        HasWiFi = trip.HasWiFi,
+                        HasMusic = trip.HasMusic,
+                        HasPhoneCharger = trip.HasPhoneCharger,
+                        HasAirConditioning = trip.HasAirConditioning,
+                        HasFreeWater = trip.HasFreeWater
+                    },
                     PricePerSeat = trip.PricePerSeat,
-                    CreatedAt = trip.CreatedAt
+                    Status = trip.Status,
+                    CreatedAt = trip.CreatedAt,
+                    // Always return a list, empty if no bookings
+                    Bookings = bookings.Select(b => new BookingInfoDto
+                    {
+                        BookingId = b.BookingId,
+                        UserId = b.UserId,
+                        UserName = b.User?.UserName,
+                        UserPhone = b.User?.PhoneNumber,
+                        NumberOfSeats = b.NumberOfSeats,
+                        BookingStatus = b.BookingStatus.ToString(),
+                        BookingDate = b.BookingDate,
+                        TotalAmount = b.TotalPrice,
+                        MeetingPoint = b.MeetingPoint != null ? new MeetingPointDto
+                        {
+                            Latitude = b.MeetingPoint.Latitude,
+                            Longitude = b.MeetingPoint.Longitude,
+                        } : null,
+                        Payment = b.Payments.FirstOrDefault() != null ? new PaymentInfoDto
+                        {
+                            PaymentMethod = b.Payments.First().PaymentMethod.ToString(),
+                            TransactionId = b.Payments.First().TransactionId,
+                            Status = b.Payments.First().PaymentStatus.ToString(),
+                            PaymentDate = b.Payments.First().PaymentDate
+                        } : null
+                    }).ToList() // This will be empty if no bookings
                 };
 
-                return ApiResponse<TripResponseDto>.SuccessResponse("Trip details retrieved successfully", 200, result);
+                // Populate amenities
+                result.AdditionalInfo.PopulateAmenities();
+
+                return ApiResponse<TripWithBookingsResponseDto>.SuccessResponse(
+                    bookings.Any()
+                        ? "Trip with bookings retrieved successfully"
+                        : "Trip retrieved successfully (no bookings yet)",
+                    200,
+                    result);
             }
             catch (Exception ex)
             {
-                return ApiResponse<TripResponseDto>.ErrorResponse($"An error occurred: {ex.Message}", 500);
+                return ApiResponse<TripWithBookingsResponseDto>.ErrorResponse(
+                    "An error occurred while retrieving trip details",
+                    500);
             }
         }
-
         public async Task<ApiResponse<TripResponseDto>> UpdateTripStatusAsync(int tripId, TripStatus newStatus, string driverId)
         {
             try
