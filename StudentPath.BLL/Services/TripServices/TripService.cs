@@ -1056,5 +1056,8 @@ namespace StudentPath.BLL.Services.TripServices
                     500);
             }
         }
+
+
+
     }
 }
