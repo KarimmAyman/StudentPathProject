@@ -36,7 +36,13 @@ namespace StudentPath.API.Controllers
                 return StatusCode(result.StatusCode, new { Message = result.Message });
             }
 
-            return Ok(new { Message = result.Message, Data = result.Data });
+            return Ok(new
+            {
+                Status = 200, // or any relevant status code you want
+                Success = true, // set to false if needed
+                Message = result.Message,
+                Data = result.Data
+            });
         }
         #endregion
 
@@ -57,7 +63,13 @@ namespace StudentPath.API.Controllers
                 return StatusCode(result.StatusCode, new { Message = result.Message });
             }
 
-            return Ok(new { Message = result.Message, Data = result.Data });
+            return Ok(new
+            {
+                Status = 200, // or any relevant status code you want
+                Success = true, // set to false if needed
+                Message = result.Message,
+                Data = result.Data
+            });
 
         }
         #endregion
@@ -116,6 +128,8 @@ namespace StudentPath.API.Controllers
             {
                 return CreatedAtAction(nameof(GetUserById), new { id = User.Id }, new
                 {
+                   
+                    Success = true,
                     Message = result.Message,
                     Data = User
                 });
