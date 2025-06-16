@@ -9,6 +9,7 @@ using StudentPath.DAL.Data.Models;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using static StudentPath.BLL.Dtoes.Trips.TripResponseDto;
+using static StudentPath.DAL.Data.Models.DriverWalletTransaction;
 
 namespace StudentPath.Controllers
 {
@@ -418,7 +419,106 @@ namespace StudentPath.Controllers
         public async Task<IActionResult> GetTripsByStatus(TripStatus status)
         {
             var result = await _tripService.GetTripsByStatusAsync(status);
-            return StatusCode(result.StatusCode, result);
+           
+             return StatusCode(result.StatusCode, result);
         }
+
+
+        [HttpPost("CompleteTrip")]
+        public async Task<IActionResult> CompleteTrip(CompleteTripRequestDTO request)
+        {
+
+            var driverId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (string.IsNullOrEmpty(driverId))
+                return Unauthorized("Driver ID not found in token.");
+            // Get trip with driver and related data
+            var trip = await context.Trips
+                .Include(t => t.Driver)
+                .FirstOrDefaultAsync(t => t.TripId == request.TripId);
+
+            if (trip == null)
+                return NotFound("Trip not found.");
+
+            if (trip.DriverId.ToString() != driverId)
+                return Forbid("You are not authorized to complete this trip.");
+            if (trip.Status == TripStatus.Completed)
+                return BadRequest("Trip is already completed.");
+
+            if (trip.Status != TripStatus.Active)
+                return BadRequest("Trip is not active and cannot be completed.");
+
+           
+
+
+            using var transactionScope = await context.Database.BeginTransactionAsync();
+            try
+            {
+
+               // Fetch confirmed bookings related to this trip
+                var confirmedBookings = await context.Bookings
+                    .Where(b => b.TripId == request.TripId && b.PaymentStatus == PaymentStatus.Paid)
+                    .ToListAsync();
+                // Fetch confirmed payments related to this trip
+
+                var confirmedPayments = await context.Payments
+                       .Where(p => p.Booking.TripId == request.TripId && p.PaymentStatus == PaymentStatus.Paid)
+                       .ToListAsync();
+
+                // Calculate total trip amount (sum of confirmed payments)
+                var totalTripAmount = confirmedBookings.Sum(p => p.TotalPrice);
+
+                // Mark trip as completed
+                trip.Status = TripStatus.Completed;
+
+                // Update driver's wallet balance (if applicable)
+
+                var driver = trip.Driver; // this is the Driver object (loaded by Include)
+                var typedDriver = (Driver)driver;
+
+                decimal newBalance = (typedDriver.Balance ?? 0) + totalTripAmount;
+
+                // Optionally: Record WalletTransaction history (if you have such a table)
+                var walletTransaction = new DriverWalletTransaction
+                {
+
+                    DriverId = driver.Id,
+                    Amount = totalTripAmount,
+                    Operation = WalletTransactionOperation.TripEarnings,
+                    TransactionDate = DateTime.UtcNow,
+                    BalanceAfterTransaction = newBalance
+                };
+
+                typedDriver.Balance = newBalance;
+
+                await context.DriverWalletsTransactions.AddAsync(walletTransaction);
+                context.Drivers.Update(typedDriver);
+
+                // Save changes to DB
+                await context.SaveChangesAsync();
+                await transactionScope.CommitAsync();
+
+                // Return useful response
+                return Ok(new
+                {
+                    Message = "Trip completed successfully.",
+                    success = true,
+                    statusCode = 200,
+                    data = new
+                    {
+                        TotalAmountTransferred = totalTripAmount,
+                        ConfirmedBookingsCount = confirmedBookings.Count,
+                        ConfirmedPaymentsCount = confirmedPayments.Count,
+                        DriverWalletBalance = typedDriver.Balance
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                await transactionScope.RollbackAsync();
+                return StatusCode(500, new { message = ex.Message, errorCode = 500 });
+            }
+        }
+
     }
 }
