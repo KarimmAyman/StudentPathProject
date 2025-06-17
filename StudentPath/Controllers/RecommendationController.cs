@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using StudentPath.BLL.Dtoes.Recommendations;
 using StudentPath.BLL.Services.RecommendationServices;
@@ -21,7 +22,14 @@ namespace StudentPath.API.Controllers
             try
             {
                 var result = await recommendationService.GetRecommendationsAsync(request);
-                return Ok(result);
+
+                return Ok(new
+                {
+                    Status = 200,
+                    Success = true,
+                    Message = "recommendation trips retrieved successfully",
+                    Data = result
+                });
             }
             catch (Exception ex)
             {

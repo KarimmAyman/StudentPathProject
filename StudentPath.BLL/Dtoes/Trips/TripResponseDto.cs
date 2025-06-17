@@ -53,19 +53,27 @@ namespace StudentPath.BLL.Dtoes.Trips
             {
                 get
                 {
-                    // Convert UTC to Egypt time (handles daylight saving automatically)
+                    // Define Egypt Time Zone
                     var egyptTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Egypt Standard Time");
+
+                    // Convert UTC TransactionDate to Egypt Local Time
                     var localEgyptTime = TimeZoneInfo.ConvertTimeFromUtc(DepartureTime, egyptTimeZone);
 
-                    if (localEgyptTime.Date == DateTime.UtcNow.Date)
+                    // Get Egypt's current local date for comparison
+                    var nowEgypt = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, egyptTimeZone);
+
+                    if (localEgyptTime.Date == nowEgypt.Date)
                     {
-                        return $"Today / {localEgyptTime.ToString("HH:mm")}";
+                        return $"Today {localEgyptTime:HH:mm}";
                     }
-                    else if (localEgyptTime.Date == DateTime.UtcNow.Date.AddDays(1))
+                    else if (localEgyptTime.Date == nowEgypt.Date.AddDays(1))
                     {
-                        return $"Tomorrow / {localEgyptTime:HH:mm}";
+                        return $"Tomorrow {localEgyptTime:HH:mm}";
                     }
-                    return localEgyptTime.ToString("yyyy-MM-dd HH:mm");
+                    else
+                    {
+                        return localEgyptTime.ToString("yyyy-MM-dd HH:mm");
+                    }
                 }
             }
             [JsonIgnore]
