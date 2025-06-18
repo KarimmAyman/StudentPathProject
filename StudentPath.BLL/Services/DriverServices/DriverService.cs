@@ -138,61 +138,87 @@ namespace StudentPath.BLL.Services.DriverServices
 
         public async Task<bool> UpdateDriverProfileAsync(string id, DriverUpdateDTO driverDto)
         {
-            var driver = await _unitOfWork.Driver.GetFirstOrDefaultAsync(
-                d => d.Id == id,
-                includeProperties: d => d.Locations);
+            var driver = await _unitOfWork.Driver.GetFirstOrDefaultAsync(d => d.Id == id);
 
             if (driver == null || driver.IsDeleted) return false;
 
-            // Update properties using a dictionary-based approach
-            var propertyUpdates = new Dictionary<string, Action>
-            {
-                { nameof(driverDto.UserName), () => driver.UserName = driverDto.UserName ?? driver.UserName },
-                { nameof(driverDto.Email), () => driver.Email = driverDto.Email ?? driver.Email },
-                { nameof(driverDto.PhoneNumber), () => driver.PhoneNumber = driverDto.PhoneNumber ?? driver.PhoneNumber },
-                { nameof(driverDto.Age), () => driver.Age = driverDto.Age != 0 ? driverDto.Age : driver.Age }, // Fixed here
-                { nameof(driverDto.IdNumber), () => driver.IdNumber = driverDto.IdNumber ?? driver.IdNumber },
-                { nameof(driverDto.LicenseNumber), () => driver.LicenseNumber = driverDto.LicenseNumber ?? driver.LicenseNumber },
-                { nameof(driverDto.LicenseExpiryDate), () => driver.LicenseExpiryDate = driverDto.LicenseExpiryDate ?? driver.LicenseExpiryDate }
-            };
+            // Update only the allowed fields (Name, Phone, Photo)
+            if (driverDto.UserName != null)
+                driver.UserName = driverDto.UserName;
 
-            foreach (var update in propertyUpdates)
+            if (driverDto.PhoneNumber != null)
+                driver.PhoneNumber = driverDto.PhoneNumber;
+
+
+
+            // Handle photo update if provided
+            if (driverDto.PersonalPhoto != null)
             {
-                if (driverDto.GetType().GetProperty(update.Key)?.GetValue(driverDto) != null)
-                    update.Value();
+                var photoPath = await _fileService.SaveFileAsync(driverDto.PersonalPhoto, "Drivers/ProfilePhotos");
+                driver.PersonalPhotoPath = photoPath;
             }
 
-            // Handle document updates using a dictionary
-            var documentUpdates = new Dictionary<string, Func<Task<string>>>
-            {
-                { nameof(driverDto.IdFront), () => _fileService.SaveFileAsync(driverDto.IdFront, "Drivers") },
-                { nameof(driverDto.IdBack), () => _fileService.SaveFileAsync(driverDto.IdBack, "Drivers") },
-                { nameof(driverDto.CriminalRecord), () => _fileService.SaveFileAsync(driverDto.CriminalRecord, "Drivers") },
-                { nameof(driverDto.LicenseFront), () => _fileService.SaveFileAsync(driverDto.LicenseFront, "Drivers") },
-                { nameof(driverDto.LicenseBack), () => _fileService.SaveFileAsync(driverDto.LicenseBack, "Drivers") },
-                { nameof(driverDto.LicenseSelfie), () => _fileService.SaveFileAsync(driverDto.LicenseSelfie, "Drivers") },
-                { nameof(driverDto.PersonalPhoto), () => _fileService.SaveFileAsync(driverDto.PersonalPhoto, "Drivers/ProfilePhotos") },
-            };
-
-            foreach (var doc in documentUpdates)
-            {
-                if (driverDto.GetType().GetProperty(doc.Key)?.GetValue(driverDto) != null)
-                {
-                    var path = await doc.Value();
-                    driver.GetType().GetProperty($"{doc.Key}Path")?.SetValue(driver, path);
-                }
-            }
-
-            // Update locations if provided
-            if (driverDto.Locations?.Any() == true)
-            {
-                await UpdateDriverLocations(driver, driverDto.Locations);
-            }
-
-            await _unitOfWork.Driver.CreateOrUpdateAsync(driver);
             await _unitOfWork.Save();
             return true;
         }
+
+        //public async Task<bool> UpdateDriverProfileAsync(string id, DriverUpdateDTO driverDto)
+        //{
+        //    var driver = await _unitOfWork.Driver.GetFirstOrDefaultAsync(
+        //        d => d.Id == id,
+        //        includeProperties: d => d.Locations);
+
+        //    if (driver == null || driver.IsDeleted) return false;
+
+        //    // Update properties using reflection for cleaner code
+        //    var propertiesToUpdate = new Dictionary<string, Action>
+        //    {
+        //        { nameof(driverDto.UserName), () => driver.UserName = driverDto.UserName ?? driver.UserName },
+        //        { nameof(driverDto.Email), () => driver.Email = driverDto.Email ?? driver.Email },
+        //        { nameof(driverDto.PhoneNumber), () => driver.PhoneNumber = driverDto.PhoneNumber ?? driver.PhoneNumber },
+        //        { nameof(driverDto.Age), () => driver.Age = driverDto.Age ?? driver.Age },
+        //        { nameof(driverDto.IdNumber), () => driver.IdNumber = driverDto.IdNumber ?? driver.IdNumber },
+        //        { nameof(driverDto.LicenseNumber), () => driver.LicenseNumber = driverDto.LicenseNumber ?? driver.LicenseNumber },
+        //        { nameof(driverDto.LicenseExpiryDate), () => driver.LicenseExpiryDate = driverDto.LicenseExpiryDate ?? driver.LicenseExpiryDate }
+        //    };
+
+        //    foreach (var update in propertiesToUpdate)
+        //    {
+        //        if (driverDto.GetType().GetProperty(update.Key)?.GetValue(driverDto) != null)
+        //            update.Value();
+        //    }
+
+        //    // Handle document updates using a dictionary
+        //    var documentUpdates = new Dictionary<string, Func<Task<string>>>
+        //    {
+        //        { nameof(driverDto.IdFront), () => _fileService.SaveFileAsync(driverDto.IdFront, "Drivers") },
+        //        { nameof(driverDto.IdBack), () => _fileService.SaveFileAsync(driverDto.IdBack, "Drivers") },
+        //        { nameof(driverDto.CriminalRecord), () => _fileService.SaveFileAsync(driverDto.CriminalRecord, "Drivers") },
+        //        { nameof(driverDto.LicenseFront), () => _fileService.SaveFileAsync(driverDto.LicenseFront, "Drivers") },
+        //        { nameof(driverDto.LicenseBack), () => _fileService.SaveFileAsync(driverDto.LicenseBack, "Drivers") },
+        //        { nameof(driverDto.LicenseSelfie), () => _fileService.SaveFileAsync(driverDto.LicenseSelfie, "Drivers") },
+        //        { nameof(driverDto.PersonalPhoto), () => _fileService.SaveFileAsync(driverDto.PersonalPhoto, "Drivers/ProfilePhotos") },
+        //    };
+
+        //    foreach (var doc in documentUpdates)
+        //    {   
+        //        if (driverDto.GetType().GetProperty(doc.Key)?.GetValue(driverDto) != null)
+        //        {
+        //            var path = await doc.Value();
+        //            driver.GetType().GetProperty($"{doc.Key}Path")?.SetValue(driver, path);
+        //        }
+        //    }
+
+        //    // Update locations if provided
+        //    if (driverDto.Locations?.Any() == true)
+        //    {
+        //        await UpdateDriverLocations(driver, driverDto.Locations);
+        //    }
+
+        //    await _unitOfWork.Driver.CreateOrUpdateAsync(driver);
+        //    await _unitOfWork.Save();
+        //    return true;
+        //}
 
         public async Task<bool> UpdateDriverVehiclesAsync(string id, DriverVehicleUpdateDTO vehicleDto)
         {
@@ -321,38 +347,38 @@ namespace StudentPath.BLL.Services.DriverServices
             await _unitOfWork.Save();
             return true;
         }
-        private async Task UpdateDriverLocations(Driver driver, List<LocationDto> locationDtos)
-        {
-            var existingLocations = driver.Locations.ToList();
-            var locationMap = locationDtos.ToDictionary(
-                dto => (dto.Latitude, dto.Longitude),
-                dto => dto);
+        //private async Task UpdateDriverLocations(Driver driver, List<LocationDto> locationDtos)
+        //{
+        //    var existingLocations = driver.Locations.ToList();
+        //    var locationMap = locationDtos.ToDictionary(
+        //        dto => (dto.Latitude, dto.Longitude),
+        //        dto => dto);
 
-            // Update or add locations
-            driver.Locations = locationDtos.Select(dto =>
-            {
-                var location = existingLocations.FirstOrDefault(l =>
-                    l.Latitude == dto.Latitude && l.Longitude == dto.Longitude)
-                    ?? new Location { UserId = driver.Id };
+        //    Update or add locations
+        //    driver.Locations = locationDtos.Select(dto =>
+        //    {
+        //        var location = existingLocations.FirstOrDefault(l =>
+        //            l.Latitude == dto.Latitude && l.Longitude == dto.Longitude)
+        //            ?? new Location { UserId = driver.Id };
 
-                location.City = dto.City;
-                location.Country = dto.Country;
-                location.Latitude = dto.Latitude;
-                location.Longitude = dto.Longitude;
-                return location;
-            }).ToList();
+        //        location.City = dto.City;
+        //        location.Country = dto.Country;
+        //        location.Latitude = dto.Latitude;
+        //        location.Longitude = dto.Longitude;
+        //        return location;
+        //    }).ToList();
 
-            // Remove locations not in DTO
-            var locationsToRemove = existingLocations
-                .Where(l => !locationMap.ContainsKey((l.Latitude, l.Longitude)))
-                .ToList();
+        //    Remove locations not in DTO
+        //   var locationsToRemove = existingLocations
+        //       .Where(l => !locationMap.ContainsKey((l.Latitude, l.Longitude)))
+        //       .ToList();
 
-            foreach (var location in locationsToRemove)
-            {
-                driver.Locations.Remove(location); // Use ICollection.Remove instead of RemoveAll
-            }
-        }
-        
+        //    foreach (var location in locationsToRemove)
+        //    {
+        //        driver.Locations.Remove(location); // Use ICollection.Remove instead of RemoveAll
+        //    }
+        //}
+
         private DriverReadDTO MapToDriverReadDTO(Driver driver)
         {
             return new DriverReadDTO
