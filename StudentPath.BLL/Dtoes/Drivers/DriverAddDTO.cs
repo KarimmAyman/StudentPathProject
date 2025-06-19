@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using StudentPath.BLL.Dtoes.Accounts;
 using StudentPath.BLL.Dtoes.Drivers;
 using StudentPath.DAL.Data.Models;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
 
 namespace StudentPath.BLL.Dtoes
@@ -10,7 +12,9 @@ namespace StudentPath.BLL.Dtoes
     public class DriverAddDTO
     {
         // Personal Info
-        public IFormFile? PersonalPhoto { get; set; }
+        [NotMapped]
+        [FromForm(Name = "ImgUrlFile")]
+        public IFormFile? ImgUrlFile { get; set; }
         public string UserName { get; set; }
         public string Email { get; set; }
         public int Age { get; set; }

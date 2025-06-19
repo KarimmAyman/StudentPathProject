@@ -80,12 +80,19 @@ namespace StudentPath.BLL.Services.DriverServices
             driver.Locations = new List<Location>();
 
             // Handle file uploads
-            driver.IdFrontPath = await _fileService.SaveFileAsync(driverDto.IdFront, "Drivers");
-            driver.IdBackPath = await _fileService.SaveFileAsync(driverDto.IdBack, "Drivers");
-            driver.CriminalRecordPath = await _fileService.SaveFileAsync(driverDto.CriminalRecord, "Drivers");
-            driver.LicenseFrontPath = await _fileService.SaveFileAsync(driverDto.LicenseFront, "Drivers");
-            driver.LicenseBackPath = await _fileService.SaveFileAsync(driverDto.LicenseBack, "Drivers");
-            driver.LicenseSelfiePath = await _fileService.SaveFileAsync(driverDto.LicenseSelfie, "Drivers");
+            driver.IdFrontPath = await _fileService.SaveFileAsync(driverDto.IdFront, "Drivers/IDs");
+            driver.IdBackPath = await _fileService.SaveFileAsync(driverDto.IdBack, "Drivers/IDs");
+            driver.CriminalRecordPath = await _fileService.SaveFileAsync(driverDto.CriminalRecord, "Drivers/Documents");
+            driver.LicenseFrontPath = await _fileService.SaveFileAsync(driverDto.LicenseFront, "Drivers/Licenses");
+            driver.LicenseBackPath = await _fileService.SaveFileAsync(driverDto.LicenseBack, "Drivers/Licenses");
+            driver.LicenseSelfiePath = await _fileService.SaveFileAsync(driverDto.LicenseSelfie, "Drivers/Licenses");
+
+            if (driverDto.ImgUrlFile != null)
+            {
+                driver.ImgUrl = await _fileService.SaveFileAsync(
+                    driverDto.ImgUrlFile,
+                    "Drivers/ProfilePhotos"); 
+            }
 
             // Process vehicles
             if (driverDto.VehicleAddDTOs != null && driverDto.VehicleAddDTOs.Any())
@@ -152,10 +159,16 @@ namespace StudentPath.BLL.Services.DriverServices
 
 
             // Handle photo update if provided
-            if (driverDto.PersonalPhoto != null)
+            if (driverDto.ImgUrlFile != null)
             {
-                var photoPath = await _fileService.SaveFileAsync(driverDto.PersonalPhoto, "Drivers/ProfilePhotos");
-                driver.PersonalPhotoPath = photoPath;
+                if (!string.IsNullOrEmpty(driver.ImgUrl))
+                {
+                    _fileService.DeleteFile(driver.ImgUrl);
+                }
+
+                driver.ImgUrl = await _fileService.SaveFileAsync(
+                    driverDto.ImgUrlFile,
+                    "Drivers/ProfilePhotos"); 
             }
 
             await _unitOfWork.Save();
@@ -390,7 +403,6 @@ namespace StudentPath.BLL.Services.DriverServices
                 Age = driver.Age,
                 Gender = driver.Gender,
                 ImgUrl = driver.ImgUrl,
-                PersonalPhotoUrl = driver.PersonalPhotoPath,
                 UserType = driver.UserType,
                 IdNumber = driver.IdNumber,
                 NationalIdFrontPath = driver.IdFrontPath,
@@ -441,7 +453,6 @@ namespace StudentPath.BLL.Services.DriverServices
                 Age = baseDto.Age,
                 Gender = baseDto.Gender,
                 ImgUrl = baseDto.ImgUrl,
-                PersonalPhotoUrl = baseDto.PersonalPhotoUrl,
                 IdNumber = baseDto.IdNumber,
                 NationalIdFrontPath = baseDto.NationalIdFrontPath,
                 NationalIdBackPath = baseDto.NationalIdBackPath,
