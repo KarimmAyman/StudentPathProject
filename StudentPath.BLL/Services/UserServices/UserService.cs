@@ -83,7 +83,7 @@ namespace StudentPath.BLL.Services.UserServices
 
             await unitOfWork.User.CreateOrUpdateAsync(std);
             await unitOfWork.Save();
-            return ApiResponse.SuccessResponse("User Is Updated Successfully", 204); // 204 NoContent
+            return ApiResponse.SuccessResponse("User Is Updated Successfully", 200); // 204 NoContent
 
 
         }

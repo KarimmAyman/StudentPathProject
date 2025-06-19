@@ -206,7 +206,10 @@ namespace StudentPath.API.Controllers
             }
             else
             {
-                return StatusCode(result.StatusCode, new { Message = result.Message });
+                return StatusCode(result.StatusCode,
+                    new { Message = result.Message,
+                          Success=false
+                    });
 
             }
 
