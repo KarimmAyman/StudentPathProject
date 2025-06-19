@@ -23,18 +23,9 @@ namespace StudentPath.BLL.Dtoes.Users
         [RegularExpression(@"^\+?[0-9]{10,15}$", ErrorMessage = "Invalid phone number format.")]
 
         public string PhoneNumber { get; set; }
-        [Required(ErrorMessage = "The Range of age between 18 and 100")]
-
-        [Range(18, 100)]
-        public int Age { get; set; }
-
 
         
-        [Required(ErrorMessage = "Gender is required")]
-        public GenderType Gender { get; set; }
-
-
-
+  
         public string? ImgUrl { get; set; }
         [JsonIgnore]
 

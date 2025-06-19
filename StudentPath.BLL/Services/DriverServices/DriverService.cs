@@ -81,6 +81,7 @@ namespace StudentPath.BLL.Services.DriverServices
 
             // Handle file uploads
             driver.IdFrontPath = await _fileService.SaveFileAsync(driverDto.IdFront, "Drivers");
+            //driver.IdFrontPath= driverDto.IdFront;
             driver.IdBackPath = await _fileService.SaveFileAsync(driverDto.IdBack, "Drivers");
             driver.CriminalRecordPath = await _fileService.SaveFileAsync(driverDto.CriminalRecord, "Drivers");
             driver.LicenseFrontPath = await _fileService.SaveFileAsync(driverDto.LicenseFront, "Drivers");
