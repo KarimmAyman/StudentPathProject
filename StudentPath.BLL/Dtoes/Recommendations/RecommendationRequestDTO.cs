@@ -111,6 +111,8 @@ namespace StudentPath.BLL.Dtoes.Recommendations
     {
         public string DriverName { get; set; }
         public string DriverPhone { get; set; }
+        public string? PersonalPhotoPath { get; set; }
+
         public VehicleInfoDTO VehicleInfo { get; set; }
     }
 

@@ -240,6 +240,7 @@ namespace StudentPath.Controllers
                         DriverInfo = new DriverInfoDto
                         {
                             DriverId = t.DriverId,
+                            PersonalPhotoPath = t.Driver.ImgUrl,
                             DriverName = t.Driver?.UserName,
                             DriverPhone = t.Driver?.PhoneNumber,
                             VehicleInfo = (t.Driver as Driver)?.VehicleInfo?
