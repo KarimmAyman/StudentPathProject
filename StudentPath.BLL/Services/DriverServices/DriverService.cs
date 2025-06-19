@@ -81,6 +81,7 @@ namespace StudentPath.BLL.Services.DriverServices
 
             // Handle file uploads
             driver.IdFrontPath = await _fileService.SaveFileAsync(driverDto.IdFront, "Drivers");
+            //driver.IdFrontPath= driverDto.IdFront;
             driver.IdBackPath = await _fileService.SaveFileAsync(driverDto.IdBack, "Drivers");
             driver.CriminalRecordPath = await _fileService.SaveFileAsync(driverDto.CriminalRecord, "Drivers");
             driver.LicenseFrontPath = await _fileService.SaveFileAsync(driverDto.LicenseFront, "Drivers");
@@ -390,6 +391,7 @@ namespace StudentPath.BLL.Services.DriverServices
                 Age = driver.Age,
                 Gender = driver.Gender,
                 ImgUrl = driver.ImgUrl,
+                PersonalPhotoUrl = driver.PersonalPhotoPath,
                 UserType = driver.UserType,
                 IdNumber = driver.IdNumber,
                 NationalIdFrontPath = driver.IdFrontPath,
@@ -440,6 +442,7 @@ namespace StudentPath.BLL.Services.DriverServices
                 Age = baseDto.Age,
                 Gender = baseDto.Gender,
                 ImgUrl = baseDto.ImgUrl,
+                PersonalPhotoUrl = baseDto.PersonalPhotoUrl,
                 IdNumber = baseDto.IdNumber,
                 NationalIdFrontPath = baseDto.NationalIdFrontPath,
                 NationalIdBackPath = baseDto.NationalIdBackPath,
