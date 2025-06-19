@@ -129,6 +129,7 @@ namespace StudentPath.BLL.Services.AccountService
                     LicenseFront = registerDto.LicenseFront,
                     LicenseBack = registerDto.LicenseBack,
                     LicenseSelfie = registerDto.LicenseSelfie,
+                    
                     Locations = registerDto.locations?.Select(loc => new LocationDto
                     {
                         Latitude = loc.Latitude,
@@ -153,6 +154,7 @@ namespace StudentPath.BLL.Services.AccountService
 
                 // back in your Register method, right after CreateDriverAsync:
                 await _driverService.CreateDriverAsync(driverDto);
+
 
                 // now re‐normalize the user and save via UserManager:
                 identityDriver.NormalizedUserName = _userManager.NormalizeName(identityDriver.UserName);

@@ -79,6 +79,7 @@ namespace StudentPath.BLL.Services.DriverServices
             driver.VehicleInfo = new List<VehicleInfo>();
             driver.Locations = new List<Location>();
 
+
             // Handle file uploads
             driver.IdFrontPath = await _fileService.SaveFileAsync(driverDto.IdFront, "Drivers/IDs");
             driver.IdBackPath = await _fileService.SaveFileAsync(driverDto.IdBack, "Drivers/IDs");

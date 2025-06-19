@@ -5,6 +5,7 @@ using StudentPath.BLL.Dtoes.Accounts;
 using StudentPath.BLL.Dtoes.Drivers;
 using StudentPath.BLL.Dtos.Accounts;
 using StudentPath.BLL.Services.AccountService;
+using StudentPath.DAL.Data.DBHelpers;
 using StudentPath.DAL.Data.Models;
 using System.Text;
 using System.Text.Json;
@@ -20,13 +21,15 @@ namespace StudentPath.API.Controllers
         private readonly IAccountService _accountService;
         private readonly IMemoryCache _memoryCache;
         private readonly HttpClient httpClient;
+        private readonly StudentPathContext context;
 
-        public AccountsController(IConfiguration configuration, IAccountService accountService, IMemoryCache memoryCache,HttpClient httpClient)
+        public AccountsController(IConfiguration configuration, IAccountService accountService, IMemoryCache memoryCache,HttpClient httpClient,StudentPathContext context)
         {
             _configuration = configuration;
             _accountService = accountService;
             _memoryCache = memoryCache;
             this.httpClient = httpClient;
+            this.context = context;
         }
 
         [HttpPost("Register")]
@@ -76,6 +79,8 @@ namespace StudentPath.API.Controllers
 
                 // Store relative path in ImgUrl (used in frontend or email)
                 registerDto.ImgUrl = $"/UserImages/{uniqueFileName}";
+               
+
             }
 
             //if (registerDto.IdFront != null)
