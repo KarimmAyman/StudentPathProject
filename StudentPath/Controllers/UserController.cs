@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using StudentPath.BLL.Dtoes.Bookings;
+using StudentPath.BLL.Dtoes.Trips;
 using StudentPath.BLL.Dtoes.Users;
 using StudentPath.BLL.Services.UserServices;
 using StudentPath.DAL.Data.DBHelpers;
@@ -144,6 +146,7 @@ namespace StudentPath.API.Controllers
         }
         #endregion
 
+
         #region UpdateUser
         [HttpPut("EditUser/{id}")]
         public async Task<IActionResult> Edit([FromRoute] string id, [FromForm] UserUpdatedDTO User)
@@ -272,6 +275,77 @@ namespace StudentPath.API.Controllers
         #endregion
 
 
+        #region GetUserBookings
 
+
+        [HttpGet("UserBookings")]
+        public async Task<IActionResult> GetMyBookings()
+        {
+            // Get UserId from token
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized(new
+                {
+                    Success = false,
+                    Message = "User not authenticated."
+                });
+            }
+
+            // Fetch bookings with related trip and locations
+            var bookings = await context.Bookings
+                .Include(b => b.Trip)
+                    .ThenInclude(t => t.FromLocation)
+                .Include(b => b.Trip)
+                    .ThenInclude(t => t.ToLocation)
+                .Where(b => b.UserId == userId&&b.BookingStatus==BookingStatus.Confirmed&&b.PaymentStatus==PaymentStatus.Paid).
+                OrderByDescending(b => b.BookingDate)
+                .Select(b => new UserBookingDTO
+                {
+                    FromLocation = new TripLocationDto
+                    {
+                        Latitude = b.Trip.FromLocation.Latitude,
+                        Longitude = b.Trip.FromLocation.Longitude,
+                        DisplayName = b.Trip.FromLocation.DisplayName,
+                        FullAddress = b.Trip.FromLocation.FullAddress
+                    },
+                    ToLocation = new TripLocationDto
+                    {
+                        Latitude = b.Trip.ToLocation.Latitude,
+                        Longitude = b.Trip.ToLocation.Longitude,
+                        DisplayName = b.Trip.ToLocation.DisplayName,
+                        FullAddress = b.Trip.ToLocation.FullAddress
+                    },
+                    TripStatus = b.Trip.Status,
+                    BookingDate = b.BookingDate,
+                    TotalSeats = b.NumberOfSeats
+                })
+                .ToListAsync();
+
+            if (bookings == null || bookings.Count == 0)
+            {
+                return NotFound(new
+                {
+                    Success = false,
+                    Message = "No bookings found for this user."
+                });
+            }
+
+            return Ok(new
+            {
+                Success = true,
+                Status=200,
+                Message = "Bookings retrieved successfully.",
+                Data = bookings
+            });
+        }
     }
+
+    #endregion
+
+
+
+
 }
+
