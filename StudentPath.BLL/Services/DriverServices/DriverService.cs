@@ -178,8 +178,7 @@ namespace StudentPath.BLL.Services.DriverServices
                     driverDto.ImgUrlFile,
                     "Drivers/ProfilePhotos"); 
 
-                var photoPath = await _fileService.SaveFileAsync(driverDto.PersonalPhoto, "Drivers/ProfilePhotos");
-                driver.PersonalPhotoPath = photoPath;
+                var photoPath = await _fileService.SaveFileAsync(driverDto.ImgUrlFile, "Drivers/ProfilePhotos");
                 driver.ImgUrl = photoPath;
             }
 
