@@ -1,8 +1,11 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using StudentPath.BLL.Dtoes.Users;
 using StudentPath.BLL.Services.UserServices;
+using StudentPath.DAL.Data.DBHelpers;
 using StudentPath.DAL.Data.Models;
+using System.Security.Claims;
 
 namespace StudentPath.API.Controllers
 {
@@ -16,13 +19,15 @@ namespace StudentPath.API.Controllers
         #region Prop
         private readonly IUserService UserService;
         private readonly IWebHostEnvironment webHostEnvironment;
+        private readonly StudentPathContext context;
         #endregion
 
         #region Ctor
-        public UserController(IUserService UserService, IWebHostEnvironment webHostEnvironment)
+        public UserController(IUserService UserService, IWebHostEnvironment webHostEnvironment,StudentPathContext context)
         {
             this.UserService = UserService;
             this.webHostEnvironment = webHostEnvironment;
+            this.context = context;
         }
         #endregion
 
@@ -188,9 +193,13 @@ namespace StudentPath.API.Controllers
             var result = await UserService.UpdateUserAsync(User);
             if (result.Success)
             {
-                Response.Headers.Add("X-Message", result.Message);
+                Response.Headers.Add("X-Message", "Updated user successfully");
 
-                return NoContent();
+                return Ok(new
+                {
+                    Success = true,
+                    Message = "Updated user successfully"
+                });
             }
             else
             {
@@ -221,6 +230,43 @@ namespace StudentPath.API.Controllers
 
             return Ok(new { Message = result.Message });
 
+        }
+
+        #endregion
+
+
+        #region GetUserTransactions
+
+        [HttpGet("UserTransactions")]
+        public async Task<IActionResult> GetTransactionsUser()
+        {
+            // Get UserId from JWT token claims
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized(new { Success = false, Message = "User not authenticated." });
+
+            var transactions = await context.Payments
+                                             .Where(t => t.UserId == userId && t.PaymentStatus==PaymentStatus.Paid)
+                                             .OrderByDescending(t => t.PaymentDate)
+                                             .Select(t => new UserTransactionDTO
+                                             {
+                                                 PaymentMethod = t.PaymentMethod,
+                                                 PaymentDate = t.PaymentDate,
+                                                 Amount = t.Amount
+                                             })
+                                             .ToListAsync();
+
+            if (transactions == null || transactions.Count == 0)
+                return NotFound(new { Success = false, Message = "No transactions found for this user." });
+
+            return Ok(new
+            {
+                Success = true,
+                Status = 200,
+                Message = "Transactions retrieved successfully.",
+                Data = transactions
+            });
         }
 
         #endregion
