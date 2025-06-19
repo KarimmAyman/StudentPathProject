@@ -29,6 +29,8 @@ using StudentPath.DAL.Repositories.HousingRepository;
 using StudentPath.DAL.Repositories.UnitOfWork;
 using System.Text;
 using StudentPath.BLL.Services.FileServices;
+using StudentPath.BLL.Services.RecommendationServices;
+using StudentPath.BLL.Services;
 
 
 public class Program
@@ -177,6 +179,8 @@ public class Program
         builder.Services.AddScoped<ITripService, TripService>();
         builder.Services.AddScoped<StudentPath.BLL.Services.FileServices.IFileService, StudentPath.BLL.Services.FileServices.FileService>();
         builder.Services.AddHostedService<TripStatusBackgroundService>();
+        builder.Services.AddHostedService<BookingCleanupService>();
+        builder.Services.AddScoped<RecommendationService>();
 
 
 

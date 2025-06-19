@@ -1,8 +1,13 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using StudentPath.BLL.Dtoes.Bookings;
+using StudentPath.BLL.Dtoes.Trips;
 using StudentPath.BLL.Dtoes.Users;
 using StudentPath.BLL.Services.UserServices;
+using StudentPath.DAL.Data.DBHelpers;
 using StudentPath.DAL.Data.Models;
+using System.Security.Claims;
 
 namespace StudentPath.API.Controllers
 {
@@ -16,13 +21,15 @@ namespace StudentPath.API.Controllers
         #region Prop
         private readonly IUserService UserService;
         private readonly IWebHostEnvironment webHostEnvironment;
+        private readonly StudentPathContext context;
         #endregion
 
         #region Ctor
-        public UserController(IUserService UserService, IWebHostEnvironment webHostEnvironment)
+        public UserController(IUserService UserService, IWebHostEnvironment webHostEnvironment,StudentPathContext context)
         {
             this.UserService = UserService;
             this.webHostEnvironment = webHostEnvironment;
+            this.context = context;
         }
         #endregion
 
@@ -36,7 +43,13 @@ namespace StudentPath.API.Controllers
                 return StatusCode(result.StatusCode, new { Message = result.Message });
             }
 
-            return Ok(new { Message = result.Message, Data = result.Data });
+            return Ok(new
+            {
+                Status = 200, // or any relevant status code you want
+                Success = true, // set to false if needed
+                Message = result.Message,
+                Data = result.Data
+            });
         }
         #endregion
 
@@ -57,7 +70,13 @@ namespace StudentPath.API.Controllers
                 return StatusCode(result.StatusCode, new { Message = result.Message });
             }
 
-            return Ok(new { Message = result.Message, Data = result.Data });
+            return Ok(new
+            {
+                Status = 200, // or any relevant status code you want
+                Success = true, // set to false if needed
+                Message = result.Message,
+                Data = result.Data
+            });
 
         }
         #endregion
@@ -116,6 +135,8 @@ namespace StudentPath.API.Controllers
             {
                 return CreatedAtAction(nameof(GetUserById), new { id = User.Id }, new
                 {
+                   
+                    Success = true,
                     Message = result.Message,
                     Data = User
                 });
@@ -124,6 +145,7 @@ namespace StudentPath.API.Controllers
             return StatusCode(result.StatusCode, new { Message = result.Message });
         }
         #endregion
+
 
         #region UpdateUser
         [HttpPut("EditUser/{id}")]
@@ -174,13 +196,20 @@ namespace StudentPath.API.Controllers
             var result = await UserService.UpdateUserAsync(User);
             if (result.Success)
             {
-                Response.Headers.Add("X-Message", result.Message);
+                Response.Headers.Add("X-Message", "Updated user successfully");
 
-                return NoContent();
+                return Ok(new
+                {
+                    Success = true,
+                    Message = "Updated user successfully"
+                });
             }
             else
             {
-                return StatusCode(result.StatusCode, new { Message = result.Message });
+                return StatusCode(result.StatusCode,
+                    new { Message = result.Message,
+                          Success=false
+                    });
 
             }
 
@@ -212,6 +241,114 @@ namespace StudentPath.API.Controllers
         #endregion
 
 
+        #region GetUserTransactions
 
+        [HttpGet("UserTransactions")]
+        public async Task<IActionResult> GetTransactionsUser()
+        {
+            // Get UserId from JWT token claims
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized(new { Success = false, Message = "User not authenticated." });
+
+            var transactions = await context.Payments
+                                             .Where(t => t.UserId == userId && t.PaymentStatus==PaymentStatus.Paid)
+                                             .OrderByDescending(t => t.PaymentDate)
+                                             .Select(t => new UserTransactionDTO
+                                             {
+                                                 PaymentMethod = t.PaymentMethod,
+                                                 PaymentDate = t.PaymentDate,
+                                                 Amount = t.Amount
+                                             })
+                                             .ToListAsync();
+
+            if (transactions == null || transactions.Count == 0)
+                return NotFound(new { Success = false, Message = "No transactions found for this user." });
+
+            return Ok(new
+            {
+                Success = true,
+                Status = 200,
+                Message = "Transactions retrieved successfully.",
+                Data = transactions
+            });
+        }
+
+        #endregion
+
+
+        #region GetUserBookings
+
+
+        [HttpGet("UserBookings")]
+        public async Task<IActionResult> GetMyBookings()
+        {
+            // Get UserId from token
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized(new
+                {
+                    Success = false,
+                    Message = "User not authenticated."
+                });
+            }
+
+            // Fetch bookings with related trip and locations
+            var bookings = await context.Bookings
+                .Include(b => b.Trip)
+                    .ThenInclude(t => t.FromLocation)
+                .Include(b => b.Trip)
+                    .ThenInclude(t => t.ToLocation)
+                .Where(b => b.UserId == userId&&b.BookingStatus==BookingStatus.Confirmed&&b.PaymentStatus==PaymentStatus.Paid).
+                OrderByDescending(b => b.BookingDate)
+                .Select(b => new UserBookingDTO
+                {
+                    FromLocation = new TripLocationDto
+                    {
+                        Latitude = b.Trip.FromLocation.Latitude,
+                        Longitude = b.Trip.FromLocation.Longitude,
+                        DisplayName = b.Trip.FromLocation.DisplayName,
+                        FullAddress = b.Trip.FromLocation.FullAddress
+                    },
+                    ToLocation = new TripLocationDto
+                    {
+                        Latitude = b.Trip.ToLocation.Latitude,
+                        Longitude = b.Trip.ToLocation.Longitude,
+                        DisplayName = b.Trip.ToLocation.DisplayName,
+                        FullAddress = b.Trip.ToLocation.FullAddress
+                    },
+                    TripStatus = b.Trip.Status,
+                    BookingDate = b.BookingDate,
+                    TotalSeats = b.NumberOfSeats
+                })
+                .ToListAsync();
+
+            if (bookings == null || bookings.Count == 0)
+            {
+                return NotFound(new
+                {
+                    Success = false,
+                    Message = "No bookings found for this user."
+                });
+            }
+
+            return Ok(new
+            {
+                Success = true,
+                Status=200,
+                Message = "Bookings retrieved successfully.",
+                Data = bookings
+            });
+        }
     }
+
+    #endregion
+
+
+
+
 }
+

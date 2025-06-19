@@ -6,6 +6,7 @@ using StudentPath.BLL.Dtoes.Drivers;
 using StudentPath.BLL.Dtos.Accounts;
 using StudentPath.BLL.Services.AccountService;
 using StudentPath.DAL.Data.Models;
+using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 
@@ -18,12 +19,14 @@ namespace StudentPath.API.Controllers
         private readonly IConfiguration _configuration;
         private readonly IAccountService _accountService;
         private readonly IMemoryCache _memoryCache;
+        private readonly HttpClient httpClient;
 
-        public AccountsController(IConfiguration configuration, IAccountService accountService, IMemoryCache memoryCache)
+        public AccountsController(IConfiguration configuration, IAccountService accountService, IMemoryCache memoryCache,HttpClient httpClient)
         {
             _configuration = configuration;
             _accountService = accountService;
             _memoryCache = memoryCache;
+            this.httpClient = httpClient;
         }
 
         [HttpPost("Register")]
@@ -52,6 +55,10 @@ namespace StudentPath.API.Controllers
                 registerDto.locations = JsonSerializer.Deserialize<List<LocationDto>>(locationsJson);
             }
 
+            // Handle user image and ID front
+            //string personalPhotoPath = null;
+            //string idFrontPath = null;
+
             // Handle user image (for non-driver users)
             if ( registerDto.ImgUrlFile != null)
             {
@@ -71,6 +78,37 @@ namespace StudentPath.API.Controllers
                 registerDto.ImgUrl = $"/UserImages/{uniqueFileName}";
             }
 
+            //if (registerDto.IdFront != null)
+            //{
+            //    var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Uploads", "Drivers");
+            //    if (!Directory.Exists(folderPath))
+            //        Directory.CreateDirectory(folderPath);
+
+            //    var uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(registerDto.IdFront.FileName);
+            //    idFrontPath = Path.Combine(folderPath, uniqueFileName);
+
+            //    using (var stream = new FileStream(idFrontPath, FileMode.Create))
+            //    {
+            //        await registerDto.IdFront.CopyToAsync(stream);
+            //    }
+            //    registerDto.IdFrontPath = $"/Uploads/Drivers/{uniqueFileName}"; // Store path if needed
+            //}
+
+            //if (personalPhotoPath != null && idFrontPath != null)
+            //{
+            //    var personalPhotoUrl = $"{registerDto.ImgUrl}";
+            //    var idFrontUrl = $"{registerDto.IdFrontPath}";
+            //    var isSamePerson = await VerifyFacesWithAiModelAsync(personalPhotoUrl, idFrontUrl);
+            //    if (!isSamePerson)
+            //    {
+            //        return BadRequest(new { successed = false, errors = new[] { "The personal photo and ID front image do not depict the same person." } });
+            //    }
+            //}
+            //else
+            //{
+            //    return BadRequest(new { successed = false, errors = new[] { "Both personal photo and ID front image are required for verification." } });
+            //}
+
             var response = await _accountService.Register(registerDto, Url);
 
             if (response.successed)
@@ -78,6 +116,46 @@ namespace StudentPath.API.Controllers
 
             return BadRequest(new { successed = false, errors = response.Errors });
         }
+
+        //[ApiExplorerSettings(IgnoreApi = true)]
+
+        //private async Task<bool> VerifyFacesWithAiModelAsync(string personalPhotoUrl, string idFrontUrl)
+        //{
+        //    const string verifyEndpoint = "http://127.0.0.1:8000/verify";
+
+        //    var requestBody = new
+        //    {
+        //        id_url = idFrontUrl,
+        //        ref_url = personalPhotoUrl
+        //    };
+
+        //    var content = new StringContent(
+        //        JsonSerializer.Serialize(requestBody),
+        //        Encoding.UTF8,
+        //        "application/json"
+        //    );
+
+        //    try
+        //    {
+        //        var response = await httpClient.PostAsync(verifyEndpoint,content);
+        //        if (!response.IsSuccessStatusCode)
+        //        {
+        //            // Log the error (replace with your logging framework, e.g., Serilog or ILogger)
+        //            Console.WriteLine($"Face verification failed: {response.StatusCode}");
+        //            return false;
+        //        }
+
+        //        var jsonResponse = await response.Content.ReadAsStringAsync();
+        //        var verificationResult = JsonSerializer.Deserialize<VerificationResponse>(jsonResponse, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        //        return verificationResult?.Match ?? false;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        // Log the error
+        //        Console.WriteLine($"Face verification error: {ex.Message}");
+        //        return false;
+        //    }
+        //}
 
         [HttpPost("Login")]
         public async Task<IActionResult> Login(LoginDto loginDto)

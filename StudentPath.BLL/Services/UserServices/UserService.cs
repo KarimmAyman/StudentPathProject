@@ -83,7 +83,7 @@ namespace StudentPath.BLL.Services.UserServices
 
             await unitOfWork.User.CreateOrUpdateAsync(std);
             await unitOfWork.Save();
-            return ApiResponse.SuccessResponse("User Is Updated Successfully", 204); // 204 NoContent
+            return ApiResponse.SuccessResponse("User Is Updated Successfully", 200); // 204 NoContent
 
 
         }
@@ -102,7 +102,7 @@ namespace StudentPath.BLL.Services.UserServices
             if (result == null) return ApiResponse<UserReadDTO>.ErrorResponse("User not found", 404);
 
             var UserReadDto = mapper.Map<UserReadDTO>(result);
-            return ApiResponse<UserReadDTO>.SuccessResponse("User found", 200, UserReadDto);
+            return ApiResponse<UserReadDTO>.SuccessResponse("user retrieved successfully ", 200, UserReadDto);
 
 
         }
@@ -118,7 +118,7 @@ namespace StudentPath.BLL.Services.UserServices
             if (result == null) return ApiResponse<UserDetailsDTO>.ErrorResponse("User not found", 404);
 
             var UserDetailDto = mapper.Map<UserDetailsDTO>(result);
-            return ApiResponse<UserDetailsDTO>.SuccessResponse("User found", 200, UserDetailDto);
+            return ApiResponse<UserDetailsDTO>.SuccessResponse("user retrieved successfully", 200, UserDetailDto);
         }
 
         #endregion
@@ -136,7 +136,7 @@ namespace StudentPath.BLL.Services.UserServices
 
             var UserReadDtos = mapper.Map<IEnumerable<UserReadDTO>>(result);
 
-            return ApiResponse<IEnumerable<UserReadDTO>>.SuccessResponse("Users retrieved successfully", 200, UserReadDtos);
+            return ApiResponse<IEnumerable<UserReadDTO>>.SuccessResponse("users retrieved successfully", 200, UserReadDtos);
         }
         public Task<IEnumerable<UserReadDTO>> getUsersAsync(int page, int pagesize)
         {

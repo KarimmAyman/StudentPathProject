@@ -150,7 +150,7 @@ namespace StudentPath.BLL.Dtoes.Users
     public class CreatePaymentRequest
     {
         public long Amount { get; set; }  // Amount in smallest currency unit (e.g., cents)
-        public string Currency { get; set; } = "usd";
+        public string Currency { get; set; } = "EGP";
         public string Email { get; set; }
         public int BookingId { get; set; }
 

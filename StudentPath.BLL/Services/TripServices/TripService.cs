@@ -83,6 +83,7 @@ namespace StudentPath.BLL.Services.TripServices
                         {
                             DriverId = activeTrip.DriverId,
                             DriverName = activeTrip.Driver?.UserName,
+                            PersonalPhotoPath = activeTrip.Driver.ImgUrl,
                             DriverPhone = activeTrip.Driver?.PhoneNumber,
                             VehicleInfo = (activeTrip.Driver as Driver)?.VehicleInfo?
                                 .Where(v => v.DriverId == activeTrip.DriverId)
@@ -218,6 +219,7 @@ namespace StudentPath.BLL.Services.TripServices
                     {
                         DriverId = trip.DriverId,
                         DriverName = trip.Driver?.UserName,
+                        PersonalPhotoPath = trip.Driver.ImgUrl,
                         DriverPhone = trip.Driver?.PhoneNumber,
                         VehicleInfo = (trip.Driver as Driver)?.VehicleInfo?
                       .Where(v => v.DriverId == trip.DriverId).
@@ -428,6 +430,7 @@ namespace StudentPath.BLL.Services.TripServices
                     DriverInfo = new DriverInfoDto
                     {
                         DriverId = trip.DriverId,
+                        PersonalPhotoPath = trip.Driver.ImgUrl,
                         DriverName = trip.Driver?.UserName,
                         DriverPhone = trip.Driver?.PhoneNumber,
                         VehicleInfo = (trip.Driver as Driver)?.VehicleInfo?
@@ -530,6 +533,7 @@ namespace StudentPath.BLL.Services.TripServices
                         DriverInfo = new DriverInfoDto
                         {
                             DriverId = trip.DriverId,
+                            PersonalPhotoPath=trip.Driver.ImgUrl,
                             DriverName = trip.Driver?.UserName,
                             DriverPhone = trip.Driver?.PhoneNumber,
                             VehicleInfo = (trip.Driver as Driver)?.VehicleInfo?
@@ -620,6 +624,7 @@ namespace StudentPath.BLL.Services.TripServices
                         DriverInfo = new DriverInfoDto
                         {
                             DriverId = trip.DriverId,
+                            PersonalPhotoPath = trip.Driver.ImgUrl,
                             DriverName = trip.Driver?.UserName,
                             DriverPhone = trip.Driver?.PhoneNumber,
                             VehicleInfo = (trip.Driver as Driver)?.VehicleInfo?
@@ -718,6 +723,7 @@ namespace StudentPath.BLL.Services.TripServices
                         DriverInfo = new DriverInfoDto
                         {
                             DriverId = trip.DriverId,
+                            PersonalPhotoPath = trip.Driver.ImgUrl,
                             DriverName = trip.Driver?.UserName,
                             DriverPhone = trip.Driver?.PhoneNumber,
                             VehicleInfo = (trip.Driver as Driver)?.VehicleInfo?
@@ -807,6 +813,7 @@ namespace StudentPath.BLL.Services.TripServices
                     {
                         DriverId = trip.DriverId,
                         DriverName = trip.Driver?.UserName,
+                        PersonalPhotoPath = trip.Driver.ImgUrl,
                         DriverPhone = trip.Driver?.PhoneNumber,
                         VehicleInfo = (trip.Driver as Driver)?.VehicleInfo?
                             .Where(v => v.DriverId == trip.DriverId)
@@ -943,6 +950,7 @@ namespace StudentPath.BLL.Services.TripServices
                     {
                         DriverId = trip.DriverId,
                         DriverName = trip.Driver?.UserName,
+                        PersonalPhotoPath = trip.Driver.ImgUrl,
                         DriverPhone = trip.Driver?.PhoneNumber,
                         VehicleInfo = (trip.Driver as Driver)?.VehicleInfo?
                             .Where(v => v.DriverId == trip.DriverId)
@@ -1025,6 +1033,7 @@ namespace StudentPath.BLL.Services.TripServices
                         DriverInfo = new DriverInfoDto
                         {
                             DriverId = trip.DriverId,
+                            PersonalPhotoPath = trip.Driver.ImgUrl,
                             DriverName = trip.Driver?.UserName,
                             DriverPhone = trip.Driver?.PhoneNumber,
                             VehicleInfo = (trip.Driver as Driver)?.VehicleInfo?
@@ -1056,5 +1065,8 @@ namespace StudentPath.BLL.Services.TripServices
                     500);
             }
         }
+
+
+
     }
 }

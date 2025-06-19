@@ -67,6 +67,7 @@ namespace StudentPath.BLL.Dtos.Accounts
         public string? DrivingLicense { get; set; }
         // Add these in RegisterDto (under Driver-specific section)
         public IFormFile? IdFront { get; set; }
+        //public string? IdFrontPath { get; set; }
         public IFormFile? IdBack { get; set; }
         public IFormFile? CriminalRecord { get; set; }
 

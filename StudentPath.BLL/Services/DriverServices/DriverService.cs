@@ -94,6 +94,14 @@ namespace StudentPath.BLL.Services.DriverServices
                     "Drivers/ProfilePhotos"); 
             }
 
+            driver.IdFrontPath = await _fileService.SaveFileAsync(driverDto.IdFront, "Drivers");
+            //driver.IdFrontPath= driverDto.IdFront;
+            driver.IdBackPath = await _fileService.SaveFileAsync(driverDto.IdBack, "Drivers");
+            driver.CriminalRecordPath = await _fileService.SaveFileAsync(driverDto.CriminalRecord, "Drivers");
+            driver.LicenseFrontPath = await _fileService.SaveFileAsync(driverDto.LicenseFront, "Drivers");
+            driver.LicenseBackPath = await _fileService.SaveFileAsync(driverDto.LicenseBack, "Drivers");
+            driver.LicenseSelfiePath = await _fileService.SaveFileAsync(driverDto.LicenseSelfie, "Drivers");
+
             // Process vehicles
             if (driverDto.VehicleAddDTOs != null && driverDto.VehicleAddDTOs.Any())
             {
@@ -169,6 +177,10 @@ namespace StudentPath.BLL.Services.DriverServices
                 driver.ImgUrl = await _fileService.SaveFileAsync(
                     driverDto.ImgUrlFile,
                     "Drivers/ProfilePhotos"); 
+
+                var photoPath = await _fileService.SaveFileAsync(driverDto.PersonalPhoto, "Drivers/ProfilePhotos");
+                driver.PersonalPhotoPath = photoPath;
+                driver.ImgUrl = photoPath;
             }
 
             await _unitOfWork.Save();

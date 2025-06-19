@@ -23,6 +23,7 @@ namespace StudentPath.BLL.Dtoes
 
         // ID Documents
         public IFormFile IdFront { get; set; }
+        //public string IdFront { get; set; }
         public IFormFile IdBack { get; set; }
         public IFormFile CriminalRecord { get; set; }
         public string IdNumber { get; set; }
