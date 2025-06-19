@@ -12,8 +12,6 @@ namespace StudentPath.BLL.Dtoes
         public string Email { get; set; } = string.Empty;
         public int Age { get; set; }
         public GenderType Gender { get; set; }
-        public string? PersonalPhotoUrl { get; set; }
-
         // Personal Documents
         public string NationalIdFrontPath { get; set; } = string.Empty;
         public string NationalIdBackPath { get; set; } = string.Empty;

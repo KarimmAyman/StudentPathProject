@@ -36,6 +36,7 @@
 
   <ItemGroup>
     <Folder Include="wwwroot\Uploads\default\" />
+    <Folder Include="wwwroot\Uploads\Drivers\ProfilePhotos\" />
     <Folder Include="wwwroot\UserImages\" />
   </ItemGroup>
 

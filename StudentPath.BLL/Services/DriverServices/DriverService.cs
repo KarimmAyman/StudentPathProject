@@ -80,6 +80,20 @@ namespace StudentPath.BLL.Services.DriverServices
             driver.Locations = new List<Location>();
 
             // Handle file uploads
+            driver.IdFrontPath = await _fileService.SaveFileAsync(driverDto.IdFront, "Drivers/IDs");
+            driver.IdBackPath = await _fileService.SaveFileAsync(driverDto.IdBack, "Drivers/IDs");
+            driver.CriminalRecordPath = await _fileService.SaveFileAsync(driverDto.CriminalRecord, "Drivers/Documents");
+            driver.LicenseFrontPath = await _fileService.SaveFileAsync(driverDto.LicenseFront, "Drivers/Licenses");
+            driver.LicenseBackPath = await _fileService.SaveFileAsync(driverDto.LicenseBack, "Drivers/Licenses");
+            driver.LicenseSelfiePath = await _fileService.SaveFileAsync(driverDto.LicenseSelfie, "Drivers/Licenses");
+
+            if (driverDto.ImgUrlFile != null)
+            {
+                driver.ImgUrl = await _fileService.SaveFileAsync(
+                    driverDto.ImgUrlFile,
+                    "Drivers/ProfilePhotos"); 
+            }
+
             driver.IdFrontPath = await _fileService.SaveFileAsync(driverDto.IdFront, "Drivers");
             //driver.IdFrontPath= driverDto.IdFront;
             driver.IdBackPath = await _fileService.SaveFileAsync(driverDto.IdBack, "Drivers");
@@ -153,8 +167,17 @@ namespace StudentPath.BLL.Services.DriverServices
 
 
             // Handle photo update if provided
-            if (driverDto.PersonalPhoto != null)
+            if (driverDto.ImgUrlFile != null)
             {
+                if (!string.IsNullOrEmpty(driver.ImgUrl))
+                {
+                    _fileService.DeleteFile(driver.ImgUrl);
+                }
+
+                driver.ImgUrl = await _fileService.SaveFileAsync(
+                    driverDto.ImgUrlFile,
+                    "Drivers/ProfilePhotos"); 
+
                 var photoPath = await _fileService.SaveFileAsync(driverDto.PersonalPhoto, "Drivers/ProfilePhotos");
                 driver.PersonalPhotoPath = photoPath;
                 driver.ImgUrl = photoPath;
@@ -392,7 +415,6 @@ namespace StudentPath.BLL.Services.DriverServices
                 Age = driver.Age,
                 Gender = driver.Gender,
                 ImgUrl = driver.ImgUrl,
-                PersonalPhotoUrl = driver.PersonalPhotoPath,
                 UserType = driver.UserType,
                 IdNumber = driver.IdNumber,
                 NationalIdFrontPath = driver.IdFrontPath,
@@ -443,7 +465,6 @@ namespace StudentPath.BLL.Services.DriverServices
                 Age = baseDto.Age,
                 Gender = baseDto.Gender,
                 ImgUrl = baseDto.ImgUrl,
-                PersonalPhotoUrl = baseDto.PersonalPhotoUrl,
                 IdNumber = baseDto.IdNumber,
                 NationalIdFrontPath = baseDto.NationalIdFrontPath,
                 NationalIdBackPath = baseDto.NationalIdBackPath,
