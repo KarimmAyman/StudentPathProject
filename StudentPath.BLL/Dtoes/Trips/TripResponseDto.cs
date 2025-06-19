@@ -31,6 +31,8 @@ namespace StudentPath.BLL.Dtoes.Trips
             public string DriverId { get; set; }
             public string DriverName { get; set; }
             public string DriverPhone { get; set; }
+            public string? PersonalPhotoPath { get; set; }
+
 
             // If the driver has multiple vehicles
             public VehicleInfoDto? VehicleInfo { get; set; }

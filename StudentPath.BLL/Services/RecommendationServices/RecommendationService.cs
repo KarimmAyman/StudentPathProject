@@ -248,7 +248,8 @@ namespace StudentPath.BLL.Services.RecommendationServices
                 DriverInfo = new DriverInfo
                 {
                     DriverName = trip.Driver?.UserName,
-                    DriverPhone = trip.Driver?.PhoneNumber,
+                    PersonalPhotoPath = trip.Driver.ImgUrl,
+                 DriverPhone = trip.Driver?.PhoneNumber,
                     VehicleInfo = (trip.Driver as Driver)?.VehicleInfo?
                           .Where(v => v.DriverId == trip.DriverId).
                      Select(v => new VehicleInfoDTO
