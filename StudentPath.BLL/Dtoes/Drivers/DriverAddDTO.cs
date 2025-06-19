@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
+using Microsoft.Identity.Client;
 using StudentPath.BLL.Dtoes.Accounts;
 using StudentPath.BLL.Dtoes.Drivers;
 using StudentPath.DAL.Data.Models;
@@ -11,6 +12,8 @@ namespace StudentPath.BLL.Dtoes
     {
         // Personal Info
         public IFormFile? PersonalPhoto { get; set; }
+
+        //public string? PersonalPhotoPath { get; set; }
         public string UserName { get; set; }
         public string Email { get; set; }
         public int Age { get; set; }
