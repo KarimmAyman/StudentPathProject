@@ -86,8 +86,6 @@ namespace StudentPath.DAL.Data.Models
     // Driver subclass
     public class Driver : User
     {
-        [DataType(DataType.ImageUrl)]
-        public string? PersonalPhotoPath { get; set; }
         public int Age { get; set; }
         public string IdNumber { get; set; }
         public string IdFrontPath { get; set; }
