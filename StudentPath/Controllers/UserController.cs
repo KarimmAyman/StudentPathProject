@@ -264,7 +264,7 @@ namespace StudentPath.API.Controllers
                                              .ToListAsync();
 
             if (transactions == null || transactions.Count == 0)
-                return NotFound(new { Success = false, Message = "No transactions found for this user." });
+                return Ok(new { Success = true,status=200, Message = "No transactions found for this user.",Data = transactions });
 
             return Ok(new
             {
@@ -328,11 +328,8 @@ namespace StudentPath.API.Controllers
 
             if (bookings == null || bookings.Count == 0)
             {
-                return NotFound(new
-                {
-                    Success = false,
-                    Message = "No bookings found for this user."
-                });
+                return Ok(new { Success = true, status = 200, Message = "No Bookings found for this user.", Data = bookings });
+
             }
 
             return Ok(new
