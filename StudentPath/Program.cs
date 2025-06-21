@@ -31,6 +31,7 @@ using System.Text;
 using StudentPath.BLL.Services.FileServices;
 using StudentPath.BLL.Services.RecommendationServices;
 using StudentPath.BLL.Services;
+using StudentPath.BLL.Services.FaceVerificationService;
 
 
 public class Program
@@ -181,6 +182,8 @@ public class Program
         builder.Services.AddHostedService<TripStatusBackgroundService>();
         builder.Services.AddHostedService<BookingCleanupService>();
         builder.Services.AddScoped<RecommendationService>();
+        builder.Services.AddScoped<IFaceVerificationService, FaceVerificationService>();
+
 
 
 

@@ -31,7 +31,9 @@ namespace StudentPath.DAL.Data.Models
     {
         Pending,
         Approved,
-        Denied
+        Denied,
+        NextStage
+
     }
 
     public class User : IdentityUser
