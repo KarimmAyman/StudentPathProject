@@ -32,14 +32,7 @@ namespace StudentPath.API.Controllers
         [HttpGet("drivers/pending")]
         public async Task<IActionResult> GetPendingDrivers()
         {
-            //var drivers = await _adminService.GetPendingDriversAsync();
-
-            //return Ok(new
-            //{
-            //    successed = true,
-            //    message = "Pending drivers retrieved successfully.",
-            //    data = drivers  // List<DriverReadDTO>
-            //});
+            
 
             var baseUrl = $"{httpContextAccessor.HttpContext?.Request.Scheme}://{httpContextAccessor.HttpContext?.Request.Host}";
 
@@ -55,7 +48,7 @@ namespace StudentPath.API.Controllers
              })
              .ToListAsync();
 
-            var filteredDrivers = new List<DriverReadDTO>();
+            var filteredDrivers = new List<PendingDriverDTO>();
 
             foreach (var driver in pendingDrivers)
             {
@@ -80,10 +73,15 @@ namespace StudentPath.API.Controllers
                 var driverToUpdate = await context.Drivers.FindAsync(driver.Id);
                 if (driverToUpdate != null)
                 {
+
                     if (isSamePerson)
                     {
                         // Move to next stage if faces match
-                        driverToUpdate.Status = ApprovalStatus.NextStage;
+                        driverToUpdate.Status =ApprovalStatus.NextStage;
+                        filteredDrivers.Add(new PendingDriverDTO
+                        {
+                            UserName = driverToUpdate.UserName
+                        });
                     }
                     else
                     {
