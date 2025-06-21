@@ -129,7 +129,8 @@ namespace StudentPath.BLL.Services.AccountService
                     LicenseFront = registerDto.LicenseFront,
                     LicenseBack = registerDto.LicenseBack,
                     LicenseSelfie = registerDto.LicenseSelfie,
-                    
+
+
                     Locations = registerDto.locations?.Select(loc => new LocationDto
                     {
                         Latitude = loc.Latitude,

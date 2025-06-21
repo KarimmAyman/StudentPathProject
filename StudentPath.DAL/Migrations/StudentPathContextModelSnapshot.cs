@@ -251,7 +251,7 @@ namespace StudentPath.DAL.Migrations
 
                     b.HasIndex("CreatedByUserId");
 
-                    b.ToTable("Jobs");
+                    b.ToTable("Jobs", (string)null);
                 });
 
             modelBuilder.Entity("StudentPath.DAL.Data.Models.Booking", b =>
@@ -302,7 +302,7 @@ namespace StudentPath.DAL.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Bookings");
+                    b.ToTable("Bookings", (string)null);
                 });
 
             modelBuilder.Entity("StudentPath.DAL.Data.Models.DriverWalletTransaction", b =>
@@ -333,7 +333,7 @@ namespace StudentPath.DAL.Migrations
 
                     b.HasIndex("DriverId");
 
-                    b.ToTable("DriverWalletsTransactions");
+                    b.ToTable("DriverWalletsTransactions", (string)null);
                 });
 
             modelBuilder.Entity("StudentPath.DAL.Data.Models.EscrowAccount", b =>
@@ -364,7 +364,7 @@ namespace StudentPath.DAL.Migrations
 
                     b.HasKey("EscrowAccountId");
 
-                    b.ToTable("EscrowAccounts");
+                    b.ToTable("EscrowAccounts", (string)null);
                 });
 
             modelBuilder.Entity("StudentPath.DAL.Data.Models.Housing.Feature", b =>
@@ -384,7 +384,7 @@ namespace StudentPath.DAL.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Features");
+                    b.ToTable("Features", (string)null);
 
                     b.HasData(
                         new
@@ -710,7 +710,7 @@ namespace StudentPath.DAL.Migrations
 
                     b.HasIndex("PropertyId");
 
-                    b.ToTable("LocationProperties");
+                    b.ToTable("LocationProperties", (string)null);
                 });
 
             modelBuilder.Entity("StudentPath.DAL.Data.Models.Housing.Property", b =>
@@ -787,7 +787,7 @@ namespace StudentPath.DAL.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Properties");
+                    b.ToTable("Properties", (string)null);
                 });
 
             modelBuilder.Entity("StudentPath.DAL.Data.Models.Housing.PropertyFeature", b =>
@@ -810,7 +810,7 @@ namespace StudentPath.DAL.Migrations
 
                     b.HasIndex("PropertyId");
 
-                    b.ToTable("PropertyFeatures");
+                    b.ToTable("PropertyFeatures", (string)null);
                 });
 
             modelBuilder.Entity("StudentPath.DAL.Data.Models.Housing.PropertyImage", b =>
@@ -832,7 +832,7 @@ namespace StudentPath.DAL.Migrations
 
                     b.HasIndex("PropertyId");
 
-                    b.ToTable("PropertyImages");
+                    b.ToTable("PropertyImages", (string)null);
                 });
 
             modelBuilder.Entity("StudentPath.DAL.Data.Models.Location", b =>
@@ -865,7 +865,7 @@ namespace StudentPath.DAL.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Locations");
+                    b.ToTable("Locations", (string)null);
                 });
 
             modelBuilder.Entity("StudentPath.DAL.Data.Models.Notification", b =>
@@ -901,7 +901,7 @@ namespace StudentPath.DAL.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Notifications");
+                    b.ToTable("Notifications", (string)null);
                 });
 
             modelBuilder.Entity("StudentPath.DAL.Data.Models.Payment", b =>
@@ -945,7 +945,7 @@ namespace StudentPath.DAL.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Payments");
+                    b.ToTable("Payments", (string)null);
                 });
 
             modelBuilder.Entity("StudentPath.DAL.Data.Models.Trip", b =>
@@ -1017,7 +1017,7 @@ namespace StudentPath.DAL.Migrations
 
                     b.HasIndex("ToLocationId");
 
-                    b.ToTable("Trips");
+                    b.ToTable("Trips", (string)null);
                 });
 
             modelBuilder.Entity("StudentPath.DAL.Data.Models.TripLocation", b =>
@@ -1052,7 +1052,7 @@ namespace StudentPath.DAL.Migrations
 
                     b.HasIndex("Latitude", "Longitude");
 
-                    b.ToTable("TripLocations");
+                    b.ToTable("TripLocations", (string)null);
                 });
 
             modelBuilder.Entity("StudentPath.DAL.Data.Models.TripRequest", b =>
@@ -1087,7 +1087,7 @@ namespace StudentPath.DAL.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("TripRequests");
+                    b.ToTable("TripRequests", (string)null);
                 });
 
             modelBuilder.Entity("StudentPath.DAL.Data.Models.User", b =>
@@ -1223,7 +1223,7 @@ namespace StudentPath.DAL.Migrations
 
                     b.HasKey("UserId", "DriverId");
 
-                    b.ToTable("UserDrivers");
+                    b.ToTable("UserDrivers", (string)null);
                 });
 
             modelBuilder.Entity("StudentPath.DAL.Data.Models.VehicleInfo", b =>
@@ -1273,7 +1273,7 @@ namespace StudentPath.DAL.Migrations
 
                     b.HasIndex("DriverId");
 
-                    b.ToTable("vehicleInfos");
+                    b.ToTable("vehicleInfos", (string)null);
                 });
 
             modelBuilder.Entity("StudentPath.DAL.Data.Models.Wallet", b =>
@@ -1303,7 +1303,7 @@ namespace StudentPath.DAL.Migrations
                     b.HasIndex("UserId")
                         .IsUnique();
 
-                    b.ToTable("Wallets");
+                    b.ToTable("Wallets", (string)null);
                 });
 
             modelBuilder.Entity("StudentPath.DAL.Data.Models.WalletTransaction", b =>
@@ -1336,7 +1336,7 @@ namespace StudentPath.DAL.Migrations
 
                     b.HasIndex("WalletId");
 
-                    b.ToTable("WalletsTransactions");
+                    b.ToTable("WalletsTransactions", (string)null);
                 });
 
             modelBuilder.Entity("StudentPath.DAL.Data.Models.CustomRole", b =>
@@ -1505,7 +1505,7 @@ namespace StudentPath.DAL.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.OwnsOne("StudentPath.DAL.Data.Models.Coordinate", "MeetingPoint", b1 =>
+                    b.OwnsOne("StudentPath.DAL.Data.Models.Booking.MeetingPoint#StudentPath.DAL.Data.Models.Coordinate", "MeetingPoint", b1 =>
                         {
                             b1.Property<int>("BookingId")
                                 .HasColumnType("int");
@@ -1518,7 +1518,7 @@ namespace StudentPath.DAL.Migrations
 
                             b1.HasKey("BookingId");
 
-                            b1.ToTable("Bookings");
+                            b1.ToTable("Bookings", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("BookingId");

@@ -1,6 +1,13 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using StudentPath.BLL.Dtoes;
+using StudentPath.BLL.Dtoes.Drivers;
 using StudentPath.BLL.Services.AdminServices;
+using StudentPath.BLL.Services.FaceVerificationService;
+using StudentPath.DAL.Data.DBHelpers;
+using StudentPath.DAL.Data.Models;
+using System.Security.Claims;
 
 namespace StudentPath.API.Controllers
 {
@@ -9,25 +16,93 @@ namespace StudentPath.API.Controllers
     public class AdminController : ControllerBase
     {
         private readonly IAdminService _adminService;
+        private readonly StudentPathContext context;
+        private readonly IFaceVerificationService faceVerificationService;
+        private readonly IHttpContextAccessor httpContextAccessor;
 
-        public AdminController(IAdminService adminService)
+        public AdminController(IAdminService adminService,StudentPathContext context,IFaceVerificationService faceVerificationService,IHttpContextAccessor httpContextAccessor)
         {
             _adminService = adminService;
+            this.context = context;
+            this.faceVerificationService = faceVerificationService;
+            this.httpContextAccessor = httpContextAccessor;
         }
 
         // 1. List all pending drivers
         [HttpGet("drivers/pending")]
         public async Task<IActionResult> GetPendingDrivers()
         {
-            var drivers = await _adminService.GetPendingDriversAsync();
+            //var drivers = await _adminService.GetPendingDriversAsync();
+
+            //return Ok(new
+            //{
+            //    successed = true,
+            //    message = "Pending drivers retrieved successfully.",
+            //    data = drivers  // List<DriverReadDTO>
+            //});
+
+            var baseUrl = $"{httpContextAccessor.HttpContext?.Request.Scheme}://{httpContextAccessor.HttpContext?.Request.Host}";
+
+            var pendingDrivers = await context.Drivers
+             .Where(d => d.Status == ApprovalStatus.Pending)
+             .Select(d => new DriverFaceVerficiationDTO
+             {
+
+                 Id=d.Id,
+                 IdFrontPhotoUrl = $"{baseUrl}/{d.IdFrontPath.Replace("\\", "/").TrimStart('/')}",
+                 PersonalPhotoUrl = $"{baseUrl}/{d.ImgUrl.Replace("\\", "/").TrimStart('/')}",
+                 Status = (ApprovalStatus)d.Status
+             })
+             .ToListAsync();
+
+            var filteredDrivers = new List<DriverReadDTO>();
+
+            foreach (var driver in pendingDrivers)
+            {
+                // Validate photo URLs
+                if (string.IsNullOrEmpty(driver.IdFrontPhotoUrl) || string.IsNullOrEmpty(driver.PersonalPhotoUrl))
+                {
+                    var dbDriver = await context.Drivers.FindAsync(driver.Id);
+                    if (dbDriver != null)
+                    {
+                        dbDriver.Status = ApprovalStatus.Denied;
+                    }
+                    continue;
+                }
+
+                // Call AI face verification API
+
+                bool isSamePerson = await faceVerificationService.VerifyFacesAsync(
+                    driver.IdFrontPhotoUrl,
+                    driver.PersonalPhotoUrl
+                );
+
+                var driverToUpdate = await context.Drivers.FindAsync(driver.Id);
+                if (driverToUpdate != null)
+                {
+                    if (isSamePerson)
+                    {
+                        // Move to next stage if faces match
+                        driverToUpdate.Status = ApprovalStatus.NextStage;
+                    }
+                    else
+                    {
+                        // Deny driver if faces don't match
+                        driverToUpdate.Status = ApprovalStatus.Denied;
+                    }
+                }
+            }
+
+            await context.SaveChangesAsync();
 
             return Ok(new
             {
-                successed = true,
-                message = "Pending drivers retrieved successfully.",
-                data = drivers  // List<DriverReadDTO>
+                succeeded = true,
+                message = "Pending drivers processed successfully.",
+                data = filteredDrivers // Return only drivers who passed verification
             });
         }
+   
 
         // 2. Approve a driver
         [HttpPut("drivers/{id}/approve")]
