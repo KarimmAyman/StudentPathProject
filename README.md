@@ -282,14 +282,20 @@ copies or substantial portions of the Software.
 
 ## 📞 Contact & Support
 
-### Project Maintainer
-- **GitHub**: [@KarimmAyman](https://github.com/KarimmAyman)
-- **Email**: [karim.ayman@studentpath.com](mailto:karim.ayman@studentpath.com)
+### Project Maintainers
+- **Mohamed Saber** – .NET Backend Developer  
+  GitHub: [@DevMohamedd](https://github.com/DevMohamedd)
+
+- **Gamal Elbatawy** – .NET Backend Developer  
+  GitHub: [@gamalgithue](https://github.com/gamalgithue)
+
+- **Karim Ayman** – .NET Backend Developer  
+  GitHub: [@KarimmAyman](https://github.com/KarimmAyman)
 
 ### Getting Help
 - **Issues**: [GitHub Issues](https://github.com/KarimmAyman/StudentPathProject/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/KarimmAyman/StudentPathProject/discussions)
-- **Documentation**: [Project Wiki](https://github.com/KarimmAyman/StudentPathProject/wiki)
+
 
 ### Community
 - **Discord**: [StudentPath Community](https://discord.gg/studentpath)
@@ -299,4 +305,16 @@ copies or substantial portions of the Software.
 
 **⭐ If you find this project helpful, please consider giving it a star on GitHub!**
 
-**🚀 Built with ❤️ for Egyptian university students**
+**🚀 Built with ❤️ By Aoun Team**
+
+---
+
+## 👥 Contributors
+
+| Name              | Role                  | GitHub Profile                                      |
+|-------------------|------------------------|-----------------------------------------------------|
+| Mohamed Saber     | .NET Backend Developer | [@DevMohamedd](https://github.com/DevMohamedd)     |
+| Gamal Elbatawy    | .NET Backend Developer | [@gamalgithue](https://github.com/gamalgithue)     |
+| Karim Ayman       | .NET Backend Developer | [@KarimmAyman](https://github.com/KarimmAyman)     |
+
+
