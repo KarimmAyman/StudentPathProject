@@ -144,6 +144,7 @@ namespace StudentPath.DAL.Data.DBHelpers
 
 
 
+
         //Housing
         public DbSet<Feature> Features { get; set; }
         public DbSet<LocationProperty> LocationProperties { get; set; }
