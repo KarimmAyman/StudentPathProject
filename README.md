@@ -31,12 +31,12 @@ StudentPath serves as the backbone API for student life support services, offeri
 - Multi-image support for property showcasing
 - Owner-managed property posting system
 
-### 💼 Job & Activity Management
+###  Job & Activity Management
 - **Admin-posted job and activity opportunities** 
 - **Public listings with expiry management** 
 - Detailed job descriptions and application tracking
 
-## 🛠️ Tech Stack & Tools
+##  Tech Stack & Tools
 
 | Technology | Version | Purpose |
 |------------|---------|---------|
@@ -288,9 +288,9 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 
 ---
 
-** If you find this project helpful, please consider giving it a star on GitHub!**
+**If you find this project helpful, please consider giving it a star on GitHub!**
 
-** Built with ❤️ By Aoun Team**
+**Built with ❤️ By Aoun Team**
 
 ---
 
