@@ -1,32 +1,32 @@
 
-# StudentPath (Aoun Platform) 🎓🚌🏠💼
+# StudentPath (Aoun Platform) 
 
 **StudentPath** is a comprehensive RESTful API platform built with ASP.NET Core 8.0, designed specifically for university students in Egypt. As part of the larger Aoun ecosystem, it provides integrated solutions for transportation (ride-sharing), housing management, job opportunities, and community activities through a secure, scalable backend system. 
 
-## 🎯 Project Overview
+##  Project Overview
 
 StudentPath serves as the backbone API for student life support services, offering a multi-domain platform that addresses the core needs of university students. The system implements role-based access control, secure payment processing, and real-time service management through a well-architected layered approach.
 
-## ✨ Key Features
+##  Key Features
 
-### 🔐 Authentication & User Management
+###  Authentication & User Management
 - **Role-based access control** using ASP.NET Core Identity 
 - **JWT-based authentication** with secure token management 
 - **Email verification and OTP workflows** for password reset 
 - Multi-user type support (Students, Drivers, Admins)
 
-### 🚗 Transportation Module
+###  Transportation Module
 - **Driver onboarding and vehicle registration** with document verification 
 - **Trip creation and management** with real-time seat tracking 
 - **Automated trip status management** via background services 
 - AI-powered face verification for driver approval 
 
-### 💰 Payment Integration
+###  Payment Integration
 - **Dual payment gateway support** (Stripe & Paymob) for local and international transactions 
 - **Escrow and wallet transaction support** for secure payments  
 - Comprehensive transaction tracking and history
 
-### 🏠 Housing Management
+###  Housing Management
 - **Property listing with location metadata** and geographic search  
 - Multi-image support for property showcasing
 - Owner-managed property posting system
@@ -51,7 +51,7 @@ StudentPath serves as the backbone API for student life support services, offeri
 | **SQL Server** | - | Primary Database |
 | **Paymob API** | - | Egyptian Payment Gateway |
 
-## 🚀 Installation & Setup Guide
+##  Installation & Setup Guide
 
 ### Prerequisites
 - **.NET 8.0 SDK** or later
@@ -128,7 +128,7 @@ The API will be available at:
 - **HTTP**: `http://localhost:5000`
 - **Swagger UI**: `https://localhost:7000/swagger`
 
-## 🔧 API Usage & Authentication Flow
+##  API Usage & Authentication Flow
 
 ### Authentication Process
 
@@ -173,13 +173,13 @@ The API will be available at:
 3. Enter: `Bearer your-jwt-token-here`
 4. Test endpoints with built-in Swagger UI
 
-## 🏗️ Code Structure & Architecture
+##  Code Structure & Architecture
 
 The project follows a **layered architecture pattern** with clear separation of concerns: 
 
 ```
 StudentPath/
-├── StudentPath.API/                  # 🎯 Presentation Layer
+├── StudentPath.API/                  #  Presentation Layer
 │   ├── Controllers/                  # API Controllers
 │   │   ├── AccountsController.cs     # Authentication endpoints
 │   │   ├── UserController.cs         # User management
@@ -190,7 +190,7 @@ StudentPath/
 │   ├── Program.cs                    # Application bootstrap
 │   └── appsettings.json             # Configuration
 │
-├── StudentPath.BLL/                  # 🧠 Business Logic Layer
+├── StudentPath.BLL/                  #  Business Logic Layer
 │   ├── Services/                     # Service implementations
 │   │   ├── AccountService/           # Authentication logic
 │   │   ├── UserServices/             # User management
@@ -200,7 +200,7 @@ StudentPath/
 │   ├── DTOs/                         # Data Transfer Objects
 │   └── AutoMappers/                  # Object mapping profiles
 │
-├── StudentPath.DAL/                  # 💾 Data Access Layer
+├── StudentPath.DAL/                  #  Data Access Layer
 │   ├── Data/
 │   │   ├── Models/                   # Entity models
 │   │   │   ├── User.cs              # User entities
@@ -222,7 +222,7 @@ StudentPath/
 - **Service Layer**: Business logic encapsulation
 - **DTO Pattern**: Data transfer optimization
 
-## 🤝 Contributing Guidelines
+##  Contributing Guidelines
 
 We welcome contributions to StudentPath! Please follow these guidelines:
 
@@ -260,12 +260,12 @@ We welcome contributions to StudentPath! Please follow these guidelines:
 - Automated CI/CD checks must pass
 - Follow semantic versioning for releases
 
-## 📄 License
+##  License
 
 This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
 
 
-## 📞 Contact & Support
+##  Contact & Support
 
 ### Project Maintainers
 - **Mohamed Saber** – .NET Backend Developer  
@@ -288,13 +288,13 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 
 ---
 
-**⭐ If you find this project helpful, please consider giving it a star on GitHub!**
+** If you find this project helpful, please consider giving it a star on GitHub!**
 
-**🚀 Built with ❤️ By Aoun Team**
+** Built with ❤️ By Aoun Team**
 
 ---
 
-## 👥 Contributors
+##  Contributors
 
 | Name              | Role                  | GitHub Profile                                      |
 |-------------------|------------------------|-----------------------------------------------------|
